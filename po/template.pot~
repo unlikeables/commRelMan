@@ -1,0 +1,792 @@
+msgid ""
+msgstr ""
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Project-Id-Version: \n"
+
+#: public/modules/feeds/views/lista.fb.view.html:189
+msgid "(Responding)"
+msgstr ""
+
+msgid "Return to entries​"
+msgstr ""
+
+msgid "New Messages"
+msgstr ""
+
+#: public/modules/accounts/views/list-accounts.client.view.html:219
+msgid "*Access Token"
+msgstr ""
+
+#: public/modules/accounts/views/list-accounts.client.view.html:212
+msgid "*Access Token Secret"
+msgstr ""
+
+#: public/modules/accounts/views/list-accounts.client.view.html:217
+msgid "*Costumer Key"
+msgstr ""
+
+#: public/modules/accounts/views/list-accounts.client.view.html:210
+msgid "*Costumer Secret"
+msgstr ""
+
+#: public/modules/accounts/views/list-accounts.client.view.html:208
+msgid "*Username (Responding Account)"
+msgstr ""
+
+#: public/modules/accounts/views/list-accounts.client.view.html:35
+msgid "ACCOUNTS"
+msgstr ""
+
+#: public/modules/accounts/views/list-accounts.client.view.html:126
+#: public/modules/accounts/views/list-accounts.client.view.html:171
+#: public/modules/accounts/views/list-accounts.client.view.html:231
+#: public/modules/accounts/views/list-accounts.client.view.html:291
+#: public/modules/feeds/views/lista.descartados.view.html:571
+#: public/modules/feeds/views/lista.fb.view.html:812
+#: public/modules/influencers/views/list-influencers.client.view.html:199
+#: public/modules/influencers/views/list-influencers.client.view.html:332
+#: public/modules/influencers/views/list-influencers.client.view.html:358
+#: public/modules/themes/views/list-themes.client.view.html:116
+#: public/modules/themes/views/list-themes.client.view.html:220
+#: public/modules/themes/views/list-themes.client.view.html:256
+#: public/modules/themes/views/list-themes.client.view.html:293
+#: public/modules/themes/views/list-themes.client.view.html:317
+#: public/modules/themes/views/list-themes.client.view.html:337
+#: public/modules/themes/views/list-themes.client.view.html:357
+#: public/modules/themes/views/list-themes.client.view.html:67
+#: public/modules/users/views/authentication/signin.client.view.html:146
+#: public/modules/users/views/list/view-user.list.view.html:190
+#: public/modules/users/views/list/view-user.list.view.html:213
+#: public/modules/users/views/list/view-user.list.view.html:260
+msgid "Accept"
+msgstr ""
+
+#: public/modules/accounts/views/list-accounts.client.view.html:79
+msgid "Account Name:"
+msgstr ""
+
+#: public/modules/core/views/side.html:46
+msgid "Accounts"
+msgstr ""
+
+#: public/modules/feeds/views/lista.resueltos.view.html:595
+msgid "Aceptar"
+msgstr ""
+
+#: public/modules/influencers/views/list-influencers.client.view.html:233
+msgid "Add Influencer"
+msgstr ""
+
+#: public/modules/themes/views/list-themes.client.view.html:276
+msgid "Add Response"
+msgstr ""
+
+#: public/modules/themes/views/list-themes.client.view.html:239
+msgid "Add Subtopic"
+msgstr ""
+
+#: public/modules/themes/views/list-themes.client.view.html:198
+msgid "Add Topic"
+msgstr ""
+
+#: public/modules/feeds/views/lista.fb.view.html:698
+msgid "Add to your Predefined Answers"
+msgstr ""
+
+#: public/modules/influencers/views/list-influencers.client.view.html:137
+#: public/modules/influencers/views/list-influencers.client.view.html:260
+msgid "Advertising & Marketing"
+msgstr ""
+
+#: public/modules/themes/views/list-themes.client.view.html:351
+msgid "Al hacerlo eliminarás la respuesta"
+msgstr ""
+
+#: public/modules/feeds/views/lista.fb.view.html:201
+msgid "Answer"
+msgstr ""
+
+#: public/modules/feeds/views/lista.fb.view.html:771
+msgid "Answered"
+msgstr ""
+
+#: public/modules/themes/views/list-themes.client.view.html:330
+msgid "Are you sure you want to delete this Subtopic?"
+msgstr ""
+
+#: public/modules/themes/views/list-themes.client.view.html:309
+msgid "Are you sure you want to delete this Topic?"
+msgstr ""
+
+#: public/modules/accounts/views/list-accounts.client.view.html:116
+#: public/modules/influencers/views/list-influencers.client.view.html:350
+msgid "Are you sure?"
+msgstr ""
+
+#: public/modules/articles/views/list-articles.client.view.html:3
+msgid "Articles"
+msgstr ""
+
+#: public/modules/influencers/views/list-influencers.client.view.html:138
+#: public/modules/influencers/views/list-influencers.client.view.html:261
+msgid "Arts & Entertainment"
+msgstr ""
+
+#: public/modules/feeds/views/lista.descartados.view.html:177
+#: public/modules/feeds/views/lista.fb.view.html:208
+msgid "Assign"
+msgstr ""
+
+#: public/modules/influencers/views/list-influencers.client.view.html:139
+#: public/modules/influencers/views/list-influencers.client.view.html:262
+msgid "Auto"
+msgstr ""
+
+#: public/modules/users/views/authentication/signin.client.view.html:103
+msgid "Begin"
+msgstr ""
+
+#: public/modules/feeds/views/lista.descartados.view.html:526
+msgid "Bot"
+msgstr ""
+
+#: public/modules/feeds/views/lista.descartados.view.html:551
+msgid "Bully"
+msgstr ""
+
+#: public/modules/influencers/views/list-influencers.client.view.html:140
+#: public/modules/influencers/views/list-influencers.client.view.html:263
+msgid "Business"
+msgstr ""
+
+#: public/modules/themes/views/list-themes.client.view.html:310
+msgid "By doing so, you will delete its Subtopics"
+msgstr ""
+
+#: public/modules/accounts/views/list-accounts.client.view.html:125
+#: public/modules/accounts/views/list-accounts.client.view.html:170
+#: public/modules/accounts/views/list-accounts.client.view.html:230
+#: public/modules/accounts/views/list-accounts.client.view.html:290
+#: public/modules/feeds/views/lista.descartados.view.html:570
+#: public/modules/feeds/views/lista.fb.view.html:608
+#: public/modules/feeds/views/lista.fb.view.html:662
+#: public/modules/feeds/views/lista.fb.view.html:710
+#: public/modules/feeds/views/lista.fb.view.html:811
+#: public/modules/influencers/views/list-influencers.client.view.html:200
+#: public/modules/influencers/views/list-influencers.client.view.html:333
+#: public/modules/influencers/views/list-influencers.client.view.html:357
+#: public/modules/themes/views/list-themes.client.view.html:115
+#: public/modules/themes/views/list-themes.client.view.html:219
+#: public/modules/themes/views/list-themes.client.view.html:255
+#: public/modules/themes/views/list-themes.client.view.html:292
+#: public/modules/themes/views/list-themes.client.view.html:316
+#: public/modules/themes/views/list-themes.client.view.html:66
+#: public/modules/users/views/list/view-user.list.view.html:189
+#: public/modules/users/views/list/view-user.list.view.html:212
+#: public/modules/users/views/list/view-user.list.view.html:259
+msgid "Cancel"
+msgstr ""
+
+#: public/modules/accounts/views/list-accounts.client.view.html:88
+#: public/modules/feeds/views/lista.resueltos.view.html:594
+#: public/modules/themes/views/list-themes.client.view.html:150
+#: public/modules/users/views/authentication/signin.client.view.html:147
+msgid "Cancelar"
+msgstr ""
+
+#: public/modules/users/views/list/view-user.list.view.html:165
+msgid "Change Password"
+msgstr ""
+
+#: public/modules/feeds/views/lista.resueltos.view.html:504
+msgid "Close"
+msgstr ""
+
+#: public/modules/feeds/views/lista.fb.view.html:194
+msgid "Complete"
+msgstr ""
+
+#: public/modules/feeds/views/lista.descartados.view.html:77
+#: public/modules/feeds/views/lista.fb.view.html:57
+#: public/modules/feeds/views/lista.resueltos.view.html:36
+msgid "Completed"
+msgstr ""
+
+#: public/modules/influencers/views/list-influencers.client.view.html:141
+#: public/modules/influencers/views/list-influencers.client.view.html:264
+msgid "Computers & Consumer Electronics"
+msgstr ""
+
+#: public/modules/users/views/list/view-user.list.view.html:182
+msgid "Confirm New Password"
+msgstr ""
+
+#: public/modules/influencers/views/list-influencers.client.view.html:142
+#: public/modules/influencers/views/list-influencers.client.view.html:265
+msgid "Consumer Packaged Goods"
+msgstr ""
+
+#: public/modules/feeds/views/lista.fb.view.html:612
+#: public/modules/feeds/views/lista.fb.view.html:666
+msgid "Create"
+msgstr ""
+
+#: public/modules/users/views/list/view-user.list.view.html:174
+msgid "Current Password"
+msgstr ""
+
+#: public/modules/influencers/views/list-influencers.client.view.html:143
+#: public/modules/influencers/views/list-influencers.client.view.html:266
+msgid "Dating"
+msgstr ""
+
+#: public/modules/influencers/views/list-influencers.client.view.html:325
+msgid "Description"
+msgstr ""
+
+#: public/modules/influencers/views/list-influencers.client.view.html:127
+msgid "Description (Optional)"
+msgstr ""
+
+#: public/modules/core/views/side.html:42
+msgid "Direct Messages"
+msgstr ""
+
+#: public/modules/users/views/userbc.client.view.html:242
+msgid "Edit"
+msgstr ""
+
+#: public/modules/feeds/views/edit-feed.client.view.html:3
+msgid "Edit Feed"
+msgstr ""
+
+#: public/modules/users/views/list/view-user.list.view.html:103
+#: public/modules/users/views/list/view-user.list.view.html:104
+msgid "Email"
+msgstr ""
+
+#: public/modules/accounts/views/list-accounts.client.view.html:448
+#: public/modules/accounts/views/list-accounts.client.view.html:501
+msgid "Engagement"
+msgstr ""
+
+#: public/modules/users/views/authentication/signin.client.view.html:126
+msgid "Enter your account username."
+msgstr ""
+
+#: public/modules/feeds/views/lista.descartados.view.html:73
+#: public/modules/feeds/views/lista.fb.view.html:53
+#: public/modules/feeds/views/lista.resueltos.view.html:32
+msgid "Entries"
+msgstr ""
+
+#: public/modules/influencers/views/list-influencers.client.view.html:225
+msgid "Espere un momento estamos obteniendo información del influencer"
+msgstr ""
+
+#: public/modules/accounts/views/list-accounts.client.view.html:266
+msgid "Facebook Account"
+msgstr ""
+
+#: public/modules/feeds/views/lista.fb.view.html:265
+msgid "Facebook Connect"
+msgstr ""
+
+#: public/modules/influencers/views/list-influencers.client.view.html:144
+#: public/modules/influencers/views/list-influencers.client.view.html:267
+msgid "Family & Parenting"
+msgstr ""
+
+#: public/modules/feeds/views/lista.descartados.view.html:508
+#: public/modules/feeds/views/lista.resueltos.view.html:532
+msgid "Favor de seleccionar la opción adecuada antes de descartar:"
+msgstr ""
+
+#: public/modules/accounts/views/list-accounts.client.view.html:440
+#: public/modules/accounts/views/list-accounts.client.view.html:493
+msgid "Favorites"
+msgstr ""
+
+#: public/modules/influencers/views/list-influencers.client.view.html:145
+#: public/modules/influencers/views/list-influencers.client.view.html:268
+msgid "Financial Services"
+msgstr ""
+
+#: public/modules/influencers/views/list-influencers.client.view.html:121
+#: public/modules/influencers/views/list-influencers.client.view.html:249
+#: public/modules/users/views/list/view-user.list.view.html:98
+#: public/modules/users/views/list/view-user.list.view.html:99
+msgid "First Name"
+msgstr ""
+
+#: public/modules/influencers/views/list-influencers.client.view.html:146
+#: public/modules/influencers/views/list-influencers.client.view.html:269
+msgid "Fitness & Weightloss"
+msgstr ""
+
+#: public/modules/influencers/views/list-influencers.client.view.html:147
+#: public/modules/influencers/views/list-influencers.client.view.html:270
+msgid "Food & Drink"
+msgstr ""
+
+#: public/modules/accounts/views/list-accounts.client.view.html:249
+msgid "For furter assitance call <strong>01 800 20 56 30</strong>"
+msgstr ""
+
+#: public/modules/influencers/views/list-influencers.client.view.html:148
+#: public/modules/influencers/views/list-influencers.client.view.html:271
+msgid "Gaming"
+msgstr ""
+
+#: public/modules/influencers/views/list-influencers.client.view.html:155
+#: public/modules/influencers/views/list-influencers.client.view.html:278
+msgid "Gifts & Occasions"
+msgstr ""
+
+#: public/modules/accounts/views/list-accounts.client.view.html:248
+msgid "Got it!"
+msgstr ""
+
+#: public/modules/accounts/views/list-accounts.client.view.html:425
+#: public/modules/accounts/views/list-accounts.client.view.html:479
+msgid "Here, you will see the tweet's text."
+msgstr ""
+
+#: public/modules/influencers/views/list-influencers.client.view.html:149
+#: public/modules/influencers/views/list-influencers.client.view.html:272
+msgid "Hobbies / Interests"
+msgstr ""
+
+#: public/modules/influencers/views/list-influencers.client.view.html:150
+#: public/modules/influencers/views/list-influencers.client.view.html:273
+msgid "Home & Garden"
+msgstr ""
+
+#: public/modules/influencers/views/list-influencers.client.view.html:33
+msgid "INFLUENCERS"
+msgstr ""
+
+#: public/modules/influencers/views/list-influencers.client.view.html:133
+msgid "Industry"
+msgstr ""
+
+#: public/modules/core/views/side.html:57
+msgid "Influencers"
+msgstr ""
+
+#: public/modules/feeds/views/lista.fb.view.html:781
+msgid "Insult"
+msgstr ""
+
+#: public/modules/feeds/views/lista.descartados.view.html:542
+msgid "Irrelevant"
+msgstr ""
+
+#: public/modules/influencers/views/list-influencers.client.view.html:151
+#: public/modules/influencers/views/list-influencers.client.view.html:274
+msgid "Jobs & Education"
+msgstr ""
+
+#: public/modules/influencers/views/list-influencers.client.view.html:178
+#: public/modules/influencers/views/list-influencers.client.view.html:302
+#: public/modules/users/views/list/view-user.list.view.html:122
+#: public/modules/users/views/list/view-user.list.view.html:123
+msgid "Last Name"
+msgstr ""
+
+#: public/modules/influencers/views/list-influencers.client.view.html:152
+#: public/modules/influencers/views/list-influencers.client.view.html:275
+msgid "Law, Government & Politics"
+msgstr ""
+
+#: public/modules/feeds/views/lista.descartados.view.html:200
+#: public/modules/feeds/views/lista.descartados.view.html:211
+#: public/modules/feeds/views/lista.fb.view.html:240
+#: public/modules/feeds/views/lista.fb.view.html:251
+#: public/modules/feeds/views/lista.resueltos.view.html:177
+#: public/modules/feeds/views/lista.resueltos.view.html:188
+msgid "Loading..."
+msgstr ""
+
+#: public/modules/users/views/authentication/signin.client.view.html:109
+msgid "Login"
+msgstr ""
+
+#: public/modules/accounts/views/list-accounts.client.view.html:247
+msgid "Login with an account that you will use to respend width<br><a href=\"https://apps.twitter.com\" target=\"_blank\">apps.twitter.com</a>"
+msgstr ""
+
+#: public/modules/accounts/views/inbox.html:25
+#: public/modules/feeds/views/lista.descartados.view.html:55
+#: public/modules/feeds/views/lista.fb.view.html:25
+#: public/modules/feeds/views/lista.resueltos.view.html:17
+msgid "MAILBOX"
+msgstr ""
+
+#: public/modules/accounts/views/list-accounts.client.view.html:394
+msgid "METRICS"
+msgstr ""
+
+#: public/modules/core/views/side.html:37
+msgid "Mailbox"
+msgstr ""
+
+#: public/modules/influencers/views/list-influencers.client.view.html:153
+#: public/modules/influencers/views/list-influencers.client.view.html:276
+msgid "Media"
+msgstr ""
+
+#: public/modules/feeds/views/create-feed.client.view.html:9
+#: public/modules/feeds/views/edit-feed.client.view.html:9
+msgid "Name"
+msgstr ""
+
+#: public/modules/accounts/views/list-accounts.client.view.html:203
+msgid "Need Help?"
+msgstr ""
+
+#: public/modules/accounts/views/list-accounts.client.view.html:60
+msgid "New Client"
+msgstr ""
+
+#: public/modules/feeds/views/create-feed.client.view.html:3
+msgid "New Feed"
+msgstr ""
+
+#: public/modules/feeds/views/lista.fb.view.html:68
+msgid "New Messages"
+msgstr ""
+
+#: public/modules/users/views/list/view-user.list.view.html:178
+msgid "New Password"
+msgstr ""
+
+#: public/modules/themes/views/list-themes.client.view.html:285
+msgid "New Response"
+msgstr ""
+
+#: public/modules/themes/views/list-themes.client.view.html:247
+msgid "New Subtopic"
+msgstr ""
+
+#: public/modules/themes/views/list-themes.client.view.html:209
+msgid "New Topic"
+msgstr ""
+
+#: public/modules/feeds/views/lista.fb.view.html:697
+msgid "New response..."
+msgstr ""
+
+#: public/modules/accounts/views/list-accounts.client.view.html:81
+msgid "Nickname:"
+msgstr ""
+
+#: public/modules/articles/views/list-articles.client.view.html:17
+msgid "No articles yet, why don't you <a href=\"/#!/articles/create\">create one</a>?"
+msgstr ""
+
+#: public/modules/core/views/notificacion.html:52
+msgid "No tienes notificaciones"
+msgstr ""
+
+#: public/modules/influencers/views/list-influencers.client.view.html:154
+#: public/modules/influencers/views/list-influencers.client.view.html:277
+msgid "Non-profit"
+msgstr ""
+
+#: public/modules/feeds/views/lista.fb.view.html:793
+msgid "Not Related"
+msgstr ""
+
+#: public/modules/core/views/notificacion.html:8
+msgid "Notifications"
+msgstr ""
+
+#: public/modules/feeds/views/lista.fb.view.html:263
+msgid "Oops"
+msgstr ""
+
+#: public/modules/feeds/views/lista.descartados.view.html:558
+#: public/modules/feeds/views/lista.fb.view.html:797
+#: public/modules/influencers/views/list-influencers.client.view.html:166
+#: public/modules/influencers/views/list-influencers.client.view.html:289
+msgid "Other"
+msgstr ""
+
+#: public/modules/users/views/list/view-user.list.view.html:30
+msgid "PROFILE"
+msgstr ""
+
+#: public/modules/accounts/views/list-accounts.client.view.html:393
+msgid "PUBLICATIONS"
+msgstr ""
+
+#: public/modules/feeds/views/lista.fb.view.html:264
+msgid "Para publicar esta respuesta es necesario conectarse a facebook"
+msgstr ""
+
+#: public/modules/users/views/authentication/signin.client.view.html:87
+#: public/modules/users/views/list/view-user.list.view.html:133
+msgid "Password"
+msgstr ""
+
+#: public/modules/influencers/views/list-influencers.client.view.html:156
+#: public/modules/influencers/views/list-influencers.client.view.html:279
+msgid "Pets"
+msgstr ""
+
+#: public/modules/influencers/views/list-influencers.client.view.html:157
+#: public/modules/influencers/views/list-influencers.client.view.html:280
+msgid "Pharma & Healthcare"
+msgstr ""
+
+#: public/modules/accounts/views/list-accounts.client.view.html:267
+msgid "Please select the account you<br>would like to manage"
+msgstr ""
+
+#: public/modules/articles/views/list-articles.client.view.html:7
+msgid ""
+"Posted on\n"
+"\t\t\t\t<span data-ng-bind=\"article.created | date:'mediumDate'\"></span>\n"
+"\t\t\t\tby\n"
+"\t\t\t\t<span data-ng-bind=\"article.user.displayName\"></span>"
+msgstr ""
+
+#: public/modules/core/views/side.html:24
+msgid "Profile"
+msgstr ""
+
+#: public/modules/themes/views/list-themes.client.view.html:30
+msgid "RESPONSE"
+msgstr ""
+
+#: public/modules/core/views/home.client.view.html:74
+msgid "RESUMEN"
+msgstr ""
+
+#: public/modules/feeds/views/lista.descartados.view.html:507
+#: public/modules/feeds/views/lista.resueltos.view.html:531
+msgid "Razón"
+msgstr ""
+
+#: public/modules/feeds/views/lista.fb.view.html:492
+#: public/modules/feeds/views/lista.fb.view.html:560
+msgid "Read More"
+msgstr ""
+
+#: public/modules/influencers/views/list-influencers.client.view.html:158
+#: public/modules/influencers/views/list-influencers.client.view.html:281
+msgid "Real Estate"
+msgstr ""
+
+#: public/modules/feeds/views/lista.fb.view.html:209
+msgid "Reject"
+msgstr ""
+
+#: public/modules/feeds/views/lista.descartados.view.html:81
+#: public/modules/feeds/views/lista.fb.view.html:61
+#: public/modules/feeds/views/lista.resueltos.view.html:40
+msgid "Rejected"
+msgstr ""
+
+#: public/modules/influencers/views/list-influencers.client.view.html:159
+#: public/modules/influencers/views/list-influencers.client.view.html:282
+msgid "Religion & Spirituality"
+msgstr ""
+
+#: public/modules/accounts/views/list-accounts.client.view.html:224
+msgid "Remind to fill all the fields with *"
+msgstr ""
+
+#: public/modules/accounts/views/list-accounts.client.view.html:444
+#: public/modules/accounts/views/list-accounts.client.view.html:497
+msgid "Replies"
+msgstr ""
+
+#: public/modules/users/views/authentication/signin.client.view.html:120
+msgid "Restore your password"
+msgstr ""
+
+#: public/modules/influencers/views/list-influencers.client.view.html:160
+#: public/modules/influencers/views/list-influencers.client.view.html:283
+msgid "Retail"
+msgstr ""
+
+#: public/modules/feeds/views/lista.descartados.view.html:178
+msgid "Return to entries"
+msgstr ""
+
+#: public/modules/accounts/views/list-accounts.client.view.html:436
+#: public/modules/accounts/views/list-accounts.client.view.html:489
+msgid "Retweets"
+msgstr ""
+
+#: public/modules/users/views/list/view-user.list.view.html:108
+msgid "Rol"
+msgstr ""
+
+#: public/modules/users/views/list/view-user.list.view.html:113
+msgid "Rol del usuario"
+msgstr ""
+
+#: public/modules/themes/views/list-themes.client.view.html:26
+msgid "SUBTOPIC"
+msgstr ""
+
+#: public/modules/users/views/list/view-user.list.view.html:149
+msgid "Save Changes"
+msgstr ""
+
+#: public/modules/accounts/views/list-accounts.client.view.html:221
+msgid "Second Username"
+msgstr ""
+
+#: public/modules/users/views/list/view-user.list.view.html:110
+msgid "Select"
+msgstr ""
+
+#: public/modules/feeds/views/lista.fb.view.html:758
+msgid "Selecting reasons gives you a better understanding<br>of your conversations:"
+msgstr ""
+
+#: public/modules/influencers/views/list-influencers.client.view.html:161
+#: public/modules/influencers/views/list-influencers.client.view.html:284
+msgid "Software"
+msgstr ""
+
+#: public/modules/feeds/views/lista.descartados.view.html:519
+#: public/modules/feeds/views/lista.fb.view.html:775
+msgid "Spam"
+msgstr ""
+
+#: public/modules/influencers/views/list-influencers.client.view.html:165
+#: public/modules/influencers/views/list-influencers.client.view.html:288
+msgid "Sports"
+msgstr ""
+
+#: public/modules/influencers/views/list-influencers.client.view.html:162
+#: public/modules/influencers/views/list-influencers.client.view.html:285
+msgid "Style, Fashion & Beauty"
+msgstr ""
+
+#: public/modules/core/views/side.html:33
+msgid "Summary"
+msgstr ""
+
+#: public/modules/users/views/userbc.client.view.html:34
+msgid "TEAM"
+msgstr ""
+
+#: public/modules/themes/views/list-themes.client.view.html:23
+msgid "TOPIC"
+msgstr ""
+
+#: public/modules/core/views/side.html:68
+msgid "Team"
+msgstr ""
+
+#: public/modules/influencers/views/list-influencers.client.view.html:163
+#: public/modules/influencers/views/list-influencers.client.view.html:286
+msgid "Telecom"
+msgstr ""
+
+#: public/modules/themes/views/list-themes.client.view.html:331
+msgid "This will affect it's history"
+msgstr ""
+
+#: public/modules/core/views/side.html:51
+msgid "Topics &amp;<br>Subtopics"
+msgstr ""
+
+#: public/modules/influencers/views/list-influencers.client.view.html:164
+#: public/modules/influencers/views/list-influencers.client.view.html:287
+msgid "Travel"
+msgstr ""
+
+#: public/modules/feeds/views/lista.descartados.view.html:535
+#: public/modules/feeds/views/lista.fb.view.html:785
+msgid "Troll"
+msgstr ""
+
+#: public/modules/accounts/views/list-accounts.client.view.html:199
+msgid "Twitter  Accounts"
+msgstr ""
+
+#: public/modules/accounts/views/list-accounts.client.view.html:246
+msgid "Twitter Setup"
+msgstr ""
+
+#: public/modules/users/views/list/view-user.list.view.html:240
+#: public/modules/users/views/list/view-user.list.view.html:71
+msgid "Upload Image"
+msgstr ""
+
+#: public/modules/accounts/views/list-accounts.client.view.html:67
+msgid "Upload Logo"
+msgstr ""
+
+#: public/modules/users/views/authentication/signin.client.view.html:84
+msgid "User"
+msgstr ""
+
+#: public/modules/users/views/list/view-user.list.view.html:128
+msgid "User Name"
+msgstr ""
+
+#: public/modules/users/views/authentication/signin.client.view.html:139
+#: public/modules/users/views/list/view-user.list.view.html:127
+msgid "Username"
+msgstr ""
+
+#: public/modules/influencers/views/list-influencers.client.view.html:311
+msgid "Username (Twitter)"
+msgstr ""
+
+#: public/modules/influencers/views/list-influencers.client.view.html:185
+msgid "Username (twitter)"
+msgstr ""
+
+#: public/modules/accounts/views/list-accounts.client.view.html:200
+msgid "We highly recommend having a<br>consumer service account"
+msgstr ""
+
+#: public/modules/feeds/views/lista.fb.view.html:757
+msgid "Why?"
+msgstr ""
+
+#: public/modules/influencers/views/list-influencers.client.view.html:351
+msgid "You will not be notified when they message back"
+msgstr ""
+
+#: public/modules/accounts/views/list-accounts.client.view.html:118
+msgid "Your account’s information will be deleted permanently"
+msgstr ""
+
+#: public/modules/accounts/views/list-accounts.client.view.html:89
+msgid "accept"
+msgstr ""
+
+#: public/modules/feeds/views/lista.descartados.view.html:480
+msgid "close"
+msgstr ""
+
+#: public/modules/feeds/views/lista.descartados.view.html:173
+msgid "{{ twit.descartado.motivo | translate }}"
+msgstr ""
+
+#: public/modules/users/views/list/view-user.list.view.html:206
+msgid "¿Are you sure?"
+msgstr ""
+
+#: public/modules/accounts/views/list-accounts.client.view.html:165
+msgid "¿Estás seguro de que deseas desconectar listening account de twitter?"
+msgstr ""
+
+#: public/modules/themes/views/list-themes.client.view.html:350
+msgid "¿Estás seguro de que deseas eliminar esta respuesta?"
+msgstr ""
+
+#: public/modules/users/views/authentication/signin.client.view.html:94
+msgid "¿Forgot Password?"
+msgstr ""

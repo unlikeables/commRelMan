@@ -1,0 +1,239 @@
+<!--Header-->
+<div class="pure-u-md-1-1 header" data-ng-controller="ModalEquipo">
+	<div id="facebook-connect-header" data-ng-show="!statusLoginFacebook"><a href="{{constant.host}}/auth/facebook"><img src="/modules/core/img/facebook-login-header.svg" /></a></div>
+    <div class="pure-g border-inf-blanco bg-azul1" style="position:relative;">
+        <div class="pure-u-md-4-24 pure-u-sm-1-1" data-ng-include="'modules/core/views/notificacion.html'"></div>
+        <div class="pure-u-md-20-24 pure-u-sm-1-1 titulo-seccion" align="center">
+            <p class="txt-blanco negrita" style="opacity: .5;" translate>PROFILE</p>
+        </div>      
+    </div>
+</div>
+<!--Fin de header-->
+
+<div class="pure-g" id="contenedor-completo" data-ng-controller="SettingsController" data-ng-init="listadoEquipo()">
+  <!--Llamada del side-->
+    <div class="pure-u-md-4-24 pure-u-sm-1-1 izq border-interno-der" id="lateral">
+        <div data-ng-include="'/modules/core/views/side.html'"></div>
+    </div>
+   
+   
+   <!--derecha--> 
+    <div class="pure-u-md-20-24 pure-u-sm-1-1 izq border-interno-der alto-100 contenedorTemas">
+    	
+    	
+    	
+        <div class="pure-u-md-1-1 pure-u-sm-1-1 alto-100 form-perfil" data-ng-controller="ModalEquipo">
+            <div class="pure-u-md-1-3 pure-u-sm-1-1">&nbsp;</div>
+            <div class="pure-u-md-1-3 pure-u-sm-1-1" style="position:relative; ">
+                <div class="historial-usuario pure-u-md-1-1 izq pure-u-sm-1-1" align="center">
+                    <div class="foto">
+	                   <!--back-img="{{user.imagen_src}}"-->
+	                   <div class="perfil-circular" id="foto-perfil" style="width:120px; height:120px; background-image: url({{user.imagen_src}}); background-size: cover; background-position: center;" ng-show="user.imagen_src.length>0"></div>
+                        <div id="fileDisplayArea" style="margin: 0px auto; width: 100%;" align="center">
+		                      <div class="perfil-circular" style="width:120px; height:120px;background-image: url({{urlImagenPerfil}}); background-size: cover; background-position: center;"  ng-hide="user.imagen_src.length>0"></div>
+                        </div>
+                    </div>
+                    <span style="color:red; font-size:14px;" class="txt-centro">{{errorImagen}}</span>
+<div class="pure-u-md-1-1" align="center">
+	<label class="btn btn-naranja txt-blanco" style="padding: 5px 0px; width: 150px;">
+		{{ 'Upload Image' | translate }}
+	<input type="file" data-ng-model="archivo" name="archivo" id ="file" style="display:none;" onchange="angular.element(this).scope().submit(user._id)">
+	</label>
+</div>
+</div>
+
+    </div>
+    <div class="pure-u-md-1-3">
+
+        &nbsp;
+
+    </div>
+
+    <div class="pure-g">
+<form class="form-1" ng-submit="updateProfile(user._id)" data-ng-controller="SettingsController">
+<div class="pure-u-md-1-2 izq pure-u-sm-1-1">
+	    <div class="pure-u-md-1-1">
+        <label translate>First Name</label>
+        <input type="text" placeholder="{{ 'First Name' | translate }}" ng-model="nombreUsuario" ng-init="nombreUsuario=user.firstName" onClick="this.select();">         
+        </div>
+	
+        <div class="pure-u-md-1-1">
+        <label translate>Email</label>
+        <input type="text" placeholder="{{ 'Email' | translate }}" ng-model="correoUsuario" ng-init="correoUsuario=user.email"  onClick="this.select();">         
+        </div>  
+        
+        <div class="pure-u-md-1-1">
+        <label translate>Rol</label>
+        <input type="text" placeholder="{{ 'Rol del usuario' |  translate }}" ng-model='rolUsuario' ng-init="rolUsuario=user.roles[0]"  disabled="disabled"  onClick="this.select();" style="text-transform: capitalize;">       
+        </div>  
+
+       <div class="pure-u-md-1-1">
+            <label for="username">Notificaciones</label>
+            <div style="margin-left: 100px;">
+                Activar notificaciones <input type="checkbox" name="enable_notifications" ng-model="enable_notifications" ng-checked="user.notificaciones && user.notificaciones !== 'false'"><br>
+            </div>
+        </div>
+
+     
+</div>  
+    <div class="pure-u-md-1-2 pure-u-sm-1-1">
+
+        <div class="pure-u-md-1-1">
+        <label translate>Last Name</label>
+        <input type="text" placeholder="{{ 'Last Name' | translate }}" ng-model="apellidosUsuario" ng-init="apellidosUsuario=user.lastName"  onClick="this.select();">         
+        </div>  
+        
+          <div class="pure-u-md-1-1">
+        <label translate>Username</label>
+        <input type="text" placeholder="{{ 'User Name' |  translate }}" ng-model="nicknameUsuario" ng-init="nicknameUsuario=user.username" onClick="this.select();">         
+        </div> 
+		
+		<div class="pure-u-md-1-1">
+			<label translate>Password</label>
+			<input type="password" value="*********" data-ng-click="openEditarContrasena(user._id)" class="editar cursor"/>
+		</div>
+
+    </div>
+
+<a style="position:fixed; z-index: 999; left:51%;top:55px;border-radius: 5px; padding: 7px 40px;display:block; opacity: .8; background-color:#465769;" class="txt-blanco" data-ng-if="mensajeActualizacion"> {{mensajeActualizacion}}</a>
+
+
+		
+	<div class="pure-u-md-1-1" style="padding-top: 100px;">
+		<button type="submit" class="der btn btn-aceptar" style=" margin-right: 7.5%; width: 140px !important;" translate>Save Changes</button>
+	</div>
+	
+
+    </div>
+</form>
+    
+
+</div>
+
+
+<script type="text/ng-template" id="editarContrasena.html">
+<div>
+	<div class="pure-g">
+		<div class="pure-u-md-1-1">
+			<form class="form-1" data-ng-submit="updatePassword()">
+				
+                <h3 class="txt-centro" translate>Change Password</h3>
+                
+                
+                
+                <div class="pure-u-md-1-1" align="center" data-ng-if="errorValidacion > 0">
+                <p class="txt-centro txt-error">{{mensajeValidacion}}</p><br/>
+                </div>
+                
+                <div class="pure-u-md-1-1" align="center" data-ng-if="mensajePassword">
+				<p class="txt-error txt-centro" >{{mensajePassword}}</p>	
+                </div>
+                
+                
+				
+				<div class="pure-u-md-1-1" style="padding-top: 30px;">
+					<label translate>Current Password</label>
+					<input type="password" data-ng-model="password" data-ng-class="{'error': passwordActualVacio}"/>
+				</div>
+				<div class="pure-u-md-1-1">
+					<label translate>New Password</label>
+					<input type="password" data-ng-model="newPassword" data-ng-class="{'error': passwordNuevoVacio1}"/>
+				</div>
+				<div class="pure-u-md-1-1">
+					<label translate>Confirm New Password</label>
+					<input type="password" data-ng-model="confirmPassword" data-ng-class="{'error': passwordNuevoVacio2}"/>
+				</div>
+
+				<div class="pure-u-md-1-1" style="padding-bottom: 20px;">
+<table width="100%" class="tabla-botones-acciones-basicas">
+<tr>
+<td><a class="btn btn-cancelar der" style="width: 200px; margin-left: 60px;" data-ng-click="cancel()">{{ 'Cancel' | translate }}</a></td>
+<td><button type="submit" class="btn btn-guardar izq" style="width: 250px; margin-right: 70px;">{{ 'Accept' | translate }}</button></td>
+</tr>
+</table>					
+					
+					
+				</div>
+			</form>
+		</div>
+	</div>
+</div>
+</script>
+
+
+<script type="text/ng-template" id="confirmacionPerfil.html">
+    <div align="center" style="">
+    	<div class="pure-u-md-1-1"  style="width: 430px; margin:0px auto;">
+    	<p translate>¿Are you sure?</p>	
+    	</div>
+        <div class="pure-u-md-1-1" style="width: 430px; margin:0px auto;">
+
+<table width="100%" class="tabla-botones-acciones-basicas">
+<tr>
+<td><button ng-click="cancel()" class="btn btn-cancelar der">{{ 'Cancel' | translate }}</button></td>
+<td><button class="btn btn-guardar izq" ng-click="updateProfile()">{{ 'Accept' | translate }}</button></td>
+</tr>
+</table>
+        	
+              
+             
+                  	
+        </div> 
+           
+    </div> 
+</script>
+
+
+<script type="text/ng-template" id="fotoPerfil.html">
+
+<div style="width: 560px;">
+<div class="pure-g">
+
+
+<div class="pure-u-md-1-1">
+	
+	
+<div style="width:560px; margin-left: 18px;" class="modal-conte">
+	<div class="pure-u-md-1-1">
+		<h3 class="txt-centro" translate>Upload Image</h3>
+	</div>
+	<div class="pure-u-md-1-1">
+		 
+	</div>
+	<div class="pure-u-md-1-1" align="center" style="padding: 0px;">
+		<span style="color:red; font-size:14px;" class="txt-centro">{{errorImagen}}</span>
+	<form data-ng-submit="submit()">
+		<label class="" style="padding: 60px; border:solid 2px #EBEEF3;border-radius:5px;cursor: pointer;" ng-click="clickOnUpload(); $event.stopPropagation();">
+		<div id="fileDisplayArea" style="margin: 0px auto; width: 100%;" align="center">	
+		<img src="modules/core/img/camara.png" />
+		</div>
+		<input type="file" onchange="angular.element(this).scope().cambiaImagen(this)" data-ng-model="archivo" name="archivo" id ="file" style="display:none;">	
+		</label>
+		
+        
+        <div class="pure-u-md-1-1" style="padding-top: 20px;">
+<table width="100%" class="tabla-botones-acciones-basicas">
+<tr>
+<td><button ng-click="cancel()" class="btn btn-cancelar izq" translate>Cancel</button></td>
+<td><input type="submit" class="btn btn-guardar der" value="{{ 'Accept' | translate }}"></td>
+</tr>
+</table>        	
+        
+               	
+        </div>
+
+    </form>
+	</div>
+
+	    
+       
+</div>
+
+
+</div>
+</div>
+</div>
+
+</script>
+
+

@@ -1,0 +1,82 @@
+<section data-ng-controller="AccountsController" data-ng-init="findOne()">
+	<div class="page-header">
+		<h1 data-ng-bind="account.marca"></h1>
+	</div>
+    
+    <!--Nombre en el sistema-->
+    <div class="page-content">
+    	<b>Nombre del Sistema: </b>{{account.nombreSistema}}
+    </div>
+    
+    <!--Correo electrónico de la empresa-->
+    <div class="page-content">
+    	<b>Correo Electrónico: </b>{{account.correo}}
+    </div>  
+    
+    <!--Api key de google-->
+   <!-- <div class="page-content">
+    	<b>API KEY Google+: </b>{{account.google_api_key}}
+    </div>-->  
+    
+    <!--Consumer key de twitter-->
+    <div class="page-content">
+    	<b>CONSUMER KEY Twitter: </b>{{account.twitter_consumer_key}}
+    </div>
+    
+   	<!--Consumer secret  de twitter-->
+    <div class="page-content">
+    	<b>CONSUMER SECRET Twitter: </b>{{account.twitter_consumer_secret}}
+    </div>    
+    
+    <!--Access token de twitter-->
+    <div class="page-content">
+    	<b>ACCESS TOKEN Twitter: </b>{{account.twitter_access_token}}
+    </div> 
+    
+    <!--Access token de twitter-->
+    <div class="page-content">
+    	<b>ACCESS TOKEN SECRET Twitter: </b>{{account.twitter_access_token_secret}}
+    </div>
+    
+    <!--Screen Name de la cuenta principal de twitter-->
+    <div class="page-content">
+    	<b>SCREEN NAME cuenta principal Twitter: </b>{{account.twitter_screenname_principal}}
+    </div>  
+
+	<!--Id cuenta principal de twitter-->
+    <div class="page-content">
+    	<b>ID cuenta principal Twitter: </b>{{account.twitter_id_principal}}
+    </div>  
+    
+    <!--Screen Name de la cuenta principal de twitter-->
+    <div class="page-content">
+    	<b>SCREEN NAME cuenta respuesta Twitter: </b>{{account.twitter_screenname_respuesta}}
+    </div>  
+
+	<!--Id cuenta principal de twitter-->
+    <div class="page-content">
+    	<b>ID cuenta respuesta Twitter: </b>{{account.twitter_id_respuesta}}
+    </div> 
+    
+	<!--Terminos a escuchar-->
+    <div class="page-content">
+    	<b>Términos Twitter: </b>{{account.terminos}}
+    </div>        
+           
+	<div class="pull-right" data-ng-show="!isDefined(authentication.user.cuenta._id) || authentication.user.cuenta._id == account._id">
+		<a class="btn btn-primary" href="/#!/accounts/{{account._id}}/edit">
+			<i class="glyphicon glyphicon-edit"></i>
+		</a>
+		<a class="btn btn-primary" data-ng-click="remove();">
+			<i class="glyphicon glyphicon-trash"></i>
+		</a>
+	</div>
+	<small>
+		<em class="text-muted">
+			Ingresada: 
+			<span data-ng-bind="account.created | date:'mediumDate'"></span>
+			Por 
+			<span data-ng-bind="account.user.displayName"></span>
+		</em>
+	</small>
+</section>

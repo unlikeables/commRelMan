@@ -1,0 +1,84 @@
+
+<!-- Latest compiled and minified CSS -->
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">
+
+<!-- Latest compiled and minified JavaScript -->
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
+<style type="text/css">
+	body{
+		overflow: auto;
+	}
+</style>
+
+<section data-ng-controller="SettingsController" class="well" style="max-width: 960px; margin:10px auto; heigh:auto;">
+    <div class="page-header">
+        <h1>A&ntilde;adir Usuario</h1>
+    </div>
+    <div class="col-md-12">
+        <form name="" class="form-horizontal" data-ng-submit="create()" novalidate>
+            <fieldset>
+
+		<!--Nombre -->
+                <div class="form-group">
+                    <label class="control-label" for="firstName">FirstName</label>
+                    <div class="controls">
+                        <input type="text" data-ng-model="firstName" id="fistName" name="firstName" class="" placeholder="FirstName" required>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="control-label" for="lastName">LastName</label>
+                    <div class="controls">
+                        <input type="text" data-ng-model="lastName" id="lastName" name="lastName" class="" placeholder="lastName" required>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="control-label" for="lastName">Email</label>
+                    <div class="controls">
+                        <input type="text" data-ng-model="email" id="email" name="email" class="" placeholder="Email" required>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="control-label" for="lastName">UserName</label>
+                    <div class="controls">
+                        <input type="text" data-ng-model="username" id="username" class="" placeholder="username" name="username" required>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="control-label" for="password">Contraseña</label>
+                    <div class="controls">
+                        <input type="password" data-ng-model="password" id="password" class="" name="password" required>
+                    </div>
+                </div>
+                 <div class="form-group">
+                    <label for="roles">Rol</label>
+                    <select required id ="rol" name ="rol" data-ng-model="rol" class="">
+                        <option ng-repeat="rol in losroles" value="{{rol.value}}" ng-selected="{{rol.value}}">{{rol.name}}</option>
+                    </select>
+                </div>  
+                
+                <div class="form-group">
+                    <label for="roles">Cuenta:</label>   
+                    <select id ="cuenta" name ="cuenta" class="" required data-ng-model="cuenta._id" ng-options="cuenta._id as cuenta.marca for cuenta in cuentas">
+		     <!--
+                   <select id ="cuenta" name ="cuenta" class="" data-ng-model="miCuenta.cuentas">
+                        <option ng-repeat="cuenta in cuentas" value="{{cuenta._id}}||{{cuenta.marca}}">{{cuenta.marca}}</option>
+                   </select>
+		   -->
+		     <!--
+			 <select required id ="cuenta" name="cuenta" data-ng-model="cuenta" class="">
+                           <option ng-repeat="cuenta in cuentas" value="{{cuenta._id}}||{{cuenta.marca}}">{{cuenta.marca}}</option>
+			 </select>
+			   -->
+                    </select>
+                </div>
+                    
+		        <div class="form-group">
+                    <input type="submit" class="btn btn-default" value="Registrar">
+                </div>
+				<div data-ng-show="error" class="text-danger">
+					<strong data-ng-bind="error"></strong>
+				</div>
+            </fieldset>
+        </form>
+    </div>
+</section>

@@ -1,0 +1,77 @@
+
+<!-- Latest compiled and minified CSS -->
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">
+
+<!-- Latest compiled and minified JavaScript -->
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
+<style type="text/css">
+	body{
+		overflow: auto;
+	}
+</style>
+
+<section data-ng-controller="SettingsController" data-ng-init="findOne()" class="well" style="max-width: 960px; margin:10px auto; heigh:auto;">
+    <div class="page-header">
+        <h1>Editar Información de: {{editeduser.displayName}}</h1>
+    </div>
+    <div class="col-md-12">
+        <form name="userForm" data-ng-submit="update()" class="signin form-horizontal" autocomplete="off">
+            <div data-ng-show="authentication.user._id == organization.user._id || authentication.user.roles.indexOf('app-manager') > -1">
+            </div>      
+            <fieldset>
+                <div class="form-group">
+                    <label class="control-label" for="firstName">First Name</label>
+                    <input type="text" id="firstName" name="firstName" class="" data-ng-model="editeduser.firstName" placeholder="First Name">
+                </div>
+                <div class="form-group">
+                    <label class="control-label" for="lastName">Last Name</label>
+                    <input type="text" id="lastName" name="lastName" class="" data-ng-model="editeduser.lastName" placeholder="Last Name">
+                </div>
+                <div class="form-group">
+                    <label class="control-label" for="email">Email</label>
+                    <input type="email" id="email" name="email" class="" data-ng-model="editeduser.email" placeholder="Email">
+                </div>
+                <div class="form-group">
+                    <label for="username">Username</label>
+                    <input type="text" id="username" name="username" class="" data-ng-model="editeduser.username" placeholder="Username">
+                </div>
+		<!--
+                <div class="form-group">
+                    <label class="control-label" for="password">Contraseña</label>
+                    <div class="controls">
+                        <input type="password" data-ng-model="password" id="password" class="" name="password" required>
+                    </div>
+                </div>
+		-->
+                <div class="form-group">
+                    <label for="roles">Rol</label>
+                    <select required id ="roles" name ="roles" class="" data-ng-model="editeduser.roles">
+                        <option ng-repeat="elrol in losroles" value="{{elrol.value}}" ng-selected="{{elrol.value}}">{{elrol.name}}</option>
+                    </select>
+                </div>
+                <div class="form-group" >
+                    <label for="roles">Cuenta:</label>   
+                   <select required id ="cuenta" name ="cuenta" class="" data-ng-model="editeduser.cuenta._id">
+                        <option ng-repeat="lacuenta in cuentas" value="{{lacuenta._id}}" ng-selected="{{editeduser.cuenta._id}}">{{lacuenta.nombreSistema}}</option>
+                    </select>
+
+		   <!--
+                   <select id ="cuenta" name ="cuenta" class="" required data-ng-model="editeduser.cuenta._id" ng-options="cuenta._id as cuenta.marca for cuenta in cuentas track by cuenta._id"></select>
+		   -->
+                </div>
+                <div class="text-center form-group">
+                    <button type="submit" class="btn btn-large btn-primary">Guardar</button>
+                    <a href="/#!/usuarios/listado" class="btn btn-large btn-danger">Regresar</a>
+                </div>
+                <div data-ng-show="success" class="text-center text-success">
+                    <strong>Guardado</strong>
+                </div>
+                <div data-ng-show="error" class="text-center text-danger">
+                    <strong data-ng-bind="error"></strong>
+                </div>
+            </fieldset>
+        </form>
+    </div>
+</section>
+
+

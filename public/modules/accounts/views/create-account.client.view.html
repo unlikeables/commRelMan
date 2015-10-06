@@ -1,0 +1,138 @@
+<section data-ng-controller="AccountsController">
+    <div class="page-header">
+        <h1>A&ntilde;adir Compa&ntilde;&iacute;a</h1>
+    </div>
+    <div class="col-md-12">
+        <form class="form-horizontal" data-ng-submit="create()" novalidate>
+            <fieldset>
+
+		<!--Nombre de la empresa-->
+                <div class="form-group">
+                    <label class="control-label" for="marca">Marca</label>
+                    <div class="controls">
+                        <input type="text" data-ng-model="marca" id="marca" class="" placeholder="Marca" required>
+                    </div>
+                </div>
+                
+		<!--Nombre en sistema de la empresa-->
+             	<div class="form-group">
+                    <label class="control-label" for="nombreSistema">Nombre en el Sistema</label>
+                    <div class="controls">
+                        <input type="text" data-ng-model="nombreSistema" id="nombreSistema" class="" placeholder="Nombre en el sistema" required>
+                    </div>
+                </div>
+               
+
+		<!--Email de la empresa-->
+             	<div class="form-group">
+                    <label class="control-label" for="correo">Correo Electrónico</label>
+                    <div class="controls">
+                        <input type="text" data-ng-model="correo" id="correo" class="" placeholder="Correo Electrónico" required>
+                    </div>
+                </div>
+                
+		<!--Datos Google+-->
+         <!--    	<div class="form-group">
+                    <label class="control-label" for="google_api_key">
+                	<img src="/modules/users/img/buttons/google.png" width="50" height="50"> Datos de acceso</label>
+                    <div class="controls">
+                        <input type="text" data-ng-model="google_api_key" id="google_api_key" class="" placeholder="API KEY" required>
+                    </div>
+                </div>-->
+            
+		<!--Datos Twitter Principal-->
+             	<div class="form-group">
+                    <label class="control-label" for="twitterAcess">
+                	<img src="/modules/users/img/buttons/twitter.png" width="50" height="50"> Datos de acceso</label>
+                    <div class="controls">
+                        <input type="text" data-ng-model="twitter_consumer_key" id="twitter_consumer_key" class="" placeholder="CONSUMER KEY" required>
+                    </div>
+                    <div class="controls">
+                        <input type="text" data-ng-model="twitter_consumer_secret" id="twitter_consumer_secret" class="" placeholder="CONSUMER SECRET" required>
+                    </div>
+                    <div class="controls">
+                        <input type="text" data-ng-model="twitter_access_token" id="twitter_access_token" class="" placeholder="ACCESS TOKEN" required>
+                    </div>
+                    <div class="controls">
+                        <input type="text" data-ng-model="twitter_access_token_secret" id="twitter_access_token_secret" class="" placeholder="ACCESS TOKEN SECRET" required>
+                    </div>
+                </div>
+                
+	<div class="form-group">
+                    <label class="control-label" for="twitterCuentaP">
+                	<img src="/modules/users/img/buttons/twitter.png" width="50" height="50"> Cuenta Principal</label>
+                    <div class="controls">
+                        <input type="text" data-ng-model="twitter_screenname_principal" id="twitter_screenname_principal" class="" placeholder="SCREEN NAME" required>
+                    </div>
+                    <div class="controls">
+                        <input type="text" data-ng-model="twitter_id_principal" id="twitter_id_principal" class="" placeholder="ID" required>
+                    </div>
+    </div>
+
+	<div class="form-group">
+                    <label class="control-label" for="twitterCuentaR">
+                	<img src="/modules/users/img/buttons/twitter.png" width="50" height="50"> Cuenta Respuesta</label>
+                    <div class="controls">
+                        <input type="text" data-ng-model="twitter_screenname_respuesta" id="twitter_screenname_respuesta" class="" placeholder="SCREEN NAME" required>
+                    </div>
+                    <div class="controls">
+                        <input type="text" data-ng-model="twitter_id_respuesta" id="twitter_id_respuesta" class="" placeholder="ID" required>
+                    </div>
+    </div>
+    
+	<div class="form-group">
+                    <label class="control-label" for="terminos">
+                	<img src="/modules/users/img/buttons/twitter.png" width="50" height="50">Términos</label>
+                    <div class="controls">
+                        <input type="text" data-ng-model="terminos" id="terminos" class="" placeholder="Términos a buscar" required>
+                    </div>
+                    </div>
+                <!--Div del Login a Facebook-->
+                <div class="form-group" data-ng-controller="SettingsController">
+                    <div class="col-md-12">
+                    <!--{{user.additionalProvidersData}}-->
+                        <div data-ng-repeat="(providerName, providerData) in user.additionalProvidersData" class="remove-account-container">
+                            <label class="control-label" for="faceInicio">
+                            <a href="/auth/facebook" class="undecorated-link">
+                            <img ng-src="/modules/users/img/buttons/{{providerName}}.png" width="50" height="50"></a>   Conectado
+                            </label>
+                        
+                            <a class="btn btn-danger btn-remove-account" style="position:initial !important; margin-left:10px;" data-ng-click="removeUserSocialAccount(providerName)">
+                            <i class="glyphicon glyphicon-off"></i>
+                            </a>
+                        
+                        <div class="" style="margin-top:15px;">
+                            <input type="button" value="Conectar Páginas" class="btn btn-default" data-ng-click="conectarPagina('{{user.additionalProvidersData.facebook.accessToken}}')">   
+                        </div>
+                        <div style="margin-left:-25% !important;margin-top:30px;">
+                            <ul style="list-style:none;">
+                                <li data-ng-repeat="informacion in datos" style="margin-bottom:15px;">
+                                    <input type="radio" name="cuenta" value="{{$index}}" data-ng-click="guardaPaginaselecccion('{{$index}}','{{informacion}}')">
+                                    <img src="https://graph.facebook.com/{{informacion.id}}/picture">
+                                    {{informacion.name}}<br>
+                                </li>
+                            </ul>
+ 
+                        </div>
+                        </div>
+                    </div>
+                        
+                        <div class="col-md-12">
+                        <label class="control-label" for="faceInicio">
+                        <a href="/auth/facebook" data-ng-hide="isConnectedSocialAccount('facebook')" class="undecorated-link">
+                        <img src="/modules/users/img/buttons/facebook.png" width="50" height="50">
+                        Iniciar Sesión
+                        </a></label>
+       </div>
+        </div>
+                    
+		        <div class="form-group">
+                    <input type="submit" class="btn btn-default" value="Registrar">
+                </div>
+				<div data-ng-show="error" class="text-danger">
+					<strong data-ng-bind="error"></strong>
+				</div>
+            </fieldset>
+        </form>
+    </div>
+</section>

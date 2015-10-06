@@ -1,0 +1,288 @@
+<!--Header-->
+<div class="pure-u-md-1-1 header">
+    <div class="pure-g border-inf-blanco bg-azul1" style="position:relative;">
+        <div class="pure-u-md-4-24">
+            <div class="pure-g">
+                <div class="pure-u-1-2 border-interno-der">
+                    <a href="/auth/signout" class="complete activate_modal" name="salir" id="btn-salir"></a>
+                </div>
+                <div class="pure-u-1-2">
+
+                    <a href="#" class="complete border-interno-der  tooltipstered" id="campana-salir"></a>
+
+                </div>      
+            </div>
+        </div>
+
+        <div class="pure-u-20-24" align="center">
+			<!--
+            <div class="pure-u-md-1-5 izq border-interno-der">
+                <p class="txt-centro negrita txt-blanco may">Equipo</p>
+            </div>
+
+            <div class="pure-u-md-2-5 izq border-interno-der">
+                <a href="" class="complete triagle txt-blanco negrita" style="padding:16px 0px;">1 Octubre <span class="ligera">2014</span>&nbsp;&nbsp;▼</a>
+            </div>
+
+            <div class="pure-u-md-2-5 izq">
+                <a href="" class="complete triagle txt-blanco negrita" style="padding:16px 0px;">30 Diciembre <span class="ligera">2014</span>&nbsp;&nbsp;▼</a>
+            </div>
+        -->
+        <p class="txt-blanco negrita" style="opacity: .5;">USERS</p>
+        </div>  
+        
+            
+    </div>
+</div>
+<!--Fin de header-->
+
+<div class="pure-g" id="contenedor-completo" data-ng-controller="SettingsController" data-ng-init="listadoUsuarios()">
+  <!--Llamada del side-->
+  <div class="pure-u-md-4-24 border-interno-der" id="lateral">
+    <div data-ng-include="'/modules/core/views/side.html'"></div>
+  </div>
+
+<div class="pure-u-md-4-24 border-interno-der alto-100-interno contenedorTemas">
+<div class="pure-u-md-4-24 border-interno-der alto-100-interno" style="height:100% !important; position:fixed;overflow: auto;">
+    <ul class="menu-lateral-cuentas enlaces-izq" style="padding-bottom: 54px;">
+    	<!--listado-->  
+        <li class="user" data-ng-repeat="usuarios in usersbyaccount" ng-class="{active:usuarios._id===idUsuario}">
+        <table style="width: 100%;margin-bottom: 0px; height: 100%;" class="table" ng-click="informacionEquipo({{usuarios}})" ng-dblclick="activaForm(usuarios._id)">
+            <tbody>
+            <tr>
+            <td style=" text-align:center; vertical-align:middle; padding: 0px; width:48px; padding-left: 15px;" align="center">
+                <img src="/modules/core/img/usuario-sem-imagem.png" class="circular-ligero" style="width:40px; margin-left:auto; margin-top:2px; margin-right: auto;" ng-hide="usuarios.imagen_src.length>0"/>
+
+                <img src="{{usuarios.imagen_src}}" class="circular-ligero" style="width:40px; margin-left:auto; margin-top:2px; margin-right: auto;" ng-show="usuarios.imagen_src.length>0"/>
+
+                </td>
+
+                <td style=" text-align:center; vertical-align:middle; padding:7px 3px;">
+                <a href="" class="light tamanioGeneralLetra txt-izq" style="padding:0px;">
+                	{{usuarios.displayName}}
+                	</a>   
+                </td>
+                <td style=" text-align:center; vertical-align:middle; width:12px; margin:0px; padding:7px 0px;" ng-show="user.roles[0]=='app-manager' || user.roles[0]=='account-manager'">
+                    <a href="#" name="borrar_cuenta" class="borrar activate_modal"  style="" data-ng-controller="ModalEquipo" data-ng-click="openEliminacion(usuarios,user.roles[0])"></a>
+                </td>
+            </tr>
+        </tbody></table>         
+        
+            </li>     
+            <!--listado-->      
+        <li ng-show="user.roles[0]=='app-manager' || user.roles[0]=='account-manager'" data-ng-controller="ModalEquipo" data-ng-click="open({{user}},'{{user.roles[0]}}')"><a href="" class="txt-centro mas" style="margin-left: 0px !important;"></a></li>
+
+    </ul>
+</div>
+
+
+
+
+<div class="pure-u-md-16-24" style="position: absolute;left: 20%;width: 80%;" ng-show="idUsuario">
+
+    <div class="pure-u-md-1-3">
+        &nbsp;
+    </div>
+
+    <div class="pure-u-md-1-3" style="position:relative; ">
+
+<div class="historial-usuario pure-u-md-1-1 izq" align="center">
+<div class="foto">
+
+<img src="/modules/core/img/usuario-sem-imagem.png" class="circular" style="width:120px;" ng-hide="imagenPerfil.length>0">
+<img src="{{imagenPerfil}}" class="circular" style="width:120px;" ng-show="imagenPerfil.length>0">
+
+</div>
+
+<div class="datos">
+	<h2 class="txt-centro" style="font-weight: 400; margin-top:10px;">{{nombreCompleto}}</h2>
+</div>  
+</div>
+
+    </div>
+
+    <div class="pure-u-md-1-3">
+
+        &nbsp;
+
+    </div>
+
+<div class="pure-g">
+    <form class="form-1" ng-submit="actualizaUsuarioAdmin()">
+        <div class="pure-u-md-1-2 izq">
+	       <div class="pure-u-md-1-1">
+                <label>First Name</label>
+                <input type="text" placeholder="First Name" ng-model="nombreUsuario" disabled="disabled">         
+            </div>
+	
+            <div class="pure-u-md-1-1">
+                <label>Email</label>
+                <input type="text" placeholder="Email" ng-model="correoUsuario" disabled="disabled">         
+            </div>  
+        
+            <div class="pure-u-md-1-1">
+                <label>Rol</label>
+                <div ng-hide="rolUsuario==='app-manager'">
+                    <select required id ="rol" name ="rolUsuario" data-ng-model="rolUsuario" class="" ng-show="user.roles[0]=='app-manager' || user.roles[0]=='account-manager'">
+                        <option value="">Select</option>
+                        <option ng-repeat="rol in losroles" value="{{rol.value}}" ng-selected="rol.value==rolUsuario" ng-show="idUsuario.length > 0">{{rol.name}}</option>
+                    </select>
+                </div>
+        
+                <div ng-show="rolUsuario==='app-manager'">
+                    <input type="text" placeholder="Rol del usuario" ng-model='rolUsuario' disabled="disabled">       
+                </div>
+        <input type="text" placeholder="Rol del usuario" ng-model='rolUsuario' ng-hide="user.roles[0]=='app-manager' || user.roles[0]=='account-manager'" disabled="disabled">       
+        </div>
+        
+            
+</div>  
+    <div class="pure-u-md-1-2">
+        <div class="pure-u-md-1-1">
+            <label>Last Name</label>
+            <input type="text" placeholder="Last Name" ng-model="apellidosUsuario" disabled="disabled">         
+        </div>  
+        
+        <div class="pure-u-md-1-1">
+            <label>Twitter's Username</label>
+            <input type="text" placeholder="Twitter's Username" ng-model="nicknameUsuario" disabled="disabled">         
+        </div> 
+
+        <div ng-show="idUsuario">
+        <div class="pure-u-md-1-1" ng-show="user.roles[0]=='app-manager' || user.roles[0]=='account-manager'">
+            <label>Password</label>
+            <input type="password" value="*********" class="editar" disabled="disabled" ng-show="rolUsuario==='app-manager'" />
+
+           <input type="password" value="*********" ng-controller="ModalEquipo" ng-click="openEditarContrasena(idUsuario)" class="editar cursor" ng-show="rolUsuario!=='app-manager'"/>
+        </div>
+        </div> 
+    </div>
+
+    <div ng-show="idUsuario.length > 0" style="padding-top: 100px;" class="pure-u-md-1-1">
+        <input type="submit" value="Accepts" ng-show="idUsuario==idEdicion" class="der btn btn-guardar" style="width: 150px; margin-right: 7.5%;">
+        <div ng-show="idUsuario==idEdicion" ng-click="desactivaForm()" class="der btn btn-cancelar" style="width: 120px; margin-right: 20px;">Cancel</div>
+    </div>
+</form>
+<span style="color:red; font-size:14px;">{{mensajeActualizacion}}</span>
+
+	<!--	
+	<div class="pure-u-md-1-1" style="padding-top: 100px;">
+		<button class="der btn btn-guardar" style="width: 150px; margin-right: 7.5%;">Actualizar</button>
+		<button class="der btn btn-cancelar" style="width: 120px; margin-right: 20px;">Cancelar</button>
+	</div>
+	-->
+
+    </div>
+
+    
+
+</div>
+
+<script type="text/ng-template" id="agregaUsuario.html">
+<div >
+	<div class="pure-g" style="padding-bottom: 10px;">
+		 <form name="" data-ng-submit="createUsuarioAdmin()" novalidate class="form-1">
+		<div class="pure-u-md-1-1">
+			<h3 class="txt-centro" style="margin:0px; padding-top:17px;padding-bottom: 40px;">Add User</h3>
+		</div>
+		<div class="pure-u-md-1-2 izq">
+			<label>First Name</label>
+			<input type="text" data-ng-model="firstName" id="fistName" name="firstName" required />
+			<label>Email</label>
+			<input type="email"  data-ng-model="email" id="email" name="email" required="required"/>
+			<label>Rol</label>
+            <select required id ="rol" name ="rol" data-ng-model="rol" >
+                <option value="#" selected>Select</option>
+                <option ng-repeat="rol in losroles" value="{{rol.value}}">{{rol.name}}</option>
+            </select>
+		</div>
+		<div class="pure-u-md-1-2 izq">
+			<label>Last Name</label>
+			<input type="text" required="required" data-ng-model="lastName" id="lastName" name="lastName" />
+			<label>Twitters Username</label>
+			<input type="text" data-ng-model="username" id="username" name="username" required>
+
+            <label>Password</label>
+            <input type="password" data-ng-model="password" id="password" name="password" required>
+
+		</div>
+		<div class="pure-u-md-1-1" style="padding-top: 40px;">
+			<div style="margin: 0px auto; width: 420px;">
+			<button type="submit" class="btn btn-guardar der" style="width: 250px;">Accept</button>
+			<button ng-click="cancel()" class="btn btn-cancelar izq" style=" width: 150px;">Cancel</button>				
+			</div>
+
+			    <div data-ng-show="error" class="text-danger">
+                    <strong data-ng-bind="error"></strong>
+                </div>
+		</div>
+		</form>
+	</div>
+                   
+            <!--<p>Contraseña del usuario</p>
+            <input type="password" data-ng-model="password" id="password" class="" name="password" required>
+                    
+            <p>Rol del usuario</p>
+            <select required id ="rol" name ="rol" data-ng-model="rol" class="" >
+                <option value="#" selected>Selecciona un rol</option>
+                <option ng-repeat="rol in losroles" value="{{rol.value}}">{{rol.name}}</option>
+            </select>
+             
+            <p>Cuenta asignada:</p> 
+            <input type="text" data-ng-model="cuentaDefault" id="cuenta" name="cuenta" class="" disabled>
+            -->
+            
+            <!--<select id ="cuenta" name ="cuenta" class="" required data-ng-model="cuenta._id" ng-options="cuenta._id as cuenta.marca for cuenta in cuentas" data-ng-controller="SettingsController">
+            </select>    -->  
+            <div style="clear:both;"></div>
+
+</div>
+</script>
+
+<script type="text/ng-template" id="eliminaUsuario.html">
+    <div align="center">
+    	<div class="pure-u-md-1-1">
+    	<p class="txt-centro" style="padding-bottom: 0px; margin-bottom: 0px;">¿Estás seguro de que deseas eliminar este usuario?</p>
+    	<small class="txt-centro">Al hacerlo eliminarás toda la información del sistema</small>	
+    	</div>
+         <div class="pure-u-md-1-1">
+<table width="100%" class="tabla-botones-acciones-basicas">
+<tr>
+<td><button ng-click="cancel()" class="btn btn-cancelar der">Cancelar</button></td>
+<td><button class="btn btn-aceptar izq" ng-click="borraUsuarioAdmin()">Aceptar</button></td>
+</tr>
+</table>         	
+         </div>
+             
+             
+            
+           
+    </div> 
+</script>
+
+<script type="text/ng-template" id="editarContrasena.html">
+<div>
+    <div class="pure-g">
+        <div class="pure-u-md-1-1">
+            <form class="form-1" ng-submit="changePassword()">
+                <h3 class="txt-centro">Cambiar Contraseña</h3>
+                <p class="txt-rojo txt-centro">{{errorPassword}}</p>
+                <div class="pure-u-md-1-1">
+                    <label>Contraseña Nueva</label>
+                    <input type="password" ng-model="newPassword"/>
+                </div>
+                <div class="pure-u-md-1-1">
+                    <label>Confirmar Contraseña Nueva</label>
+                    <input type="password" ng-model="confirmPassword" />
+                </div>
+
+                <div class="pure-u-md-1-1" style="padding-top: 40px; padding-bottom: 20px;">
+                    <a class="btn btn-cancelar izq" style="width: 200px; margin-left: 60px;" data-ng-click="cancel()">Cancel</a>
+                    <button type="submit" class="btn btn-guardar der" style="width: 250px; margin-right: 70px;">Accept
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+</script>

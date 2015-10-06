@@ -1,0 +1,82 @@
+
+
+
+<div class="dashboard" data-ng-controller="AccountsController" data-ng-init="getDashboard()">
+    <div style="text-align:center; width: 100%; margin-top: 40px;">
+		<img src="/modules/core/img/Likeable_blanco.png"><br>
+		<img src="/modules/core/img/logo-principal.png" style="margin-top: 10px;">
+		<h1 style="color:#465769; font-size:20px; font-weight:700; margin-top: -12px; margin-bottom: 20px;">{{total_clientes}} Clientes</h1>
+		
+		<div class="titulo-completo">
+			<p>Versión 1</p>
+		</div>
+		<br/><br/>
+	</div>
+
+    
+    
+    <!--cuadritos-->
+
+<div class="pure-u-md-1-1 pure-u-sm-1-1 izq">
+<div id="isotope-container" align="center">
+  <div class="elemento-cuenta" ng-repeat="dashboard in dashboards | filter: ({version:'V1'})">
+  	<span class="dash-version" title="Versión: {{dashboard.version}}" style="display:none;">{{dashboard.version}}</span>
+  	<div class="titulo div-100">
+  		<h2>{{dashboard.nombreCuenta}}</h2>
+  	</div>
+  	<div class="foto div-100">
+  		<div style="background-image:url({{dashboard.imagenCuenta}}); height: 100px; width: 100px; background-size: cover; margin: 2px auto; clear:both; border: solid 3px #465769;border-radius:50%;background-position: center;"></div>
+  		<!--<img class="circular" style="width:100px;height:100px;max-width: 10000px;" width="100px" height="100px" src="{{dashboard.imagenCuenta}}">-->
+  	</div>
+  	<div class="mensajes div-100">
+  		<h3>{{dashboard.totalMensajes}}</h3>
+  		<label class="dash-mensajes">Mensajes</label>
+  	</div>
+  	<div class="usuarios div-100">
+  		<h3>{{dashboard.totalUsuarios}}</h3>
+  		<label class="dash-usuarios">Usuarios</label>
+  	</div>
+  </div>
+
+</div>    
+    <!--cuadritos-->
+</div>
+
+      <div class="titulo-completo">
+        <p>Versión 2</p>
+      </div>
+
+
+      <!--cuadritos-->
+<div class="pure-u-md-1-1 pure-u-sm-1-1 izq">
+<div id="isotope-container2" align="center">
+  <div class="elemento-cuenta2" ng-repeat="dashboard in dashboards | filter: ({version:'V2'})">
+    <span class="dash-version" title="Versión: {{dashboard.version}}" style="display:none;">{{dashboard.version}}</span>
+    <div class="titulo div-100">
+      <h2>{{dashboard.nombreCuenta}}</h2>
+    </div>
+    <div class="foto div-100">
+      <!--<img class="circular" style="width:100px;height:100px;max-width: 10000px;" width="100px" height="100px" src="{{dashboard.imagenCuenta}}">-->
+      <div style="background-image:url({{dashboard.imagenCuenta}}); height: 100px; width: 100px; background-size: cover; margin: 2px auto; clear:both; border: solid 3px #465769;border-radius:50%;background-position: center;"></div>
+    </div>
+    <div class="mensajes div-100">
+      <h3>{{dashboard.totalMensajes}}</h3>
+      <label class="dash-mensajes">Mensajes</label>
+    </div>
+    <div class="usuarios div-100">
+      <h3>{{dashboard.totalUsuarios}}</h3>
+      <label class="dash-usuarios">Usuarios</label>
+    </div>
+  </div>
+
+
+</div>    
+    <!--cuadritos-->
+</div>   
+    
+</div>
+
+
+
+
+

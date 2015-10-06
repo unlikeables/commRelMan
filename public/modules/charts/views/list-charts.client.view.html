@@ -1,0 +1,79 @@
+<section data-ng-controller="ChartsController" data-ng-init="find()">
+    <div class="page-header">
+        <h1>Charts</h1>
+    </div>
+    <div class="list-group">
+        <a data-ng-repeat="chart in charts" data-ng-href="#!/charts/{{chart._id}}" class="list-group-item">
+			<small class="list-group-item-text">
+				Posted on
+				<span data-ng-bind="chart.created | date:'medium'"></span>
+				by
+				<span data-ng-bind="chart.user.displayName"></span>
+			</small>
+			<h4 class="list-group-item-heading" data-ng-bind="chart.name"></h4>
+        </a>
+    </div>
+    <div class="alert alert-warning text-center" data-ng-hide="!charts.$resolved || charts.length">
+    	No Charts yet, why don't you <a href="/#!/charts/create">create one</a>?
+    </div>
+   
+</section>
+
+
+<!--mapa-->
+
+
+<div class="contenedor-grafica" style="width: 97%;" ng-controller="MapController as Map">
+	<div class="titulo">
+		<h1>Mapa</h1>
+	</div>
+	<div class="grafica">
+
+<highchart config="Map.config"></highchart>
+
+	</div>
+	{{dataEstados}}
+</div> 
+
+            
+<!--mapa-->
+
+<!--grafica de tags-->
+
+
+
+            
+
+<div data-ng-controller="ChartsController" data-ng-init="graficaTags('create')">
+
+
+
+ 
+
+
+
+
+
+
+
+<div class="contenedor-grafica">
+	<div class="titulo">
+		<h1>Nube de Términos</h1>
+	</div>
+	<div class="grafica">
+	<div id="tagcloud" style="width: 500px;float:left;display:block;"></div>
+	        <div style="width: 200px;float:left;display:block;">
+    	<ul>
+    		<li><label><input type="checkbox" checked="checked" data-ng-model="check_hashtag" data-ng-change="graficaTags('update')" />&nbsp;Hashtags</label></li>
+    		<li><label><input type="checkbox" checked="checked" data-ng-model="check_mentions" data-ng-change="graficaTags('update')"/>&nbsp;Mentions</label></li>
+    		<li><label><input type="checkbox" checked="checked" data-ng-model="check_keywords" data-ng-change="graficaTags('update')"/>&nbsp;Keywords</label></li>
+    	</ul>
+    	</div>
+	</div>
+		
+</div>    
+
+	
+</div>
+<!--grafica de tags-->
+

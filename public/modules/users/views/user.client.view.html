@@ -1,0 +1,44 @@
+
+<!-- Latest compiled and minified CSS -->
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">
+
+<!-- Latest compiled and minified JavaScript -->
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
+<style type="text/css">
+	body{
+		overflow: auto;
+	}
+</style>
+
+<section data-ng-controller="SettingsController" data-ng-init="find()" class="well" style="max-width: 960px; margin:10px auto; heigh:auto;">
+    <div class="page-header">
+        <h1>Usuarios registrados</h1>
+    </div> 
+	<div class="row well">
+		<form>
+			<div class="form-group">
+				<label for="exampleInputEmail1">Filtrar</label>
+				<input type="text" class="form-control" data-ng-model="buscaUsuario">
+			</div>
+		</form>
+	</div>    
+    <div class="list-group">
+        <a data-ng-repeat="user in users | filter:buscaUsuario" data-ng-href="#!/user/{{user._id}}/edit" class="list-group-item">
+			<small class="list-group-item-text">
+				Registrada: 
+				<span data-ng-bind="user.created | date:'medium'"></span>
+				Por
+				<span data-ng-bind="user.displayName"></span>
+			</small>
+			<h4 class="list-group-item-heading">Nombre: <span data-ng-bind="user.displayName"></span></h4>
+            <h4 class="list-group-item-heading">Username: <span data-ng-bind="user.username"></span></h4>
+  			<h4 class="list-group-item-heading">Rol de Usuario: <span data-ng-bind="user.roles"></span></h4>
+            <h4 class="list-group-item-heading">Cuenta: <span data-ng-bind="user.cuenta.marca"></span></h4>
+            <p>Id: <span data-ng-bind="user._id"></span></p>
+        </a>
+        </div>
+    </div>
+	<div class="row">
+		<a href="/#!/users/create" class="btn btn-primary">Agregar Usuario</a>
+	</div>
+</section>

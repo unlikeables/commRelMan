@@ -1,0 +1,74 @@
+
+<div class="pure-u-md-1-1" data-ng-controller="FeedsController" style="height: 54px;">
+	
+	
+   <div class="pure-u-1-2 izq border-interno-der">
+       <a href="/auth/signout" class="complete activate_modal" name="salir" id="btn-salir"></a>
+   </div>
+  <div class="pure-u-1-2 izq" style="position: relative;"> 
+<div id="compana-cont" data-ng-click="abrirNotificaciones()" ng-keydown="changeIndex($event)" tabindex="0">
+	
+	<a  data ng-if="notificaciones.length <= 0" class="complete border-interno-der  tooltipstered" id="campana-salir" title="{{notificaciones.length}} {{ 'Notifications' | translate }}">
+		
+	</a>
+	
+	<a data-ng-if="notificaciones.length > 0" id="campana-salir" class="border-interno-der  tooltipstered" style="  height: 55px; display: block;">
+		<span  class="txt-centro txt-blanco txt-negrita">{{notificaciones.length | numeroNotificaciones}}</span>
+	</a>
+	
+        <div id="notificaciones-cont" data-ng-class="clasesNotificaciones">
+        	
+         <ul data-ng-init="comparaUrl()" id="lista-notificaciones-principal" >
+         	
+         	<li data-ng-show="notificaciones.length <= 0"><p class="txt-centro" style="font-size:14px;">{{ 'No tienes notificaciones' | translate }}</p></li>
+         	
+        	<li ng-repeat="notificacion in notificaciones | orderBy:'-created_time'" data-ng-if="notificaciones.length > 0" data-ng-click='showNotificacion(notificacion)'>
+        		<div class="contenedor-notificacion">
+        			<div class="titulos-notificacion">
+        				<table>
+        					<tr>
+        						<td width="11">
+        							<img src="modules/core/img/calendario.png" style="max-width: 1000px; margin-left:10px; margin-right: 5px;"/>
+        						</td>
+        						<td>
+        							<p class="fecha">{{notificacion.created_time | date:'d MMM yy'}}</p>
+        						</td>
+        						<td>
+        							<p class="hora">{{notificacion.created_time | date:'h:mm a'}}</p>
+        						</td>
+        					</tr>
+        				</table>
+        			</div>
+        			<div class="contenido-notificacion">
+        				<table>
+        					<tr>
+        						<td style="vertical-align: middle; text-align: center;">
+                      <img src="{{notificacion.profile_image}}" class="circular" style="width: 44px; height: 44px; max-width: 1000px; margin-left: 10px; margin-right:10px;"/>
+        						</td>
+        						<td>
+        							<p class="nombre">{{notificacion.screen_name}}</p>
+        							<p style="padding: 0px; margin:0px;"><small style="font-size: 12px;">{{notificacion.text}}</small></p>
+        						</td>
+        					</tr>
+        				</table>
+        				
+        			</div>
+        		</div>
+        		
+        	</li>
+        	
+        </ul>  
+
+  	
+        </div><!--notificaciones-cont-->
+        
+
+</div> 
+        
+        
+
+
+  </div>
+  
+  
+</div>

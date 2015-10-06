@@ -1,0 +1,184 @@
+<div data-ng-controller="AccountsController" data-ng-init="getTemas()">
+	<div class="headerPaginas">
+		<div class="anchoTemasSubtemas">
+			<a href="#" class="">Temas</a>
+		</div>
+	
+		<div class="anchoTemasSubtemas">
+			<a href="#" class="">Subtemas</a>
+		</div>
+
+		<div class="respuestasTS">
+			<a href="#" class="">Respuestas Sugeridas</a>
+		</div>
+	
+	</div>
+<div style="width:100%; height:100%;">
+	<div style="width:21%; float:left;">
+		<ul class="menu-lateral enlaces-izq" style="border-right:1px solid black;">
+			<li ng-repeat="themesNow in temasActuales">
+				<a href="" class="ico-buscar" ng-click="obtenerSubtemas('{{themesNow.tema}}')" ng-class="{seleccionado: themesNow.tema == temaEscogido}">
+					{{themesNow.tema}}
+				</a>
+			</li>
+				
+			<li class="listaMas">
+					<img src="modules/core/img/brand/mas.png" class="centraMas" />
+			</li>
+		</ul>
+	</div>
+	<div style="width:21%; float:left;">
+		<ul class="menu-lateral enlaces-izq subtemasC">
+			<li ng-repeat="subthemesNow in subtemasPagina">
+			<!--ng-class="{seleccionado: subthemesNow.nombre == subtemaEscogido}"-->
+
+				<a href="" class="ico-buscar" ng-class="{seleccionado: subthemesNow.nombre == subtemaEscogido}" ng-click="obtieneResSubtemas('{{subthemesNow.nombre}}')"><!--ng-dblclick="dobleClick()"-->
+					{{subthemesNow.nombre}}
+				</a>
+			</li>
+			<li class="listaMas">
+					<img src="modules/core/img/brand/mas.png" class="centraMas" />
+			</li>
+		</ul>
+	</div>
+	<div style="width:58%; float:left;">
+		<div style="border:1px solid black; width:94%; margin-left:3%; margin-right:3%; margin-top:3%;" ng-repeat="respuestas in MuestraTemas">
+			<p style="padding:20px;">{{respuestas}}</p>
+		</div>
+		<div style="border:1px solid black; width:94%; margin-left:3%; margin-right:3%; margin-top:3%;" data-ng-click="abreRespuesta()">
+			<img src="modules/core/img/brand/mas.png" style="margin-left:50%;" />
+		</div>
+
+<!--Inicia modal para agregar respuestas-->
+<div ng-controller="ModalDemoCtrl">
+    <script type="text/ng-template" id="myModalContent.html">
+        <div class="modal-header">
+            <h3 class="modal-title">{{items[0].user.name}}</h3>
+        </div>
+        <div class="modal-body">
+        <!-- <iframe src='http://www.google.com'></iframe> -->
+        {{items[0].text}}
+        <h1><span data-ng-bind="twit.text"></span></h1>
+        </div>
+
+<style>
+                .botonTemas{width:96%;height:30px;margin-left:2%; color:white; background-color:red;cursor:pointer; float:left; transition:0.5s ease;padding-top:5px;}
+                        .textoButton{padding-left:17px;padding-top:15px; }
+                .botonTemas:hover .contenedorTemas{display:block; transition:0.5s ease;}
+                .contenedorTemas{display:none;background-color:white;width:300px; color:black; position:absolute; z-index:10; border:1px solid black;}
+                .seleccionTemas{padding-left:15px; padding-top:5px;}
+                .elimina{background-color:red; float:right; margin-right:17px; border:none; color:white;}
+                .agregaTema{ margin-left:15px; color:blue;}
+                .botonCrear{border:none; background-color:#0088ff;color:white;}
+		.muestraAgregar{margin-bottom:10px;}
+		.respuestas{cursor:pointer; width:96%; margin-left:2%;margin-top:1%;margin-bottom:1%;}
+			.respuestas:hover{background-color:#B9BCC1;}
+
+</style>
+
+
+
+        <div class="botonTemas" id='tema'>
+                <span class="textoButton">{{themeDefault}}</span>
+
+                <div class="contenedorTemas">
+
+                        <div class="seleccionTemas" ng-repeat="tema in temas">
+				<!--ng-click="seleccionaTema('{{tema._id}}','{{tema.tema}}')'-->
+                    <label>
+		<input type="radio"  value="{{tema.tema}}" data-ng-checked='{{themeDefault === tema.tema}}'  data-ng-model="themes"  data-ng-click="cambioSelect('{{tema.tema}}')" name="themes">{{tema.tema}}</label>
+                        </div>
+
+                        <div class="agregaTema">
+				<p ng-click="addThemeClick()">+Agregar un nuevo tema</p>
+                                <div ng-show="addTheme" class="muestraAgregar">
+				<form ng-show="nuevo_tema_activo" data-ng-submit="agregarTema()">
+        			<input type="textbox" name ="tema_nuevo"  data-ng-model="tema_nuevo">
+        			<button type="submit" class="botonCrear">Crear</button>
+        			</form>
+			</div>
+			<span style="color: red;">{{mensaje_server}}</span>
+
+                        </div>
+
+                </div>
+
+        </div>
+
+<div style="clear:both;"></div>
+
+	<!--Respuestas del tema -->
+	<div ng-show="muestraRespuestasTemas">
+<div data-ng-repeat="response in responseThemes" class="respuestas" data-ng-click="informacionRespuesta('{{response}}')">
+			{{response}}
+		</div>
+	</div>
+
+<div style="clear:both;"></div>
+
+<!--finaliza parte de temas-->
+
+<!--Inicia parte de subtemas-->
+        <div class="botonTemas" id='tema' style="margin-top:1%;background-color:green !important;">
+                <span class="textoButton">{{subthemeDefault}}</span>
+
+                <div class="contenedorTemas">
+
+                        <div class="seleccionTemas" ng-repeat="subtema in subtemas">
+    <label>
+<!--data-ng-checked='{{subthemeDefault === subtema.nombre}}'data-ng-model="subtema" id ="subtema" name ="subtema" -->
+<input type="radio"  value="{{subtema.nombre}}"  data-ng-model="subtheme" data-ng-checked='{{subthemeDefault === subtema.nombre}}'  id ="subtheme" name ="subtheme" data-ng-click="cambioRadioSubtema('{{subtema.nombre}}')">
+	{{subtema.nombre}}
+</label>
+           		</div>
+
+                        <div class="agregaTema">
+                                <p ng-click="addSubThemeClick()">+Agregar un nuevo subtema</p>
+                                <div ng-show="addSubTheme" class="muestraAgregar">
+   				<form ng-show="nuevo_subtema_activo" data-ng-submit="agregarSubtema()">
+        			<input type="textbox" name ="subtema_nuevo"  data-ng-model="subtema_nuevo">
+		                <button type="submit" class="botonCrear">Crear</button>
+                                </form>
+                        </div>
+                        <span style="color: red;">{{mensaje_server_subtema}}</span>
+                        <span style="color:red;">{{response}}</span>
+                        </div>
+
+                </div>
+
+        </div>
+
+
+        <!--Respuestas del tema -->
+        <div ng-show="muestraRespuestasSubtemas">
+<div data-ng-repeat="responseSubtemas in responseSubThemes" class="respuestas" data-ng-click="informacionRespuesta('{{responseSubtemas}}')">
+                        {{responseSubtemas}}
+                </div>
+        </div>
+
+<div style="clear:both;"></div>
+
+
+
+<!--Finaliza parte de subtemas-->
+
+
+{{resInfo}}
+        <textarea data-ng-model="respuesta" name="respuesta" style="width:96%; margin-left:2%; margin-top:1%;"></textarea>
+	<button class="btn btn-danger" ng-click="agregarRespuesta()" style="margin-left:2%;">+ Agregar Respuesta</button>
+        <span style="color: red;">{{mensajeRespuesta}}</span>
+	<span style="color: red;">{{response}}</span>
+        <div class="modal-footer">
+            <button class="btn btn-primary" ng-click="responder()">Responder</button>
+            <button class="btn btn-primary" ng-click="ok()">OK</button>
+            <button class="btn btn-warning" ng-click="cancel()">Cancel</button>
+            <br>
+        </div>
+    </script> 
+<!--fin de modal-->
+
+
+
+	</div>
+</div>	
+</div>

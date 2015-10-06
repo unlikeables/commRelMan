@@ -1,0 +1,1113 @@
+<style type="text/css">
+ input[type="text"] .ng-invalid{
+    border: 2px solid red !important;
+}
+.text-info {
+    font-weight: bold;
+  /*color: white !important;*/
+}
+/*rect{
+    stroke-width:0px !important;
+}*/
+.btn[disabled] {
+  opacity: 0.90;
+  filter: alpha(opacity=90);
+  /*background-color: #690000;*/
+  color: #c9cacc !important;
+}
+.text-muted{
+    opacity: 0.90;
+    filter: alpha(opacity=90);
+    /*background-color: #690000;*/
+    color: #c9cacc !important; 
+}
+</style>
+
+<!--Header-->
+
+
+<div class="pure-u-md-1-1 header" data-ng-controller="SettingsController">
+	<div id="facebook-connect-header" data-ng-show="!statusLoginFacebook2"><a href="{{constant.host}}/auth/facebook"><img src="/modules/core/img/facebook-login-header.svg" /></a></div>
+	<div id="facebook-cuenta-usuario" data-ng-show="statusLoginFacebook2">
+		<div class="imagen perfil-circular" style=" width: 40px; height: 40px; background-image: url(https://graph.facebook.com/{{authentication.user.additionalProvidersData.facebook.id}}/picture?type=square);background-size: cover; background-position: center;">
+			&nbsp;
+		</div>
+		<ul>
+			<li><a data-ng-click="removeUserSocialAccount('facebook')">Cerrar Sesión</a></li>
+		</ul>
+	</div>
+	<div class="pure-u-md-1-1 border-inf-blanco bg-azul1" style="position:relative;">
+		<div class="pure-u-md-4-24 pure-u-sm-1-1 izq" data-ng-include="'modules/core/views/notificacion.html'">
+
+		</div>
+
+		<div class="pure-u-md-20-24 izq pure-u-sm-1-1 titulo-seccion" align="center">
+			<p class="txt-blanco negrita" style="opacity: .5;" translate>
+				ACCOUNTS
+			</p>
+		</div>
+
+	</div>
+</div>
+<!--Finaliza header-->
+
+<div class="pure-u-md-1-1" id="contenedor-completo">
+	<!--Llamada del side-->
+	<div class="pure-u-md-4-24 pure-u-sm-1-1 border-interno-der" id="lateral">
+		<div data-ng-include="'/modules/core/views/side.html'"></div>
+	</div>
+
+	<div style="border-top:solid 1px #fff;" class="pure-u-md-20-24 pure-u-sm-1-1 border-interno-der alto-100 contenedorTemas" data-ng-controller="AccountsController" data-ng-init="find()">
+
+		<!-- MODAL PARA CREAR UNA CUENTA -->
+		<div ng-controller="ModalDemoCtrl">
+			<script type="text/ng-template" id="createAccountContent.html">
+
+				<!--formulario para agregar-->
+				<div style="">
+
+				<div class="pure-u-md-1-1">
+				<h3 class="txt-centro" translate>New Account</h3>
+				</div>
+				
+				<div class="pure-u-md-1-1">
+					<div id="fileDisplayArea" class="circular" align="center" >
+						<label>
+							<span class="btn btn-naranja txt-blanco" style="padding: 10px; width: 150px;" translate>Upload Logo</span>
+							<input type="file" onchange="angular.element(this).scope().cambiaImagen(this)" data-ng-model="archivo" name="archivo" id ="file" style="display: none;">
+						</label>
+					</div>
+				</div>
+
+				<div class="pure-u-md-1-1">
+
+<style type="text/css">
+	input.input-error{
+		border:solid 1px red !important;
+	}
+	
+</style>					
+
+				<form data-ng-submit="submit()" class="form-1" name="agregarcuenta">
+				
+					<div class="pure-u-md-1-1 pure-u-sm-1-1 izq">
+						<label translate>Account Name: </label>
+						<input type="text" name="nombre" data-ng-model="nombre" required data-ng-class="{'input-error':!agregarcuenta.nombre.$pristine && agregarcuenta.nombre.$error.required}">		
+					</div>				
+					<div class="pure-u-md-1-1 pure-u-sm-1-1 izq">
+						<label translate>Nickname: </label>
+						<input type="text" data-ng-model="nombre_corto" name="nombre_corto" required data-ng-class="{'input-error':!agregarcuenta.nombre_corto.$pristine && agregarcuenta.nombre_corto.$error.required}">		
+					</div>
+					
+					<div class="pure-u-md-1-1 pure-u-sm-1-1 izq" data-ng-show="errorNuevaCuenta">
+						<center><p class="txt-error" style=" text-align: center;">{{errorNuevaCuenta}}</p></center>
+					</div>
+				
+
+				<div class="pure-u-md-1-1">
+
+				<table width="100%" class="tabla-botones-acciones-basicas">
+				<tr>
+				<td><button ng-click="cancel()" class="btn btn-cancelar der" translate>Cancelar</button></td>
+				<td><input type="submit" class="btn btn-guardar izq" style="width: 250px;" value="{{ 'Accept' | translate }}" data-ng-disabled="(agregarcuenta.$error.required)"></td>
+				</tr>
+				</table>
+
+				</div>
+
+				</form>
+
+				</div>
+
+				</div>
+				<!--formulario para agregar-->
+
+			</script>
+		</div>
+		<!-- MODAL PARA CREAR UNA CUENTA -->
+
+		<!-- MODAL PARA DESCONECTAR CUENTA -->
+		<div ng-controller="ModalDemoCtrl">
+			<script type="text/ng-template" id="desconectaCuentaContent.html">
+				<div align="center">
+				<div class="pure-u-md-1-1">
+				<p class="txt-centro" style="padding-bottom: 0px; margin-bottom: 0px;" translate>Are you sure?</p>
+				<div class="pure-u-md-1-1">
+				<p style="margin-top: 5px;"><small class="txt-centro txt-error"  translate>Your account’s information will be deleted permanently</small></p>
+				</div>
+
+				</div>
+				<div class="pure-u-md-1-1">
+				<table width="100%" class="tabla-botones-acciones-basicas" style="margin-top: 0px;">
+				<tr>
+				<td><button class="der btn btn-cancelar" ng-click="cancel()" translate>Cancel</button></td>
+				<td><button class="izq btn btn-guardar" ng-click="desvinculaCuenta(paginaActual)" translate>Accept</button></td>
+				</tr>
+				</table>
+				</div>
+
+				</div>
+			</script>
+		</div>
+		<!-- MODAL PARA DESCONECTAR CUENTA -->
+
+		<!-- MODAL PARA  ELIMINAR MONITOREO -->
+		<div ng-controller="ModalDemoCtrl">
+			<script type="text/ng-template" id="desconectaMonitoreo.html">
+				<div align="center">
+				<div class="pure-u-md-1-1">
+				<p class="txt-centro">¿Estás seguro de que deseas desconectar esta cuenta?</p>
+				<small class="txt-centro">Al hacerlo eliminarás toda la información de la coneccion</small>
+				</div>
+				<div class="pure-u-md-1-1">
+				<table width="100%" class="tabla-botones-acciones-basicas">
+				<tr>
+				<td><button class="der btn btn-cancelar" ng-click="cancel()">Cancel</button></td>
+				<td><button class="izq btn btn-guardar" ng-click="desvinculaMonitoreo()">Accept</button></td>
+				</tr>
+				</table>
+				</div>
+
+				</div>
+			</script>
+		</div>
+		<!-- MODAL PARA ELIMINAR MONITOREO-->
+
+
+		<!-- Modal de eliminación de trackers-->
+		<div ng-controller="ModalDemoCtrl">
+			<script type="text/ng-template" id="deleteTrackers.html">
+				<div align="center">
+					<div class="pure-u-md-1-1">
+						<p class="txt-centro">¿Estás seguro de que deseas eliminar los trakers de esta cuenta?</p>
+						<small class="txt-centro">Al hacerlo eliminarás toda la información</small>
+					</div>
+					<div class="pure-u-md-1-1">
+						<table width="100%" class="tabla-botones-acciones-basicas">
+							<tr>
+								<td>
+									<button class="der btn btn-cancelar" ng-click="cancel()">Cancel</button>
+								</td>
+								<td>
+									<button class="izq btn btn-guardar" ng-click="eliminaTrackers()">Accept</button>
+								</td>
+							</tr>
+						</table>
+					</div>
+				</div>
+			</script>
+		</div>
+		<!-- Modal de eliminación de trackers-->
+
+		<!-- MODAL PARA Eliminar Responding account -->
+		<div ng-controller="ModalDemoCtrl">
+			<script type="text/ng-template" id="eliminaRespTwitterContent.html">
+				<div align="center">
+				<div class="pure-u-md-1-1">
+				<h3 class="txt-centro" translate>¿Estás seguro de que deseas desconectar listening account de twitter?</h3>
+				</div>
+				<div class="pure-u-md-1-1">
+				<table width="100%" class="tabla-botones-acciones-basicas">
+				<tr>
+				<td><button class="der btn btn-cancelar" ng-click="cancel()" translate>Cancel</button></td>
+				<td><button class="izq btn btn-guardar" ng-click="eliminaListeningTwitter(paginaActual)" translate>Accept</button></td>
+				</tr>
+				</table>
+				</div>
+
+				</div>
+			</script>
+		</div>
+		<!-- MODAL PARA Eliminar Responding account  -->
+
+		<!-- MODAL PARA Eliminar cuenta general -->
+		<div ng-controller="ModalDemoCtrl">
+			<script type="text/ng-template" id="eliminaCuenta.html">
+				<div align="center">
+				<div class="pure-u-md-1-1">
+				<h3 class="txt-centro" translate>¿Estás seguro de que deseas eliminar la cuenta en general?</h3>
+				<p class="txt-centro">Al hacerlo todos los usuarios de la cuenta serán eliminados</p>
+				</div>
+				<div class="pure-u-md-1-1">
+				<table width="100%" class="tabla-botones-acciones-basicas">
+				<tr>
+				<td><a class="der btn btn-cancelar" ng-click="cancel()" translate>Cancel</a></td>
+				<td><button class="izq btn btn-guardar" ng-click="borraCuentaGeneral()" translate>Accept</button></td>
+				</tr>
+				</table>
+				</div>
+				</div>
+			</script>
+		</div>
+		<!-- MODAL PARA Eliminar cuenta general -->
+
+		<!-- CONECTA TWITTER-->
+		<div ng-controller="ModalDemoCtrl">
+			<script type="text/ng-template" id="conectTwitterContent.html">
+				<div id="detalle_comentarios" style="background-color: #fff; border-radius: 3px  ; color: #000; padding-bottom: 15px;">
+				<div style="width:100%; clear:both; display:block;padding: 30px;" class="izq">
+				<div class="pure-u-md-1-1" data-ng-show="muestraForm">
+
+				<form data-ng-submit="submitTwitter()" class="form-3" name="form_twitter">
+				<h3 class="txt-centro" translate>Twitter  Accounts</h3>
+				<!--<p class="txt-centro" style="padding-bottom: 10px; display:block;" translate>We highly recommend having a<br/>consumer service account</p>-->
+				<p class="txt-centro" style="padding-bottom: 10px; display:block;">Para recibir, responder y clasificar mensajes abre una Cuenta de Respuesta.<br> Para recibir y clasificar abre una Cuenta de Monitoreo</p>
+				<!--style="padding-bottom: 20px;"-->
+				<div class="pure-u-md-1-1" align="center">
+				<button class="btn btn-guardar btn-chico txt-blanco" style="width: 150px; background-color: #0DBEC8; padding:7px 0px !important;" data-ng-click="showHelp()" translate>Need Help?</button>
+				</div>
+				<div class="pure-u-md-1-1">
+				<div class="pure-u-md-1-2 izq">
+
+				<label translate>*Primary Account</label>
+				<input type="text" name="username" data-ng-model="twitter_screenname_principal" ng-required="!twitter_screenname_respuesta" style="width: 86%;" placeholder="Cuenta de Respuesta"/>
+				<label translate>Consumer Secret</label>
+				<input type="text" data-ng-model="twitter_consumer_secret" style="width: 86%;"/>
+				<label translate>Access Token Secret</label>
+				<input type="text" data-ng-model="twitter_access_token_secret" style="width: 86%;">
+
+				</div>
+				<div class="pure-u-md-1-2 izq">
+				<label translate>Costumer Key</label>
+				<input type="text" data-ng-model="twitter_consumer_key" style="width: 86%;">
+				<label translate>Access Token</label>
+				<input type="text" data-ng-model="twitter_access_token" style="width: 86%;">
+				<label>{{ 'Secondary Account' | translate }}</label>
+				<input data-ng-class="{'error': form_twitter.secondary_account.$error.required && !form_twitter.secondary_account.$pristine }"  name="secondary_account" type="text" data-ng-model="twitter_screenname_respuesta"  ng-required="!twitter_screenname_principal" style="width: 86%;" placeholder="Cuenta de Monitoreo"/>
+				</div>
+				<span style="color:red;     text-align: center; width: 100%; float: left;" class="txt-rojo" ng-show="form_twitter.secondary_account.$error.required && form_twitter.secondary_account.$dirty" translate >Por favor llenar los campos requeridos</span>
+				<span style="color:red;">{{response_twitter_submit}}</span>
+				<div class="pure-u-md-1-1">
+
+				<table width="100%" class="tabla-botones-acciones-basicas">
+				<tr>
+				<td><a class="btn btn-cancelar der" data-ng-click="cancel()"  translate>Cancel</a>	</td>
+				<td><button class="btn btn-guardar izq"  ng-disabled="form_twitter.secondary_account.$error.required && form_twitter.secondary_account.$dirty" translate>Accept</button></td>
+				</tr>
+				</table>
+
+				</div>
+				</div>
+				</form>
+
+				</div>
+				<!--form-->
+				<!--ayuda-->
+				<div class="pure-u-md-1-1" data-ng-show="muestraAyuda">
+				<div style="background-color:#0dbec8; height: 368px;" class="pure-u-md-1-1">
+				<!--aqui va el video-->
+				</div>
+				<h3 class="txt-centro" translate>Twitter Setup</h3>
+				<p class="txt-centro ligera" translate>Login with an account that you will use to respend width<br/><a href="https://apps.twitter.com" target="_blank">apps.twitter.com</a></p>
+				<a data-ng-click="showFormulario()" class="btn btn-guardar" style="width: 150px;padding: 7px 0px !important;" translate>Got it!</a>
+				
+				</div>
+				<!--ayuda-->
+				<div class=""></div>
+
+				<!--contenedor-->
+				</div>
+				<div class="clear"></div>
+				</div>
+			</script>
+		</div>
+		<!-- CONECTA TWITTER-->
+
+		<!-- MODAL DE LOS TRACKERS-->
+		<div ng-controller="ModalDemoCtrl">
+			<script type="text/ng-template" id="trackers.html">
+				<div id="detalle_comentarios" style="background-color: #fff; border-radius: 3px  ; color: #000; padding-bottom: 15px;">
+					<div style="width:100%; clear:both; display:block;padding: 30px;" class="izq">
+						<div class="pure-u-md-1-1" data-ng-show="muestraForm">
+							<form data-ng-submit="saveTrackers()" class="form-4" name="form_trackers">
+								<h3 class="txt-centro" translate>Trackers</h3>
+								<div class="pure-u-md-1-1" align="center">
+									<label translate>Nombre</label>
+									<input type="text" name="trackerName" data-ng-model="trackerName" required style="width: 86%;" placeholder="Nombre del grupo de trackers"/>
+								</div>
+								<p class="txt-centro" style="padding-bottom: 10px; display:block;">Es necesario escribir todos los trackers separados por comas y sin espacios como se muestra en el ejemplo: #hola,football,recibir</p>
+								<div class="pure-u-md-1-1" align="center">
+									<label translate>Listado de trackers</label>
+									<textarea  name="listadoTrackers" data-ng-model="listadoTrackers" required style="width: 86%;" placeholder="Listado de trackers"></textarea>
+								</div>
+								<div class="pure-u-md-1-1">
+									<span style="color:red; text-align: center; width: 100%; float: left;" class="txt-rojo" ng-show="(form_trackers.trackerName.$error.required && form_trackers.trackerName.$dirty) || (form_trackers.listadoTrackers.$error.required && form_trackers.listadoTrackers.$dirty)" translate >Por favor llenar los campos requeridos</span>
+									<span style="color:red;">{{responseTrackers}}</span>
+									<div class="pure-u-md-1-1">
+										<table width="100%" class="tabla-botones-acciones-basicas">
+											<tr>
+												<td>
+													<a class="btn btn-cancelar der" data-ng-click="cancel()"  translate>Cancel</a>	
+												</td>
+												<td>
+													<button class="btn btn-guardar izq"  ng-disabled="(form_trackers.trackerName.$error.required && form_trackers.trackerName.$dirty) || (form_trackers.listadoTrackers.$error.required && form_trackers.listadoTrackers.$dirty)" translate>Accept</button>
+												</td>
+											</tr>
+										</table>
+									</div>
+								</div>
+							</form>
+						</div>
+					</div>
+					<div class="clear"></div>
+				</div>
+			</script>
+		</div>
+		<!--Finaliza modal de los trackers-->
+
+		<!-- MODAL PARA CONECTAR FACEBOOK -->
+		<div ng-controller="ModalDemoCtrl">
+			<script type="text/ng-template" id="conectaFacebook.html">
+				<div class="" id="detalle_comentarios" style="background-color: #fff; border-radius: 3px  ; color: #000; width:96%;">
+				<div style="width:100%;" class="">
+				<h3 class="txt-centro" translate>Facebook Account</h3>
+				<p class="txt-centro" translate>Please select the account you<br/>would like to manage</p>
+				<div style="width: 450px; margin:0px auto; clear:both;height: 300px;overflow: auto;">
+				<ul class="lista-cuentas-facebook">
+				<li ng-class="{'activo seleccionado':evaluaActivo(pagina.id)}" data-ng-repeat="pagina in paginas[0]" ng-click="selectPage(pagina)">
+				<table style="width: 100%; display:block;float:left;">
+				<tr>
+				<td style="width: 50px; text-align: center; "><img src="https://graph.facebook.com/{{pagina.id}}/picture" class="circular-ligero" width="40"/></td>
+				<td style=""><p>{{pagina.name}}</p></td>
+				</tr>
+				</table>
+				</li>
+				<p class="txt-centro">Monitoreo</p>
+				<input type="text" data-ng-model="monitoreo" id="monitoreo" name="monitoreo" placeholder="Monitoreo" style="border: solid 1px #465769; width:100%; height:35px;">
+				<!--elemento-->
+
+				</ul>
+				</div>
+				<span style="color:red;padding-left:137px;">{{mensajeMonitoreo}}</span>
+				<div class="pure-u-md-1-1" style="margin:20px auto;">
+				<table width="100%" class="tabla-botones-acciones-basicas">
+				<tr>
+				<td><button class="btn btn-cancelar der" data-ng-click="cancel()" style="width: 200px;" translate>Cancel</button></td>
+				<td><button class="btn btn-guardar izq" style="width: 250px;" ng-click="conectaPaginaFacebook()" translate>Accept</button></td>
+				</tr>
+				</table>
+
+				</div>
+				</div>
+				</div>
+
+			</script>
+		</div>
+		<!-- MODAL PARA CONECTAR FACEBOOK -->
+
+		<!--DEE3EC-->
+		<div class="pure-u-md-4-24 pure-u-sm-1-1 border-interno-der alto-100-interno" style="height:100% !important; /*position:fixed;*/ position:relative;float:left;border-right: solid 1px white; overflow: auto;">
+			<div class="contenedor-lista-cuentas">
+				<!--lista de  cuentas-->
+				<ul class="menu-lateral-cuentas enlaces-izq" data-ng-repeat="account in accounts">
+
+					<!--titulo-->
+					<li class="titulo listaAccounts" data-ng-click="clickTitulo(account)" ng-class="{active: account.nombreSistema === nombre_cuenta}">
+
+						<div class="pure-u-md-1-1 pure-u-sd-1-1">
+							<div style="display:block;float:left; width:20%; margin-left: 5%; min-width: 50px; height:100%; padding-top:8px;">
+								<div class="perfil-circular" style="width:40px; height:40px; max-width:1000px; margin-left:auto; margin-top:2px; margin-right: auto; background-image: url({{account.imagen_src}}); background-size: cover; background-position: center; border: solid 2px #465769;" ng-show="account.imagen_src.length>0"></div>
+								<div class="perfil-circular" style="width:40px; height:40px; max-width:1000px; margin-left:auto; margin-top:2px; margin-right: auto; background-image: url(/modules/core/img/usuario-sem-imagem.png); border: solid 2px #465769; background-size: cover; background-position: center;" ng-hide="account.imagen_src.length>0"></div>
+
+								
+							</div>
+							<div style="display:block;float:left; width:48%; height:100%; padding-top: 22px;">
+								<a class="light tamanioGeneralLetra txt-izq" style="padding:0px;">{{account.nombreSistema}}</a>
+							</div>
+							<div style="display:block;float:right; width:12px; height:100%;padding-top: 22px;" align="center">
+								<a ng-click="eliminaCuentaGeneral(account)" class="borrar" style="padding-top: 10px; display:block;" data-ng-controller="ModalAccountCtrl"></a>
+							</div>
+						</div>						
+					</li>
+					<!--titulo-->
+					<!--face-->
+					<li class="face" data-ng-controller="ModalAccountCtrl" ng-class="{active: account.nombreSistema === nombre_cuentaFB}">
+
+						<div class="contenedor-nombre-cuenta">
+
+							<!--se muestra cuando no se tiene un monitoreo-->
+							<div class="nombre" ng-hide="account.datosMonitoreo.name">
+								<a class="light tamanioGeneralLetra" ng-show="account.facebook!=='-1'" ng-click="obtienePublicacionesFacebook(account.nombreSistema)" title="{{account.datosPage.name}}">{{account.datosPage.name}}</a>
+								<a class="light tamanioGeneralLetra" ng-show="account.facebook==='-1'">Facebook</a>
+							</div>
+							<div class="iconos" ng-hide="account.datosMonitoreo.name">
+								<a name="borrar_cuenta" class="agregar activate_modal" ng-click="conectaFacebook(account)" ng-show="account.facebook==='-1'"></a>
+								<a name="borrar_cuenta" class="borrar activate_modal" ng-click="desconectaCuentaFacebook(account)" ng-show="account.facebook!=='-1'"></a>
+							</div>
+							<!--se muestra cuando no se tiene un monitoreo-->
+							<!--se muestra cuando se tiene un monitoreo-->
+							<div class="nombre" ng-show="account.datosMonitoreo.name">
+								<a class="light tamanioGeneralLetra" ng-show="account.facebook==='-1'" ng-click="obtienePublicacionesFacebook(account.nombreSistema)" title="{{account.datosMonitoreo.name}}">{{account.datosMonitoreo.name}}</a>
+							</div>
+							<div class="iconos" ng-show="account.datosMonitoreo.name">
+								<a name="borrar_cuenta" class="agregar activate_modal" ng-click="conectaFacebook(account)" ng-hide="account.datosMonitoreo.name"></a>
+								<a name="borrar_cuenta" class="borrar activate_modal" ng-click="eliminaMonitoreo(account)" ng-show="account.datosMonitoreo.name"></a>
+							</div>
+							<!--se muestra cuando se tiene un monitoreo-->
+
+						</div>
+
+					</li>
+					<!--face-->
+
+					<!--twitter-->
+					<li class="twitter" data-ng-controller="ModalAccountCtrl" ng-class="{active: account.nombreSistema === nombre_cuentaTW}">
+
+						<div class="contenedor-nombre-cuenta">
+							<div class="nombre">
+								<a class="light tamanioGeneralLetra" ng-show="account.twitter !== '-1'" ng-click="obtienePublicacionesTwitter(account.nombreSistema,0)" title="{{account.datosTwitter.twitter_screenname_principal}}">{{account.datosTwitter.twitter_screenname_principal}}</a>
+								<a class="light tamanioGeneralLetra" ng-show="account.twitter === '-1'">Twiter</a>
+							</div>
+							<div class="iconos">
+								<a name="borrar_cuenta" class="borrar activate_modal" ng-click="desconectaCuentaTwitter(account)" ng-show="account.twitter !== '-1'"></a>
+								<a name="borrar_cuenta" class="agregar activate_modal" ng-click="conectaTwitter(account)" ng-show="account.twitter === '-1'"></a>
+
+							</div>
+						</div>
+
+					</li>
+					<!--twitter-->
+
+					<!--Trackers-->
+					<li class="twitter" data-ng-controller="ModalAccountCtrl" ng-class="{active: account.nombreSistema === nombre_cuentaTW}" ng-show="authentication.user.roles[0] === 'app-manager'">
+
+						<div class="contenedor-nombre-cuenta">
+							<div class="nombre">
+								<a class="light tamanioGeneralLetra" ng-show="account.trackers" title="Trackers">{{account.trackers.nombreTrackers}}</a>
+								<a class="light tamanioGeneralLetra" ng-show="!account.trackers">Trackers</a>
+							</div>
+							<div class="iconos">
+								<a name="borrar_cuenta" class="borrar activate_modal" ng-click="deleteTrackers(account)" ng-show="account.trackers"></a>
+								<a name="borrar_cuenta" class="agregar activate_modal" ng-click="addTrackers(account)" ng-show="!account.trackers"></a>
+
+							</div>
+						</div>
+
+					</li>
+					<!--trackers-->
+					<li ng-show="account.twitter !== '-1' && account.datosTwitter.twitter_screenname_respuesta && account.datosTwitter.twitter_screenname_respuesta !== '-1'" class="twitter tamanioDefinido" data-ng-controller="ModalAccountCtrl" ng-class="{active: account.nombreSistema === nombre_cuentaTW_uno}">
+						<table style="width: 100%;">
+							<tbody>
+								<tr>
+									<td><a class="light tamanioGeneralLetra" ng-show="account.twitter !== '-1' && account.datosTwitter.twitter_screenname_respuesta !== '-1' " ng-click="obtienePublicacionesTwitter(account.nombreSistema,1)">{{account.datosTwitter.twitter_screenname_respuesta}}</a></td>
+									<td style="vertical-align: middle;"><a href="#" name="borrar_cuenta" class="borrar activate_modal" ng-click="eliminaListeningTwitter(account)" ng-show="account.twitter !== '-1'"></a></td>
+								</tr>
+							</tbody>
+						</table>
+					</li>
+
+				</ul>
+
+				<ul class="menu-lateral-cuentas enlaces-izq" ng-show="authentication.user.roles[0] === 'app-manager'">
+					<li class="tamanioDefinido">
+						<a  class="mas activate_modal hoverMas" style="margin-left:0px !important;" name="nueva_cuenta" data-ng-controller="ModalAccountCtrl" data-ng-click="open()"></a>
+					</li>
+				</ul>
+				<!--lista de  cuentas-->
+			</div>
+		</div>
+
+		<!--derecha-->
+		<div class="pure-u-md-20-24 pure-u-sm-1-1" id="contenedor-graficas" style="">
+			<link rel="stylesheet" type="text/css" href="lib/ngDialog/css/ngDialog.min.css">
+
+			<div class="pure-u-md-1-1 pure-u-sm-1-1" id="barra-rangos">
+				<div class="pure-u-md-1-1 pure-u-sm-1-1">
+
+					<table class="filtros-cuentas">
+						<tr>
+							<td><label for="range-a" translate style="padding-left:15px;">Range</label></td>
+							<!--date-disabled="disabled(date, mode)"-->
+							<td>
+							<input type="text"  datepicker-popup="{{format}}" ng-model="dt" is-open="opened"  datepicker-options="dateOptions" ng-required="true" close-text="{{ 'Close' | translate }}" ng-click="open($event)" show-button-bar="false" show-weeks="false" max-date="{{maxDate}}"/>
+							</td>
+							<td><label for="range-b" translate>to</label></td>
+							<!--date-disabled="disabled2(date, mode)" -->
+							<td>
+							<input type="text" datepicker-popup="{{format}}" ng-model="dt2" is-open="opened2" min-date="minDate"  datepicker-options="dateOptions" ng-required="true" close-text="{{ 'Close' | translate }}" ng-click="open2($event)"  show-button-bar="false" show-weeks="false" max-date="{{maxDate}}"/>
+							</td>
+							<td>
+							<button ng-click="creaArchivo(account)" class="btn btn-guardar">
+								{{ 'Generate' | translate }}
+							</button></td>
+					
+						</tr>
+					</table>
+
+									<div style="float:right; margin-right: 20px; margin-top: 5px;">
+									<label translate style="padding-left:15px;">Exportar</label>	
+									<a style="cursor: pointer;" title="{{ 'Download CSV' | translate }}" ng-click="descargaArchivo(account)">
+										<img src="/modules/core/img/icono-cvs.gif" />
+									</a>										
+									</div>
+										
+										
+									
+				</div>
+				
+
+			</div>
+
+			<!--botones-->
+			<div class="pure-u-md-1-1" style="display: none;">
+
+				<ul class="lista-pestanas-cuentas">
+					<li>
+						<a data-ng-click="mostrarSeccion('publicaciones')" data-ng-class="activoPublications" translate>PUBLICATIONS</a>
+					</li>
+					<li>
+						<a data-ng-click="mostrarSeccion('metricas')" data-ng-class="activoMetricas" translate>METRICS</a>
+					</li>
+				</ul>
+
+			</div>
+			<!--botones-->
+			<!--listado de publicaciones-->
+			<div class="pure-u-md-1-1" style="padding-top: 93px;">
+
+				<div class="pure-u-md-1-1" align="center" data-ng-show="mostrarMetrics" style="vertical-align: middle;" id="metricas">
+					
+					<div>
+						<div id="stock"></div>
+					</div>					
+					
+					<div class="pure-u-md-1-1 contenedor-grafica"  style="width: 96%;">
+							<div class="titulo">
+								<h1>Crecimiento</h1>
+							</div>				
+							<div class="grafica">
+								<highchart config='graficaCrecimiento'></highchart>
+							</div>		
+					</div>
+					
+
+					
+					
+
+					<div class="pure-u-md-1-1 izq">
+						
+						<div class="pure-u-md-1-2 pure-u-sm-1-1 izq">
+
+						<!--TOTAL DE CASOS-->
+						<style type="text/css">
+							#highcharts-33 {
+								padding-top: 70px;
+							}
+						</style>
+						<div class="contenedor-grafica" style="width: 92%;">
+							<!--si hay data-->
+							<div class="pure-u-md-1-1 pure-u-sm-1-1 izq">
+							<div class="titulo">
+								<h1>{{ 'Total Cases' | translate }}</h1>
+							</div>
+							
+							<div class="grafica" data-ng-if="porcentajeTotalCasos > 0">
+								<highchart config='chartTotalCasos'></highchart>
+							</div>
+							<div class="pure-u-md-1-1 pure-u-sm-1-1"  data-ng-if="porcentajeTotalCasos <= 0">
+							<img src="/modules/core/img/no-data-no-text.png" style="max-width: 100%; height: auto;"/>
+							<p style="font-size: 22px !important;">No hay casos atendidos<br/>en este periodo</p>								
+							</div>
+															
+							</div>
+							<!--si hay data-->
+
+						</div>
+						<!--TOTAL DE CASOS-->							
+							
+						</div>
+						
+
+					<div class="pure-u-md-1-2 pure-u-sm-1-1 izq">
+						<!--PROMEDIO DE CASOS-->
+						<div class="contenedor-grafica" style="width: 92%;">
+							<div class="titulo">
+								<h1>{{ 'Average Case' | translate }}</h1>
+							</div>
+							
+							<div class="grafica" style="width: 100%;" ng-hide="!mostrarPromedioCasos" >
+								<highchart config='chartPromedioCasos' ></highchart>
+								<!--<div class="pure-u-md-1-1 pure-u-sm-1-1">
+								<select ng-model="tipoPromedioCasos" ng-change="cambiarGraficaPromedioCasos()" class="combo-graficas">
+									<option value="column">Columnas</option>
+									<option value="pie">Pie</option>
+									<option value="line">Linea</option>
+									<option value="area">Area</option>
+								</select>									
+								</div>-->
+							</div>
+
+							<div class="pure-u-md-1-1 pure-u-sm-1-1 izq" data-ng-show="!mostrarPromedioCasos" align="center">
+								<img src="/modules/core/img/no-data-no-text.png" style="max-width: 100%; height: auto;"/>
+								<p style="font-size: 22px !important;">No existe suficiente data<br/>para generar esta gráfica</p>
+							</div>
+						</div>
+						<!--PROMEDIO DE CASOS-->
+					</div>		
+					
+					<div class="clear"></div>				
+						
+						<div class="pure-u-md-1-2 pure-u-sm-1-1 izq">
+							
+						<!--PROMEDIO DE RESPUESTA-->
+						<div class="contenedor-grafica" style="width: 92%;">
+							<div class="titulo">
+								<h1>{{ 'Average Time' | translate }}</h1>
+							</div>
+							<div class="grafica" data-ng-class="{'alto200':chartPromedioTiempo.tipo}">
+								<center>
+									<!--si hay data-->
+									<div class="pure-u-md-1-1 pure-u-sm-1-1 izq" data-ng-show="chartPromedioTiempo.tipo">
+										<img src="modules/core/img/cronometro.png" style="width: 65px; padding-top:20px;">
+										<h1 style="font-size:35px !important; color:#6a6a6a;">
+											<b style="font-size:35px !important;">{{chartPromedioTiempo.promedio}}</b>
+											 {{chartPromedioTiempo.tipo}}
+										</h1>	
+									</div>
+									<!--si hay data-->
+									<!--si no hay data-->
+									<div class="pure-u-md-1-1 pure-u-sm-1-1 izq" data-ng-show="!chartPromedioTiempo.tipo" align="center">
+										<img src="/modules/core/img/no-data-no-text.png" style="max-width: 100%; height: auto;"/>
+										<p style="font-size: 22px !important;">No existe suficiente data<br/>para generar esta gráfica</p>
+									</div>
+									<!--si no hay data-->
+									
+								</center>
+							</div>
+						</div>							
+							
+						</div>
+
+						<div class="pure-u-md-1-2 pure-u-sm-1-1 izq">
+
+
+						<!--SENTIMENT-->
+						<div class="contenedor-grafica" style="width: 92%;">
+							<div class="titulo">
+								<!--		<h1>{{ 'Sentiment' | translate }}</h1>-->
+								<h1>Sentimientos</h1>
+							</div>
+							<div class="grafica" data-ng-show="mostrarSentiment" data-ng-class="{'alto200':mostrarSentiment}">
+
+								<div class="perce_sentiment" align="center">
+									<table style="width: 150px; margin:auto;">
+										<tr>
+											<td data-ng-repeat="(key, value) in sentiment_perce" align="center">
+											<div class="carita-cont" style="width: 100px;">
+												<div style="padding:10px;"><img src="/modules/core/img/caritas/{{key}}-activo.svg" style="width:100%; height:auto;" /></div>
+												<div class="valor" style="font-weight: 700;">
+													{{value?value:'0'}}%
+												</div>
+												<div class="globo-detalle">
+													{{numeroSentiment[key]?numeroSentiment[key]:'0'}} casos {{key}}s
+												</div>
+											</div></td>
+										</tr>
+									</table>
+								</div>
+
+							</div>
+
+							<div class="pure-u-md-1-1 pure-u-sm-1-1 izq" data-ng-show="!mostrarSentiment" align="center">
+								<img src="/modules/core/img/no-data-no-text.png" style="max-width: 100%; height: auto;"/>
+								<p style="font-size: 22px !important;">No existe suficiente data<br/>para generar esta gráfica</p>
+							</div>
+
+						</div>
+						<!--SENTIMENT-->							
+							
+						</div>
+
+
+
+					</div>
+
+
+					
+					<div class="clear"></div>
+						<!--DESEMPEÑOS-->
+						<div class="contenedor-grafica" id="grafica-desempeno" style="width: 91%;" data-ng-if="authentication.user.roles[0] == 'app-manager' || authentication.user.roles[0] == 'account-manager'"> 
+							<div class="titulo">
+								<h1>Desempeño del Equipo</h1>
+							</div>
+							
+							<div class="grafica">
+								<highchart config='chartDesempenio' data-ng-show="mostrarDesempenoEquipo"></highchart>
+							</div>
+							
+					<!--robotsin-->
+						<div class="pure-u-md-1-1 pure-u-sm-1-1"  data-ng-show="!mostrarDesempenoEquipo">
+							<img src="/modules/core/img/no-data-no-text.png" style="max-width: 100%; height: auto;"/>
+							<p style="font-size: 22px !important;">
+								No existe suficiente data
+								<br/>
+								para generar esta gráfica
+							</p>
+						</div>
+						<!--robotsin-->
+						
+
+						</div>
+						<!--DESEMPEÑOS-->	
+					
+					<div class="clear"></div>
+
+					<div class="pure-u-md-1-1 izq">
+						
+						
+					</div>
+
+					<div class="clear"></div>
+
+					<div class="pure-u-md-1-1 izq titulo-separador-graficas">
+						<p>
+							{{ 'Averange' | translate }}
+						</p>
+					</div>
+
+					<div class="pure-u-md-1-1">
+						<!--TOP TEMAS-->
+						<div class="contenedor-grafica" style="width: 92%;">
+							<div class="titulo">
+								<h1>{{ 'Top Topics' | translate }}</h1>
+							</div>
+							<div class="grafica" data-ng-show="mostrarTemas">
+								<highchart config='chartTemas'></highchart>
+								<div class="pure-u-md-1-1 pure-u-sm-1-1">
+								<select ng-model="tipoGraficaTemas" ng-change="cambiarGraficaTemas()" class="combo-graficas">
+									<option value="column">Columnas</option>
+									<option value="pie">Pie</option>
+									<option value="line">Linea</option>
+									<option value="area">Area</option>
+								</select>									
+								</div>								
+
+								
+							</div>
+						<!--robotsin-->
+						<div class="pure-u-md-1-1 pure-u-sm-1-1"  data-ng-show="!mostrarTemas">
+							<img src="/modules/core/img/no-data-no-text.png" style="max-width: 100%; height: auto;"/>
+							<p style="font-size: 22px !important;">
+								No existe suficiente data
+								<br/>
+								para generar esta gráfica
+							</p>
+						</div>
+						<!--robotsin-->	
+						<!--TOP TEMAS-->
+			
+					</div>
+
+					<div class="pure-u-md-1-1">
+
+						<!--TOP SUBTEMAS-->
+						<div class="contenedor-grafica" style="width: 92%;">
+							<div class="titulo">
+								<h1>{{ 'Top Subtopics' | translate }}</h1>
+							</div>
+							<div class="grafica" data-ng-show="mostrarSubtemas">
+								<highchart config='chartSubTemas'></highchart>
+								<div class="pure-u-md-1-1 pure-u-sm-1-1">								
+								<select ng-model="tipoGraficaSubTemas" ng-change="cambiarGraficaSubTemas()" class="combo-graficas">
+									<option value="column">Columnas</option>
+									<option value="pie">Pie</option>
+									<option value="line">Linea</option>
+									<option value="area">Area</option>
+								</select>
+								</div>								
+							</div>
+							
+						<!--robotsin-->
+						<div class="pure-u-md-1-1 pure-u-sm-1-1"  data-ng-show="!mostrarSubtemas">
+							<img src="/modules/core/img/no-data-no-text.png" style="max-width: 100%; height: auto;"/>
+							<p style="font-size: 22px !important;">
+								No existe suficiente data
+								<br/>
+								para generar esta gráfica
+							</p>
+						</div>
+						<!--robotsin-->							
+
+						</div>
+						<!--TOP SUBTEMAS-->
+
+					</div>
+
+					<div class="pure-u-md-1-2">
+
+						<!--MOTIVO DESCARTADOS-->
+						<div class="contenedor-grafica" style="width: 92%;">
+							<div class="titulo">
+								<h1>Motivo de Descarte</h1>
+							</div>
+							<div class="grafica" data-ng-show="mostrarMotivoDescarte">
+								<highchart config='chartDescartados'></highchart>
+							</div>
+							<!--robotsin-->
+							<div class="pure-u-md-1-1 pure-u-sm-1-1"  data-ng-show="!mostrarMotivoDescarte">
+								<img src="/modules/core/img/no-data-no-text.png" style="max-width: 100%; height: auto;"/>
+								<p style="font-size: 22px !important;">
+									No existe suficiente data
+									<br/>
+									para generar esta gráfica
+								</p>
+							</div>
+							<!--robotsin-->
+						</div>
+						<!--MOTIVO DESCARTADOS-->
+
+					</div>
+
+					<div class="pure-u-md-1-2 izq">
+
+						<!--PROMEDIO DE RESPUESTA-->
+
+						<div class="contenedor-grafica" style="width: 92%;">
+							<div class="titulo">
+								<h1>{{ 'Response Averange / hrs' | translate }}</h1>
+							</div>
+							<div class="grafica" data-ng-if="mostrarPromedioRespuesta">
+								<highchart config='chartTiempoRespuesta'></highchart>
+
+							</div>
+
+						<!--robotsin-->
+						<div class="pure-u-md-1-1 pure-u-sm-1-1"  data-ng-show="!mostrarPromedioRespuesta">
+							<img src="/modules/core/img/no-data-no-text.png" style="max-width: 100%; height: auto;"/>
+							<p style="font-size: 22px !important;">
+								No existe suficiente data
+								<br/>
+								para generar esta gráfica
+							</p>
+						</div>
+						<!--robotsin-->
+
+						</div>
+
+						<!--PROMEDIO DE RESPUESTA-->
+
+					</div>
+
+					<!--TEMAS Y SUBTEMAS-->
+					<div class="contenedor-grafica" style="width: 96%;">
+						<div class="titulo">
+							<h1>Temas & Subtemas</h1>
+						</div>
+						<div class="grafica" data-ng-show="mostrarTemasDrill">
+							<highchart config='config'></highchart>
+						</div>
+						<!--robotsin-->
+						<div class="pure-u-md-1-1 pure-u-sm-1-1"  data-ng-show="!mostrarTemasDrill">
+							<img src="/modules/core/img/no-data-no-text.png" style="max-width: 100%; height: auto;"/>
+							<p style="font-size: 22px !important;">
+								No existe suficiente data
+								<br/>
+								para generar esta gráfica
+							</p>
+						</div>
+						<!--robotsin-->	
+					</div>
+					<!--TEMAS Y SUBTEMAS-->
+
+					<!--NIVEL DE SERVICIO-->
+
+					<div class="contenedor-grafica" style="width: 96%;">
+						<div class="titulo">
+							<h1>Nivel de Servicio</h1>
+						</div>
+						
+						<div class="grafica" data-ng-show="mostrarNivelServicio">
+							<highchart config='chartNivelServicio'></highchart>
+							<div class="pure-u-md-1-1 pure-u-sm-1-1">
+								<select ng-model="tipoGraficaNivelServicio" ng-change="cambiarGraficaNivelServicio()" class="combo-graficas">
+									<option value="column">Columnas</option>
+									<option value="pie">Pie</option>
+									<option value="line">Linea</option>
+									<option value="area">Area</option>
+								</select>
+							</div>
+						</div>
+						
+						<!--robotsin-->
+						<div class="pure-u-md-1-1 pure-u-sm-1-1"  data-ng-show="!mostrarNivelServicio">
+							<img src="/modules/core/img/no-data-no-text.png" style="max-width: 100%; height: auto;"/>
+							<p style="font-size: 22px !important;">
+								No existe suficiente data
+								<br/>
+								para generar esta gráfica
+							</p>
+						</div>
+						<!--robotsin-->						
+
+					</div>
+
+					<!--NIVEL DE SERVICIO-->
+
+					<!--CRECIMIENTO-->
+					<!--<div class="contenedor-grafica" style="width: 96%;">
+					<div class="titulo">
+					<h1>Gráfica de Crecimiento</h1>
+					</div>
+					<div class="grafica">
+					<highchart config='chartCrecimiento'></highchart>
+					</div>
+					</div>-->
+					<!--CRECIMIENTO-->
+
+					<!--nube de terminos-->
+					<!--data-ng-init="graficaTags('create')"-->
+					
+					<style type="text/css">
+						div.jqcloud { overflow: hidden; position: relative; font-weight: 700;}
+					</style>
+					<div class="contenedor-grafica"  style="width: 96%;">
+						<div class="titulo">
+							<h1>{{ 'Tagcloud' | translate }}</h1>
+						</div>
+						<div class="grafica">
+
+							<!--<div class="pure-u-md-1-1 izq" style="display: none;" >
+								<table>
+									<tr>
+										<td style="padding: 10px;"><label>
+											<input type="checkbox" checked="checked" data-ng-model="check_hashtag" data-ng-change="graficaTags('update')" />
+											&nbsp;Hashtags</label></td>
+										<td style="padding: 10px;"><label>
+											<input type="checkbox" checked="checked" data-ng-model="check_mentions" data-ng-change="graficaTags('update')"/>
+											&nbsp;Mentions</label></td>
+										<td style="padding: 10px;"><label>
+											<input type="checkbox" checked="checked" data-ng-model="check_keywords" data-ng-change="graficaTags('update')"/>
+											&nbsp;Keywords</label></td>
+									</tr>
+								</table>
+
+							</div>-->
+
+							<div class="pure-u-md-1-1 izq" align="center">
+								<div id="tagcloud" style="display:block; margin: 0px auto; width: 100%;"></div>
+						<!--robotsin-->
+						<div class="pure-u-md-1-1 pure-u-sm-1-1"  data-ng-show="!mostrarNubeTerminos">
+							<img src="/modules/core/img/no-data-no-text.png" style="max-width: 100%; height: auto;"/>
+							<p style="font-size: 22px !important;">
+								No existe suficiente data
+								<br/>
+								para generar esta gráfica
+							</p>
+						</div>
+						<!--robotsin-->									
+							</div>
+
+						</div><!--grafica-->
+
+					</div>
+					<!--nube de terminos-->
+
+					<!--mapa-->
+
+					<div class="contenedor-grafica" style="width: 96%;display:none;" ng-controller="MapController as Map">
+						<div class="titulo">
+							<h1>{{ 'Map' | translate }}</h1>
+						</div>
+						<div class="grafica">
+
+							<!--<highchart config="Map.config"></highchart>-->
+
+						</div>
+
+					</div>
+
+					<!--mapa-->
+
+				</div>
+
+				<ul class="listado-mensajes" data-ng-show="mostrarPublications">
+
+					<!--mensaje-->
+					<li class="" style="padding-left: 0px;padding-right:0px; padding-top: 10px;padding-bottom: 0px;" ng-repeat="publicaciones in publicacionesCuenta">
+						<div class="mensaje-cont limpiar">
+							<div class="usuario" style="margin-left: 20px; margin-top: 3px; position: relative;">
+
+								<a href="#"> <img src="/modules/core/img/usuario-sem-imagem.png" style="width:44px;" class="circular"/> </a>
+							</div>
+							<div class="datos">
+								<div class="pure-u-md-1-1">
+									<p class="nombre-usuario txt-gris2" data-ng-show="publicaciones.from.name">
+										<span class="izq" style="margin-right: 5px;">{{publicaciones.from.name}}</span><span class="nombre-usuario-red txt-azul1" style="display:none;">@perfiltwitter</span><label class="etiqueta-gris izq" style="margin-right: 5px;">{{publicaciones.created_time | date:'d MMM yy' }}</label><label class="etiqueta-gris izq">{{publicaciones.created_time | date:'h:mm a' }}</label>
+									</p>
+									<p class="nombre-usuario txt-gris2" data-ng-show="publicaciones.user.name">
+										<span class="izq" style="margin-right: 5px;">{{publicaciones.user.name}}</span><span class="nombre-usuario-red txt-azul1" style="display:none;">@perfiltwitter</span><label class="etiqueta-gris izq" style="margin-right: 5px;">{{publicaciones.created_time | date:'d MMM yy' }}</label><label class="etiqueta-gris izq">{{publicaciones.created_time | date:'h:mm a' }}</label>
+									</p>
+								</div>
+								<div class="pure-u-md-1-1">
+									<p class="comentario txt-gris3" data-ng-show="publicaciones.message" translate>
+										{{publicaciones.message}}
+									</p>
+									<p class="comentario txt-gris3" data-ng-show="publicaciones.text" data-ng-bind-html="publicaciones.text | linksTwitter"></p>
+
+								</div>
+
+							</div>
+							<!--<div class="imagen pure-u-md-1-1" data-ng-show="publicaciones.picture">
+								<img src="{{publicaciones.picture}}" width="100%" height="auto"/>
+							</div>-->
+							<!--<div class="estadistica pure-u-md-1-1" style="border-top:solid 2px #C0C0C0;display:none;">
+								<div class="pure-u-md-1-4 izq" style="border-right:solid 2px #C0C0C0;">
+									<h3 class="txt-centro" style="margin-bottom: 0px;">3,820</h3>
+									<p class="txt-centro" style="margin-top: 0px;" translate>
+										Retweets
+									</p>
+								</div>
+								<div class="pure-u-md-1-4 izq" style="border-right:solid 2px #C0C0C0;">
+									<h3 class="txt-centro" style="margin-bottom: 0px;">3,820</h3>
+									<p class="txt-centro" style="margin-top: 0px;" translate>
+										Favorites
+									</p>
+								</div>
+								<div class="pure-u-md-1-4 izq" style="border-right:solid 2px #C0C0C0;">
+									<h3 class="txt-centro" style="margin-bottom: 0px;">3,820</h3>
+									<p class="txt-centro" style="margin-top:0px;" translate>
+										Replies
+									</p>
+								</div>
+								<div class="pure-u-md-1-4 izq">
+									<h3 class="txt-centro" style="margin-bottom: 0px;">3,820</h3>
+									<p class="txt-centro" style="margin-top:0px;" translate>
+										Engagement
+									</p>
+								</div>
+							</div>-->
+							
+							
+							<div class="iconos-lateral" style="display: none;">
+								<ul>
+									<li>
+										<a href="" title="Correcto"><img src="/modules/core/img/flecha.png" /></a>
+									</li>
+									<li>
+										<a href="#" class="tooltip globo-conversacion" title='<ul class="lista-notificaciones-conversacion"><li><div class="titulo"><p class="txt-blanco izq"><img src="/modules/core/img/calendario.png">&nbsp;&nbsp;28 Diciembre <span class="ligera">2014</span></p><p class="der"><span class="reloj azul der">4:30pm</span></p></div><div class="datos"><div class="usuario"><div class="carita"><img src="/modules/core/img/happy-face.png"></div><img src="/modules/core/img/usuario-sem-imagem.png" style="width:35px;" class="circular"></div><div class="textos"><p class="negrita">Gerardo Pérez<br/><small class="ligera">Pregunta</small></p></div></div></li><li><div class="titulo"><p class="txt-blanco izq"><img src="/modules/core/img/calendario.png">&nbsp;&nbsp;28 Diciembre <span class="ligera">2014</span></p><p class="der"><span class="reloj azul der">4:30pm</span></p></div><div class="datos"><div class="usuario"><div class="carita"><img src="/modules/core/img/happy-face.png"></div><img src="/modules/core/img/usuario-sem-imagem.png" style="width:35px;" class="circular"></div><div class="textos"><p class="negrita">Gerardo Pérez<br/><small class="ligera">Pregunta</small></p></div></div></li><li><div class="titulo"><p class="txt-blanco izq"><img src="/modules/core/img/calendario.png">&nbsp;&nbsp;28 Diciembre <span class="ligera">2014</span></p><p class="der"><span class="reloj azul der">4:30pm</span></p></div><div class="datos"><div class="usuario"><div class="carita"><img src="/modules/core/img/happy-face.png"></div><img src="/modules/core/img/usuario-sem-imagem.png" style="width:35px;" class="circular"></div><div class="textos"><p class="negrita">Gerardo Pérez<br/><small class="ligera">Pregunta</small></p></div></div></li></ul>'>2</a>
+									</li>
+									<li>
+										<a href="#" class="tooltip" title="<ul class='menu-globo'><li><a href='javascript:show_modal(&quot;responder_conversacion&quot;)'>Responder</a></li><li><a href='javascript:show_modal(&quot;descartar_mensaje&quot;)'>Descartar</a></li><li><a href='javascript:show_modal(&quot;mandar_inbox&quot;)'>Mandar a Inbox</a></li></ul>"><img src="/modules/core/img/settings.png" /></a>
+									</li>
+								</ul>
+							</div>
+						</div>
+						<div class="clear"></div>
+					</li>
+					<!--mensaje-->
+
+				</ul>
+			</div>
+			<!--listado de publicaciones-->
+		</div>
+		<!--derecha-->
+
+		<style type="text/css">
+			.modal-content {
+				display: block;
+				clear: both;
+				float: left !important;
+				width: 100%;
+			}
+
+		</style>

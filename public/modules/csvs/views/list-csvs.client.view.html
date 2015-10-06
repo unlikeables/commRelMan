@@ -1,0 +1,207 @@
+<section data-ng-controller="CsvsController" data-ng-init="">
+<link rel="stylesheet" type="text/css" href="lib/bootstrap/dist/css/bootstrap.css">
+<link rel="stylesheet" type="text/css" href="lib/ngDialog/css/ngDialog.min.css">
+<style type="text/css">
+.btn {
+  display: inline-block;
+  padding: 6px 12px;
+  margin-bottom: 0;
+  font-size: 14px;
+  font-weight: normal;
+  line-height: 1.42857143;
+  text-align: center;
+  white-space: nowrap;
+  vertical-align: middle;
+  -ms-touch-action: manipulation;
+      touch-action: manipulation;
+  cursor: pointer;
+  -webkit-user-select: none;
+     -moz-user-select: none;
+      -ms-user-select: none;
+          user-select: none;
+  background-image: none;
+  /*border: 1px solid transparent;
+  border-radius: 4px;*/
+}
+.datos{
+  border: 1px solid blue;
+}
+
+
+* {
+   font-family: "Helvetica Neue", Helvetica, Arial, sans-serif !important;
+   font-size: 12px !important;
+}
+
+.calendario{
+
+}
+
+.calendario th{
+    vertical-align: top;
+}
+
+.calendario table{
+
+}
+
+.calendario table tr{
+    
+}
+
+
+.calendario table td{
+    padding: 4px;
+    font-family: "Helvetica Neue", Helvetica, Arial, sans-serif !important;
+   font-size: 12px !important;
+   vertical-align: top;
+}
+
+.glyphicon{
+    font-family: 'Glyphicons Halflings' !important;
+}
+</style>
+    <h4>Formulario para generar CSV</h4>
+    <div class="row calendario">
+        <div class="col-md-6">
+            <p class="input-group">
+              <input type="text" class="form-control" datepicker-popup="{{format}}" ng-model="dt" is-open="opened" min-date="minDate" max-date="'2015-06-22'" datepicker-options="dateOptions" date-disabled="disabled(date, mode)" ng-required="true" close-text="Close" />
+              <span class="input-group-btn">
+                <button type="button" class="btn btn-default" ng-click="open($event)"><i class="glyphicon glyphicon-calendar"></i></button>
+              </span>
+            </p>
+        </div>
+    </div>
+    <div class="row calendario">
+        <div class="col-md-6">
+            <p class="input-group">
+              <input type="text" class="form-control" datepicker-popup="{{format}}" ng-model="dt2" is-open="opened2" min-date="minDate" max-date="'2015-06-22'" datepicker-options="dateOptions" date-disabled="disabled2(date, mode)" ng-required="true" close-text="Close" />
+              <span class="input-group-btn">
+                <button type="button" class="btn btn-default" ng-click="open2($event)"><i class="glyphicon glyphicon-calendar"></i></button>
+              </span>
+            </p>
+        </div>
+    </div>
+    <br>
+    <br>
+    <button ng-click="creaArchivo()">Generar</button>
+    <button ng-click="descargaArchivo()">Descargar CSV</button>
+    
+ 
+ <div class="clear"></div>   
+
+    
+<div class="contenedor-grafica" style="width: 600px;">
+	<div class="titulo">
+		<h1>Sentiment</h1>
+	</div>
+	<div class="grafica">
+
+    <div class="perce_sentiment" align="center">
+    	
+      <ul>
+        <li ng-repeat="(key, value) in sentiment_perce" style="float: left; margin-right:20px;">
+            <div class="{{key}} {{key}}-activo"></div>
+            {{value}}%
+        </li>
+      </ul>
+    </div>
+
+	</div>
+		
+</div>    
+
+
+<div class="contenedor-grafica" style="width: 600px;">
+	<div class="titulo">
+		<h1>Temas y Subtemas</h1>
+	</div>
+	<div class="grafica">
+	<highchart config='config'></highchart>
+	</div>
+	{{config}}	
+</div>  
+
+
+<div class="contenedor-grafica" style="width: 600px;">
+	<div class="titulo">
+		<h1>Total de Casos</h1>
+	</div>
+	<div class="grafica">
+	<highchart config='chartTotalCasos'></highchart>
+	</div>
+		
+</div>
+
+<div class="contenedor-grafica" style="width: 600px;">
+	<div class="titulo">
+		<h1>Promedio de Casos</h1>
+	</div>
+	<div class="grafica">
+	<highchart config='chartPromedioCasos'></highchart>
+	</div>
+		
+</div>
+
+<div class="contenedor-grafica" style="width: 600px;">
+	<div class="titulo">
+		<h1>Top Temas</h1>
+	</div>
+	<div class="grafica">
+	<highchart config='chartTemas'></highchart>
+	</div>
+		
+</div>
+
+
+<div class="contenedor-grafica" style="width: 600px;">
+	<div class="titulo">
+		<h1>Top Subtemas</h1>
+	</div>
+	<div class="grafica">
+	<highchart config='chartSubTemas'></highchart>
+	</div>
+		
+</div>  
+
+<div class="contenedor-grafica" style="width: 600px;">
+  <div class="titulo">
+    <h1>Motivo Descartados</h1>
+  </div>
+  <div class="grafica">
+  <highchart config='chartDescartados'></highchart>
+  </div>
+    
+</div>  
+
+<div class="contenedor-grafica" style="width: 600px;">
+  <div class="titulo">
+    <h1>Desempeños</h1>
+  </div>
+  <div class="grafica">
+  <highchart config='chartDesempenio'></highchart>
+  </div>
+    
+</div> 
+<div class="contenedor-grafica" style="width: 600px;">
+  <div class="titulo">
+    <h1>Promedio de Respuesta / hrs</h1>
+  </div>
+  <div class="grafica">
+  <highchart config='chartTiempoRespuesta'></highchart>
+  </div>
+    
+</div> 
+<div class="contenedor-grafica" style="width: 600px;">
+  <div class="titulo">
+    <h1>Tiempo Promedio</h1>
+  </div>
+  <div class="grafica">
+    <center>
+      <img src="modules/core/img/cronometro.png" style="width: 100px;">
+      <h1 style="font-size:35px !important;"><b style="font-size:35px !important;">{{chartPromedioTiempo.promedio}}</b> min</h1>
+    </center>
+  </div> 
+</div>
+
+</section>

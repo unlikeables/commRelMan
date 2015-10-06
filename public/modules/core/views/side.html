@@ -1,0 +1,74 @@
+<div class="pure-g alto-100-interno bg-gris" data-ng-controller="MenuLateral" style="overflow: auto;" id="barra-lateral" ng-init="obtieneDesempenioDiario()">
+  <div class="pure-u-md-1-1 pure-u-sm-1-1" style="background-color: #EBEEF3;">
+    <div class="pure-u-md-1-1" align="center" id="perfil-lateral" style="background-color:#EBEEF3;">
+    
+    <!--si ya cuentan con una imagen-->	
+    <!--back-img="{{authentication.user.imagen_src}}"-->
+    <div title="{{authentication.user.displayName}}" class="perfil-circular" ng-show="authentication.user.imagen_src.length>0" style=" width: 100px; height: 100px; background-image: url({{authentication.user.imagen_src}});background-size: cover; background-position: center;">
+    	<!--este link es para simular que es un enlace la imagen de fondo-->
+    	<a href="/#!/profile/"></a>
+    	<!--este link es para simular que es un enlace la imagen de fondo-->
+    	<a class="alcance-diario" title="Post Atendidos" ng-controller="FeedsController" ng-init="comparaUrl()">{{totalDesempenioDiario}}</a>
+    </div>
+    <!--si ya cuentan con una imagen-->
+    
+    <!--si no cuentan con una imagen se carga la de defecto-->
+    <div title="{{authentication.user.displayName}}" class="perfil-circular" id="foto-perfil-lateral" ng-hide="authentication.user.imagen_src.length>0" style="background-image: url(/modules/core/img/usuario-sem-imagem.png); width: 100px; height: 100px;">
+    	<!--este link es para simular que es un enlace la imagen de fondo-->
+    	<a href="/#!/profile/" title="{{authentication.user}}"></a>
+    	<!--este link es para simular que es un enlace la imagen de fondo-->
+    	<a class="alcance-diario" title="Post Atendidos" ng-controller="FeedsController" ng-init="comparaUrl()">{{totalDesempenioDiario}}</a>
+    </div>    
+    <!--si no cuentan con una imagen se carga la de defecto-->
+        
+      <a href="/#!/profile/" class="btn btn-naranja txt-blanco" style="width:75px; height:32px; padding:0px;padding:5px;padding-bottom:7px; line-height:normal;margin-top: 15px;" >Perfil</a>
+
+    </div>  
+  
+    <div class="pure-g" id="menus" style="padding-top: 0px;background-color:#EBEEF3;">
+      <br>
+      <ul class="menu-lateral" style="overflow: auto;">
+        <!--<li>
+          <a href="/#!/home" ng-class="getClass('/home')" translate>Summary</a>
+        </li>-->
+
+        <li>
+          <a href="/#!/feeds/getMailBox" ng-class="getClass('/feeds/getMailBox') || getClass('/feeds/proceso') || getClass('/feeds/resueltos') || getClass('/feeds/descartados')" id="buzon-menu" class="menu-lateral-icono {{active_menu}}">{{ 'Mailbox' | translate }}</a>
+          <!--<a href="/#!/mailbox" ng-class="getClass('/mailbox')" id="buzon-menu" class="menu-lateral-icono {{active_menu}}">{{ 'Mailbox' | translate }}</a>-->
+
+        </li>
+
+        <li>
+          <a href="/#!/accounts" ng-class="getClass('/accounts')" class="menu-lateral-icono" id="cuentas-buzon">{{ 'Accounts' | translate }}</a>
+
+        </li>
+
+        <li>
+          <a href="/#!/themes" ng-class="getClass('/themes')" class="menu-lateral-icono" id="temas-buzon">{{ 'Temas & Subtemas' | translate }}</a>
+        </li>
+
+        <div data-ng-show="authentication.user.roles[0] !== 'directivo'">
+          
+          <li>
+              <a href="/#!/influencers" ng-class="getClass('/influencers')" class="menu-lateral-icono" id="influencer-buzon">{{ 'Influencers' | translate }}</a>
+          </li>
+          
+          <!--<li>-->
+<!--/#!/usuarios/listado-->
+          <!--    <a href="/#!/users" ng-class="getClass('/users')">Users</a>
+
+         </li>-->
+        </div>
+
+        <div data-ng-show="authentication.user.roles[0] !== 'community-manager'">
+          <li>
+            <a href="/#!/equipo" ng-class="getClass('/equipo')" class="menu-lateral-icono" id="equipo-buzon">{{ 'Team' | translate }}</a>
+          </li>
+        </div>
+      </ul>
+
+    </div>
+
+    <a href="/#!/feeds/getMailBox" class="complete txt-centro txt-negro likeable-lateral"><img src="/modules/core/img/likeable.png"></a> 
+  </div>
+</div>

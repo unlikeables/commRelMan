@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <title>{{title}}</title>
+    <!-- General META -->
+    <meta http-equiv="Content-type" content="text/html;charset=UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <link rel="icon" type="image/png" href="modules/core/img/favicon.png" >
+    <!-- Semantic META -->
+    <meta name="keywords" content="{{keywords}}">
+    <meta name="description" content="{{description}}">
+    <!-- Facebook META -->
+    <meta property="fb:app_id" content="{{facebookAppId}}">
+    <meta property="og:site_name" content="{{title}}">
+    <meta property="og:title" content="{{title}}">
+    <meta property="og:description" content="{{description}}">
+    <meta property="og:url" content="{{url}}">
+    <meta property="og:image" content="/img/brand/logo.png">
+    <meta property="og:type" content="website">
+    <!-- Twitter META -->
+    <meta name="twitter:title" content="{{title}}">
+    <meta name="twitter:description" content="{{description}}">
+    <meta name="twitter:url" content="{{url}}">
+    <meta name="twitter:image" content="/img/brand/logo.png">
+    <link rel="stylesheet" href="modules/core/css/reset.css">
+    <link href='//fonts.googleapis.com/css?family=Lato:400,100,300,300italic,100italic,700,700italic,400italic,900,900italic' rel='stylesheet' type='text/css'>
+    <!--Application CSS Files-->
+    {% for cssFile in cssFiles %}<link rel="stylesheet" href="{{cssFile}}">{% endfor %}
+    <link rel="stylesheet" href="modules/core/css/pure-min.css">
+    <link rel="stylesheet" href="modules/core/css/grids-responsive-min.css">		
+    <link rel="stylesheet" href="modules/core/css/style.css">
+    <!-- HTML5 Shim -->
+    <!--[if lt IE 9]>
+	<script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+	<![endif]-->
+  </head>
+  <body class="ng-cloak">
+    <!--preload de imagenes-->
+    <div style="display: none;">
+      <img src="modules/core/img/conversacion.png" />
+      <img src="modules/core/img/settingHover.png" />
+      <img src="modules/core/img/paloma_naranja.png" />
+    </div>
+    <!--preload de imagenes-->
+    {% block content %}{% endblock %}
+    <!--Embedding The User Object-->
+    <script type="text/javascript">
+      var user = {{ user | json | safe }};
+    </script>
+    <!--Application JavaScript Files-->
+    {% for jsFile in jsFiles %}<script type="text/javascript" src="{{jsFile}}"></script>{% endfor %} 
+    <!--<script src="https://code.highcharts.com/highcharts.js"></script>-->
+    <script src="https://code.highcharts.com/modules/drilldown.js"></script>
+    <script src="https://code.highcharts.com/highcharts-more.js"></script>
+    <script src="https://code.highcharts.com/modules/solid-gauge.src.js"></script>
+    <script type="text/javascript">
+      /********NOTIFICACIÓN PARA EL USUARIO DE DESCONEXIÓN**********/
+      var mostrandoOffline = false;
+      var intervalo = 5000;
+      
+      setInterval(function() {
+      
+      if (navigator.onLine) {
+      //console.log('el navegador esta online');
+      } else {
+      console.log('el navegador esta offline, enviando notificación al usuario');
+      
+      if (!Notification) {
+      console.log('No se aceptaron las notificaciones');
+      return;
+      }
+      
+      if (Notification.permission !== "granted") {
+      Notification.requestPermission();
+      } else {
+      
+      if (!mostrandoOffline) {
+      
+      var notification = new Notification('Likeable crm', {
+      icon : 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACoAAAAqCAYAAADFw8lbAAAAAXNSR0IArs4c6QAABMBJREFUWAnNmV+IFVUcx7/n3Ll796orsmi4ayaCEWYrWAmBvmT10MuKoUG4EPTUQ6b5IBIZYb1sECZB9BDSg/UiCW70FBGhS2QvofgHpWw17+LuslG70r3uzD39fufOnebMzD2zM3fv6sCy5/x+v/P7feb8n98VaOOZfgsDUBiUAo8roF8I9CuFfnZJ5QqVKwKo1BUuQ2Ck9xgu5g1HfrI9DCcUXoPETgGxPktrBXUDdZxRAieyQs8bdHo/HqFeel9IDFF/ySyAcVtVV3WcpB4/0nscN+P6uCQV9NIedK15GEep6QEaz1LcRTsSVaWpc/z2n3h30yncs3mygo7vw6ruIk7TEG+3OWlXR1PiXHUOL/V9gslWvlqC0lBvFgWMEOS6Vo0XUk6wY8rDIE2FC0l+E0E1pMSoEGJZUiOrjKavWLoSanbCapakVErN0tzdlgQbWxQ83Lon80BS9PLQV+h5bxyl599OYrHKuGM4NjNEDQ1QXjj+nMw/3NQlFBDdL36Awtqt0XipdZ5qzMAsYWMDtG8tbT/tLhy3Fvjv2v5GUM5SYAZ/pwmaBaC8T1LlzUCTsyCW9AYtC+ueCcqZCwL7manZLgDlzZw28u6mItd/Wkjh4ZbL9WmayxWzNJgazTWoPhb1iZPTp9+s+OReyOWrAydq7t+gnKfAp6C+T1BjDarP7naPRfJaeuEdg0fNjBv17BUhG2w+KF8wsjsxWxS3vILCqkcNoXf7V6Oeq+KzSb25Z7wFRQOKntXoHvwoKob7248xWVYB7QDrmVHSiA1mbWzY04xfMvQlZM9Dhlh5LtzL3xiyvBVmdOgM3ZjXAd+Oy7s/g7Ph2bgL2viXvv59XB6S8GKr/fAh3Atfh6TxIjM6+mYe16VLnBLKL3+Orqf2JtoKpwuFvicSdWGh8+op3P1iN9yLp8Nio8yMDnXKvDa70o7DQLGM+l9jmDt/AssOnCeQAcNh3kpxYJcVlBkd/sahQupT2nEIorwC7o1RDbpQkBw4bdExY3AypZJ20MC7+XOqd0m9WUm16rBBYc0WawRmlPxJa7XqsJIuy6hPXbdGYUb6JL+/oNVvD8P74ycrKDNKWvpXrFYdVqq7U6kROIHBoGdSLRMMeMgW4lEzd9LdUJZFcsZCZzDSzQ0L/txo9/EmrsH9/azVDbMxY2N7ojSL1boDSlX3MPvx00Btxu7dZ9OgnAsC6HBe1IdGhG4b9odSP5rNv4/q4adckL2Rqa2Nfkqv5pnCedaUew+1744C1X+sLajrTjaTacFE0x93Etda5ZckbcpCOlA0VPWJqzoAH6ly5QZ6XYcGJLq4QnVDp+BN0r5Z/dsKSQ6r1A+PNZNoASi3mj6IYcpzHErxsDhqpYZXHAPdhBqPMUnGb+EIJ6yayvv1nxk4wxeOb/QoK/wM3i+csQgbLlaZIMcos7c1mtmLgTKQ/o7KmyRr440yJck4DmfTaMVt47drI26mphyLYyZl8tiRMUfDnrkBDwHPl7C8E2WOwbFaQXLMlqCs5HlSuYXnaOsZpr//s1+sXJCHU+NqmGNE52TUfeIcjRpxnfdZOt4f3B8botAP/M83UWC/lzdzcoCGZSOdQy1/ECPdFVooI7Y5mOQ/LPsPLhKekoKwE4gAAAAASUVORK5CYII=',
+      body : "Verifica tu conexión a Internet",
+      });
+      
+      mostrandoOffline = true;
+      
+      notification.onclick = function() {
+      mostrandoOffline = false;
+      };
+      
+      notification.onclose = function() {
+      mostrandoOffline = false;
+      };
+      
+      }//!mostrandoOffline
+      
+      }
+      
+      }//else
+      }, intervalo);
+      /********NOTIFICACIÓN PARA EL USUARIO DE DESCONEXIÓN**********/
+    </script>
+    <script type="text/javascript">
+      (function() {
+      var s = document.createElement("script");
+      s.type = "text/javascript";
+      s.async = true;
+      s.src = '//api.usersnap.com/load/'+
+      '01596cf3-d530-4041-8aff-0ee19a58a94a.js';
+      var x = document.getElementsByTagName('script')[0];
+      x.parentNode.insertBefore(s, x);
+      })();
+    </script>
+  </body>
+</html>

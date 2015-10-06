@@ -1,0 +1,235 @@
+.content {
+	margin-top: 50px;
+}
+.undecorated-link:hover {
+	text-decoration: none;
+}
+[ng\:cloak], [ng-cloak], [data-ng-cloak], [x-ng-cloak], .ng-cloak, .x-ng-cloak {
+	display: none !important;
+}
+.ng-invalid.ng-dirty{
+    border-color:#FA787E;
+}
+.ng-valid.ng-dirty{
+    border-color:#78FA89;
+}
+/*Estilos para el aside*/
+.headerSide{border-bottom: 1px solid black; height: 50px; background-color: #00B2B6;} 
+header{position: fixed;width: 100%; z-index: 1000;}
+	.notificaciones{width: 200px !important; height: 100%;}
+		.complete:hover{background-color: #009ffb;}
+aside{float:left; width:200px;}
+section{margin-top: 3%;}
+.mensaje{display: block !important;}
+/*Fin estilos aside*/
+.cursor{cursor: pointer;}
+/*Inician estilos de css hechos por ANgel*/
+body,html{width:100%;height:100%;position:absolute}*{letter-spacing:normal;border:0px}
+.izq{display:block;float:left !important}
+.der{display:block;float:right !important}
+.centrado{display:block;margin-left:auto;margin-right:auto}
+.txt-der{text-align:right}
+.txt-izq{text-align:left}
+.txt-centro{text-align:center}
+.negrita{font-weight:700}
+.cursiva{font-style:italic}
+.ligera{font-weight:300}
+.justificado{text-align:justify}
+.subrayado{text-decoration:underline}
+img{max-width:100%;height:auto}
+.clear{display:block;float:left;width:100%;clear:both;visibility:hidden}
+a{text-decoration:none}
+.inner_border{box-sizing:border-box;-moz-box-sizing:border-box;-webkit-box-sizing:border-box;width:100px;height:100px;border:1px solid #000}
+a.complete{display:block;float:left;width:100%;padding:12px 0px;text-align:center; height:50px;}
+.botonPerfil{font-size:15px;display:block;float:none;width:104px; heigth:32px;margin:10px auto;text-decoration:none;padding:8px 0px;text-align:center;background-color:#000;color:#fff;transition:0.5s ease;border:solid 1px #fff;}
+.botonPerfil:hover,.botonPerfil.active{background-color:#fff;text-decoration:none;color:#000;border:solid 1px #000}
+.centraFotoPerfil{margin:0 auto; display:block;}
+.subtemasC{border-bottom: 1px solid black; border-right: 1px solid black;border-left: 1px solid black;}
+.listaMas{height: 56px; border-bottom: 1px solid black; background-color: white;}
+.centraMas{padding-left: 50%; padding-top: 15px;}
+/*.btn{display:block;float:none;width:80%;margin:10px auto;text-decoration:none;padding:8px 0px;text-align:center}
+.btn-black{background-color:#000;color:#fff;transition:0.5s ease;border:solid 1px #fff}
+.btn-black:hover,.btn-black.active{background-color:#fff;color:#000;border:solid 1px #000}*/
+.btn-white{background-color:#fff;color:#000;border:solid 1px #000;transition:0.5s ease}
+.btn-white:hover,.btn-white.active{background-color:#000;color:#fff;border:solid 1px #fff}
+.btn-100{width:100%;padding:10px 0px;float:left}
+.btn-no-borde{border:0px}
+.btn-no-borde:hover{border:0px}
+.btn-gde{padding:20px 0px}
+.headerPaginas{border-bottom: 1px solid black;height: 50px; width: 100%;}
+.anchoTemasSubtemas{width: 21%; background-color: #00B2B6; float: left; border-right: 1px solid black; height: 50px;}
+.respuestasTS{width: 58%; display: inline-block; height: 50px; background-color: #00B2B6;}
+.seleccionado{background-color: black !important; color: white !important; font-weight: bold;}
+ul.menu-lateral{display:block;float:left;margin:0px;padding:0px;width:100%; font-size: 15px;}
+ul.menu-lateral li{border-top:solid 1px #000;list-style:none;}
+.bordeFinal{border-bottom: 1px solid black !important;}
+.manitaLikeable{position: absolute;bottom: 10%; left: 36%;}
+/*ul.menu-lateral li:first-child{border-top: 1px solid black;border-bottom: 1px solid black;}*/
+.temasSubtemas{padding: 12px !important;}
+ul.menu-lateral li a{display:block;padding:20px 0px;text-align:center;color:#000;background-color:#fff;transition:0.5s ease}
+ul.menu-lateral li a:hover,ul.menu-lateral li a.active{background-color:#000;color:#fff; text-decoration: none; font-weight: bold;}
+#lateral{position:relative;height:100% !important;box-shadow:0 0 0 1px #000; width: 100%;}
+.txt-blanco{color:#fff !important}
+.txt-negro{color:#000 !important}
+.border-interno{box-shadow:0px 0px 0px 1px #000}
+.border-interno-der{box-shadow:1px 0 0 0px #000}
+.border-sup-negro{border-top:solid 1px #000}
+.border-inf-negro{border-bottom:solid 1px #000}
+.ico-buscar{background-repeat:no-repeat;background-position:20% center}
+.ico-face{background-image:url(../img/Buscar.png);background-repeat:no-repeat;background-position:20% center}
+.lista-respuestas-sugeridas li{display:block;margin:20px 0px;float:left}
+.lista-respuestas-sugeridas li div.mas{text-align:center;border:solid 1px #000}
+.lista-respuestas-sugeridas li div.mas a{display:block;width:100%;padding:20px 0px;text-align:center}
+.lista-respuestas-sugeridas li div.contenido{display:block;width:80%;padding:10px 5%;border:solid 1px #000;margin:10px auto;position:relative}
+.lista-respuestas-sugeridas li div.menos{display:block;position:absolute;top:-16px;left:-16px}
+.colorHeader{background-color: #00B2B6;}
+input, textarea{border:1px solid;}
+
+/*Finaliza estilos de angel*/
+
+/*Modulo de buzon*/
+.btnBuzon {
+  display: block;
+  float: none;
+  width: 80%;
+  margin: 10px auto;
+  transition: 0.5s ease;
+  color: #465769;
+  text-decoration: none;
+  padding: 12px 0px;
+  text-align: center;
+  font-weight: 300;
+}
+.btnBuzon:hover, .btnBuzon.active {
+  background-color: #465769;
+  color: #fff;
+  /*font-weight:700;*/
+}
+
+.btn-black {
+  background-color: #000;
+  color: #fff;
+  transition: 0.5s ease;
+  border: solid 1px #fff;
+}
+.btn-black:hover, .btn-black.active {
+  background-color: #fff;
+  color: #000;
+  border: solid 1px #000;
+}
+
+.btnBuzon-white {
+  background-color: #fff;
+  color: #000;
+  border: solid 1px #000;
+  transition: 0.5s ease;
+}
+.btnBuzon-white:hover, .btnBuzon-white.active {
+  background-color: #000;
+  color: #fff;
+  border: solid 1px #fff;
+}
+
+.btn-naranja {
+  background-color: #f07204;
+  font-family: 'Lato', serif;
+  font-size: 16px;
+}
+.btn-naranja:hover {
+  background-color: #f07204;
+}
+
+.btn-blanco {
+  background-color: #fff;
+  font-family: 'Lato', serif;
+  font-size: 16px;
+}
+.btn-blanco:hover {
+  background-color: #fff;
+}
+
+.btn-negro {
+  background-color: #000;
+  font-family: 'Lato', serif;
+  font-size: 16px;
+}
+.btn-negro:hover {
+  background-color: #000;
+}
+
+.btn-azul-f {
+  background-color: #4760a3;
+  font-family: 'Lato', serif;
+  font-size: 16px;
+}
+.btn-azul-f:hover {
+  background-color: #4760a3;
+}
+
+.btn-azul-t {
+  background-color: #1dc4fb;
+  font-family: 'Lato', serif;
+  font-size: 16px;
+}
+.btn-azul-t:hover {
+  background-color: #1dc4fb;
+}
+
+.btn-salmon {
+  background-color: #ff9267;
+  font-family: 'Lato', serif;
+  font-size: 16px;
+}
+.btn-salmon:hover {
+  background-color: #ff9267;
+}
+
+.btnBuzon-100 {
+  width: 100%;
+  padding: 10px 0px;
+  float: left;
+}
+
+.btn-no-borde {
+  border: 0px;
+}
+.btn-no-borde:hover {
+  border: 0px;
+}
+
+.btnBuzon-gde {
+  padding: 20px 0px;
+}
+
+.btn-guardar {
+  font-size: 14px;
+  padding: 15px 15px;
+  transition: 0.5s ease;
+  background-color: #465769;
+  color: #fff;
+  border-radius: 5px;
+}
+.btn-guardar:hover {
+  background-color: #465769;
+}
+
+.btn-cancelar {
+  font-size: 14px;
+  padding: 15px 15px;
+  transition: 0.5s ease;
+  background-color: #ebeef3;
+  color: #465769;
+  border-radius: 5px;
+}
+.btn-cancelar:hover {
+  color: #465769;
+  background-color: #ebeef3;
+}
+
+/*Finaliza modulo buzon*/
+.filtroRed {
+    color: #9babc8 !important;
+    font-weight: normal;
+}
+
+

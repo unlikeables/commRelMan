@@ -1,0 +1,183 @@
+<style type="text/css">
+	body,html,a{
+		background-color:#0dbec8;
+		color:#fff;
+	}
+	
+	input[type="text"],input[type="password"]{
+	/*padding:17px 10px;*/
+	width:300px;
+	margin-bottom: 11px;
+	border:solid 1px #f5f6fa;
+	height: 40px;
+	font-size:16px;
+	font-weight:400;
+	color:#465769;
+	}
+	
+	.recordar{
+	font-size:12px;
+	vertical-align:middle;	
+	}
+	
+	
+	.btn {
+    color: #465769;
+    display: block;
+    float: none;
+    font-weight: 300;
+    margin: 10px auto;
+    padding: 7px 0;
+    text-align: center;
+    text-decoration: none;
+    transition: all 0.5s ease 0s;
+    width: 80%;
+}
+
+	
+	input[type="submit"]{
+		font-weight:300;
+		font-size:16px;
+		/*text-indent:-15px;*/
+		text-align:center;
+		
+	}
+	
+	input[type="checkbox"]{
+		background: none;
+		display:block;
+		width:14px;
+		height:14px;
+	}
+	
+	
+	input::-webkit-input-placeholder {
+    color:#BDC6D5 !important;
+}
+
+input::-moz-placeholder {
+    color:#BDC6D5 !important;
+}
+
+input::-ms-placeholder {
+    color:#BDC6D5 !important;
+}
+
+input::placeholder {
+    color:#BDC6D5 !important;
+}
+
+
+	
+</style>
+
+<div id="login" align="center"  data-ng-controller="AuthenticationController">
+	<div data-ng-show="mensajeInicio == ''" align="center">
+		<img src="/modules/core/img/Likeable_blanco.png" /><br/>
+		<img src="/modules/core/img/logo-principal.png" style="margin-top: 10px;" />
+	</div>
+	
+	<div data-ng-show="mensajeInicio != ''">
+	<h1 style="font-weight: 500; margin-bottom:0px;padding-bottom:0px;">{{mensajeInicio}}</h1>		
+	</div>
+		
+	
+		<div  class="text-center" style="/*height: 40px;*/ overflow: hidden;">
+		<p class="txt-centro txt-blanco">{{error}}</p>
+		</div>
+<div ng-show="muestraForm">
+	<form data-ng-submit="signin()" class="form-signin form-horizontal" autocomplete="off">
+		<table>
+			<tr>
+				<td colspan="2"><input type="text"  id="username" name="username" class="form-control" data-ng-model="credentials.username" placeholder="{{ 'User' | translate }}" data-ng-class="{'error': error}"/></td>
+			</tr>
+			<tr>
+				<td colspan="2"><input type="password" id="password" name="password" class="form-control" data-ng-model="credentials.password" placeholder="{{ 'Password' | translate }}" data-ng-class="{'error': error}"></td>
+			</tr>
+			<tr>
+				<td style="margin:0px;padding:0px;border:0px;" colspan="2">
+					<!--<label class="recordar izq" for="recordar" style="padding-left:15px;position:relative; font-size:11px; cursor: pointer;">
+						<input type="checkbox" id="recordar" style="float:left;top:1px;display:block; margin:0px;padding:0px;border:0px;position:absolute; "/><span style="display:block;padding-left:19px; font-weight: 300;">Remember Password</span></label>-->
+					<center>
+					<a data-ng-controller="modalForgotPassword" data-ng-click="open()" style="cursor:pointer;font-size:14px;padding-top: 0px;" class="link-1" translate>¿Forgot Password?</a>	
+					</center>
+					
+					<!--/#!/password/forgot-->
+				</td>
+
+			</tr>
+			<tr>
+				<td colspan="2">
+					<input type="submit" value="{{ 'Begin' | translate }}" class="btn btn-naranja txt-blanco" style="width: 155px; margin-top: 30px;padding-bottom: 10px; margin-top: 10px;"  data-ng-class="{'animated-fast shake-fast': error}" ng-show="muestraForm"/>
+				</td>
+			</tr>
+		</table>
+	
+	</form>
+</div>
+<!--	<button ng-hide="muestraForm" class="btn btn-naranja txt-blanco" style="width: 155px; margin-top: 30px;" ng-click="login()" translate/>Login</button>
+-->
+<div ng-hide="muestraForm">
+	<button ng-hide="muestraForm" class="btn btn-naranja txt-blanco" style="width: 155px; margin-top: 30px;" ng-click="login()" translate/>Regresar</button>
+</div>
+</div>
+
+
+
+<script type="text/ng-template" id="modalForgotPassword.html">
+
+<div class="pure-g" style="padding:20px 0px;" data-ng-controller="AuthenticationController">
+	
+	<form class="form-1" style="width:470px;"align="center" data-ng-submit="askForPasswordReset()">
+	<div class="pure-u-md-1-1" style="padding:10px 0px;">
+		<h3 class="txt-negro txt-centro" style="color:#465769 !important; margin: 0px auto;margin-bottom: 20px;" translate>Restore your password</h3>
+	</div>
+	
+	<div class="pure-u-md-1-1">
+		<!--<label class="ligera">Escribe tu correo electrónico</label>-->
+		<div class="pure-u-md-1-1" ng-hide="tieneError">
+		<label class="ligera" translate>Enter your account username.</label>	
+		</div>
+	
+		
+		<!--<input  type="email" style=""/>-->
+	<div data-ng-show="error" class="text-center">
+        <p class="txt-error">{{error}}</p>
+    </div>
+
+
+    <div data-ng-show="success" class="text-center text-success">
+        <strong>{{success}}</strong>
+    </div>	
+    
+    <div class="pure-u-md-1-1">
+    <input type="text" id="username" name="username" data-ng-model="username" placeholder="{{ 'Username' | translate }}"  data-ng-class="{'error': error}">	
+    </div>	
+	
+
+	</div>
+	<div class="clear"></div>
+	<div class="pure-u-md-1-1" style="width:80%; margin:0px auto; display:block;padding-top: 10px;">
+	<input type="submit" value="{{ 'Accept' | translate }}" class="btn btn-guardar der" style="width:190px; margin-right: 0px; " />
+	<input type="button" class="btn btn-cancelar izq" ng-click="cancel()" style="width:140px;" value="{{ 'Cancelar' | translate }}" />
+
+    
+	</div>
+	
+	</form>
+	
+</div>   
+    </script> 
+
+<style type="text/css">
+
+	.modal-dialog{
+		width:470px !important;
+		/*position:absolute;
+		top:50%;
+		left:50%;
+		margin-top:-130px;
+		margin-left:-250px;*/
+	}
+</style>
+

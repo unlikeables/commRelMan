@@ -1,0 +1,2221 @@
+'use strict';
+
+/**
+ * Module dependencies.
+ */
+var _ = require('lodash');
+var http=require('http');
+var https=require('https');
+var ObjectID = require('mongodb').ObjectID;
+var bst = require('better-stack-traces').install();
+var globales = require('../../config/globals.js');
+var classdb = require('../../config/classdb.js');
+
+var Twit = require('twit');
+
+exports.getStringTagCloud = function(req,res){
+    var coleccion = req.query.cuenta;
+    var fecha1 = new Date(req.query.fecha1);
+    var fecha2 = new Date(req.query.fecha2);
+    var id_facebook = req.query.id_facebook;
+    var palabras = [];
+    var palabrasTemp = [];	
+    var abjeto = {};
+
+    function encadenafrases(contenidos, callback) {
+		var palabras = [];
+		var cuantos = contenidos.length-1;
+		// var palabrasTemp = [];
+		for (var pal in contenidos) {
+	    	var frase = '';
+	    	if (typeof contenidos[pal].message !== 'undefined' && contenidos[pal].message !== '') {
+				frase = contenidos[pal].message;
+	    	}
+	    	else {
+				if (typeof contenidos[pal].text !== 'undefined' && contenidos[pal].message !== '') {
+		    		frase = contenidos[pal].text;
+				}
+	    	}
+	    	if(frase !== ''){
+				//palabrasTemp = frase.split(' ');
+				palabras = palabras.concat(frase.split(' '));
+	    	}
+	    	if (Number(pal) === cuantos) {
+	    		return callback(palabras);
+	    	}
+		}	
+    }
+
+    function clasificapalabras(palabras, callback) {
+		var cuantas = palabras.length;
+		var numeroCaracteresMinimos = 10;
+		var palabrasExcluidas = ['a','que','de','y','te','la','los','el','hola','en','por','nos','mi','sin','Hola','las','con','un','son','si','se','tu','su',
+				 'lo','res','?','??','me','...','y','Y','ya','mas','más','sí','es','Si','Te','ok','para','pero','Por','No','1','2','3','4','5',
+				 '6','7','8','9','0','o','mar','tus','Son','son','tal','1era','mi','estas?','Buenos','una','Les','les','De','de','como','.|.',
+				 ':D',':)','','\n','mucho','script','undefined'];
+		var objetoPalabrasTerminos = [];
+		var objetoPalabrasHashtag = [];
+		var objetoPalabrasMencion = [];
+		var objetoPalabras = [];
+		var palabraActual = null;
+		var contadorPalabras = 0;
+		for (var i = 0; i < palabras.length; i++) {
+            if (palabras[i] !== palabraActual) {
+				if (contadorPalabras > 0) {
+                	if((palabrasExcluidas.indexOf(palabraActual) < 0) && (palabraActual.length > numeroCaracteresMinimos)) {
+						var palabraProcesada = palabraActual;
+						palabraProcesada = palabraProcesada.replace('\n','');
+						palabraProcesada = palabraProcesada.replace(':','');
+						palabraProcesada = palabraProcesada.replace(',','');
+						palabraProcesada = palabraProcesada.replace('!','');
+						palabraProcesada= palabraProcesada.replace('-','');
+						palabraProcesada = palabraProcesada.replace('<script>','');
+						palabraProcesada = palabraProcesada.replace('</script>','');
+						if(palabraActual.search('@') === 0){
+			    			objetoPalabrasMencion.push({'text':palabraProcesada,'weight':contadorPalabras});	
+						}else if(palabraActual.search('#') === 0){
+			    			objetoPalabrasHashtag.push({'text':palabraProcesada,'weight':contadorPalabras});	
+						}else{
+			    			objetoPalabrasTerminos.push({'text':palabraProcesada,'weight':contadorPalabras});	
+						}
+                    }
+				}
+				palabraActual = palabras[i];
+				contadorPalabras = 1;
+            } else {
+				contadorPalabras++;
+            }
+	    	if (i === cuantas-1) {
+				return callback(objetoPalabrasMencion, objetoPalabrasHashtag, objetoPalabrasTerminos);
+	    	}
+		}	
+    }
+
+	var criteriopage = { from_user_id : { $exists : true }};
+	
+	if (typeof id_facebook !== 'undefined') {
+		
+    	criteriopage  = {from_user_id : {$ne : id_facebook}};
+    	//console.log(criteriopage);
+	}
+	
+    var criterius = { $and : [criteriopage,{created_time : {$lte: fecha2}}, {created_time: {$gte: fecha1}},{descartado:{$exists:false}}]};
+    var elsort = {created_time: -1};
+    var campos = {message : 1, text : 1};
+    classdb.buscarToArrayFieldsLimit(coleccion, criterius, campos, elsort, 2000, 'charts/getStringTagCloud.main', function(items) {
+		if (items === 'error') {
+	    	res.jsonp(abjeto);
+		}
+		else {
+	    	encadenafrases(items, function(palabras){
+				palabras.sort();
+				clasificapalabras(palabras, function(mentions, hashtags, terms){
+		    		var objetoPalabras = [];
+		    		terms.sort(function(a, b){
+						return  b.weight - a.weight;
+		    		});
+		    		hashtags.sort(function(a, b){
+						return  b.weight - a.weight;
+		    		});
+		    		mentions.sort(function(a, b){
+						return  b.weight - a.weight;
+		    		});
+ 		    		objetoPalabras.push({'terminos':terms});
+ 		    		objetoPalabras.push({'hashtags':hashtags});
+ 		    		objetoPalabras.push({'menciones':mentions});
+		    		res.jsonp(objetoPalabras);	
+				});
+	    	});
+		}
+    });
+};
+
+
+/*
+      _                _  ______                             _ _       _____                     
+     | |              | | | ___ \                           | (_)     /  __ \                    
+  ___| |__   __ _ _ __| |_| |_/ / __ ___  _ __ ___   ___  __| |_  ___ | /  \/ __ _ ___  ___  ___ 
+ / __| '_ \ / _` | '__| __|  __/ '__/ _ \| '_ ` _ \ / _ \/ _` | |/ _ \| |    / _` / __|/ _ \/ __|
+| (__| | | | (_| | |  | |_| |  | | | (_) | | | | | |  __/ (_| | | (_) | \__/\ (_| \__ \ (_) \__ \
+ \___|_| |_|\__,_|_|   \__\_|  |_|  \___/|_| |_| |_|\___|\__,_|_|\___/ \____/\__,_|___/\___/|___/
+                                                                                                                                                                                                                                                                               
+*/
+exports.chartPromedioCasos = function(req, res){
+    //funcion opara obtener la cuenta
+    function obtieneCuenta(nomeSis, callback){
+		var arregloUsuarios=[];
+		var coleccion = 'accounts';
+		var critcol = {'nombreSistema': nomeSis};
+		var sort = {};
+		classdb.buscarToArray(coleccion, critcol, sort, 'charts/chartPromedioCasos/obtieneCuenta', function(cuenta){
+	    	return callback(cuenta);
+		});		
+    }
+  
+    function obtieneTodos(coleccion, debut, finale, idFb, idTw, callback) {
+		var criterio = { $and: 
+			 [
+			    {'created_time' : {$gte : debut}},
+			    {'created_time' : {$lte : finale}},
+			    {'from_user_id' : {$ne: idFb}},
+			    /*{$or:[
+			    	{'from.id' : {$ne : idFb}},
+			    	{'user.id' : {$ne: idTw}}
+			    ]},*/
+			    {'retweeted_status' : {$exists:false}},
+				{'eliminado':{$exists: false}}
+			 ]
+		};	
+		classdb.count(coleccion, criterio, 'charts/chartPromedioCasos/obtieneTodos', function(total){
+	    	return callback(total);
+		});
+    }
+
+    function obtieneAtendidos(coleccion, debut, finale, idFb, idTw, tipent, callback) {
+		var criterioA ={};
+		if(tipent ==='general'){			
+	    	criterioA={ $and: 
+				[
+			    	{'atendido' : {$exists : true }},
+			    	{'created_time' : {$gte : debut }},
+			    	{'created_time' : {$lte : finale }},
+			    	/*{$or:[
+			    		{'from.id' : {$ne : idFb}},
+			    		{'user.id' : {$ne : idTw}}
+			    	]},*/
+			    	{'from_user_id' : {$ne: idFb}},
+					{'retweeted_status' : {$exists:false}},
+					{'eliminado' : {$exists : false}}
+				]
+		    };
+		}
+		else{
+	    	criterioA = { $and: 
+			  	[
+					{'atendido' : {$exists : true}},
+			      	{'obj' : tipent},
+			      	{'created_time' : {$gte : debut}},
+			      	{'created_time' : {$lte : finale}},
+			    	{'from_user_id' : {$ne: idFb}},
+			    	/*{$or:[
+			      		{'from.id' : {$ne : idFb}},
+			      		{'user.id' : {$ne : idTw}}
+			      	]},*/
+			      	{'retweeted_status' : {$exists:false}},
+					{'eliminado' : {$exists : false}}
+			  	]
+			};
+		}
+
+		classdb.count(coleccion, criterioA, 'charts/chartPromedioCasos/obtieneAtendidos', function(atendidos){
+	    	return callback(atendidos);
+		});
+    }
+
+    function obtieneDescartados(coleccion, debut, finale, idFb, idTw, tipent, callback) {
+		var criterioD ={};
+		if(tipoEntrada==='general'){
+	    	criterioD = { $and: 
+				[
+			    	{'descartado' : {$exists : true}},
+					{'created_time' : {$gte : debut}},
+					{'created_time' : {$lte : finale}},
+			    	{'from_user_id' : {$ne: idFb}},
+					/*{$or:[
+			      		{'from.id' : {$ne : idFb}},
+			      		{'user.id' : {$ne : idTw}}
+			      	]},*/
+			      	{'retweeted_status' : {$exists:false}},
+					{'eliminado' : {$exists : false}}
+			  	]
+			};
+		}
+		else{
+	    	criterioD = { $and: 
+				[
+			    	{'descartado' : {$exists : true}},
+					{'created_time' : {$gte : debut}},
+					{'created_time' : {$lte : finale}},
+			    	{'from_user_id' : {$ne: idFb}},
+					{'obj' : tipent},
+					/*{$or:[
+			      		{'from.id' : {$ne : idFb}},
+			      		{'user.id' : {$ne : idTw}}
+			      	]},*/
+			      	{'retweeted_status' : {$exists:false}},
+					{'eliminado' : {$exists : false}}
+			  	]
+			};
+		}
+		classdb.count(coleccion, criterioD, 'charts/chartPromedioCasos/obtieneDescartados', function(descartados){
+	    	return callback(descartados);
+		});
+    }
+
+    function obtieneNuevos(coleccion, debut, finale, idFb, idTw, tipent, callback) {
+		var criterioN ={};
+		if(tipoEntrada==='general'){
+			criterioN = { $and: 
+				[
+					{'created_time' : {$gte : debut}},
+					{'created_time' : {$lte : finale}},
+			    	{'from_user_id' : {$ne: idFb}},
+					/*{$or : [
+			      		{'from.id' : {$ne : idFb}},
+			      		{'user.id' : {$ne: idTw}}
+			      	]},*/
+			      	{'descartado' : {$exists : false}},
+			      	{'atendido' : {$exists : false}},
+			      	{'sentiment' : {$exists : false}},
+			      	{'clasificacion' : {$exists:false}},
+			      	{'respuestas' : {$exists:false}},
+			      	{'retweeted_status' : {$exists:false}},
+					{'eliminado' : {$exists : false}}
+			  	]
+			};
+		}
+		else{
+			criterioN = { $and: 
+				[
+					{'created_time' : {$gte : debut}},
+					{'created_time' : {$lte : finale}},
+			    	{'from_user_id' : {$ne: idFb}},
+					/*{$or : [
+			      		{'from.id' : {$ne : idFb}},
+			      		{'user.id' : {$ne: idTw}}
+			      	]},*/
+			      	{'obj' : tipent},
+			      	{'descartado' : {$exists : false}},
+			      	{'atendido' : {$exists : false}},
+			      	{'sentiment' : {$exists : false}},
+			      	{'clasificacion' : {$exists:false}},
+			      	{'respuestas' : {$exists:false}},
+			      	{'retweeted_status' : {$exists:false}},
+					{'eliminado' : {$exists : false}}
+			  	]
+			};
+		}
+		classdb.count(coleccion, criterioN, 'charts/chartPromedioCasos/obtieneNuevos', function(nuevos){
+	    	return callback(nuevos);
+		});
+    }
+
+    function obtieneEnProceso(coleccion, debut, finale, idFb, idTw, tipent, callback) {
+		var criterioP = {};
+		if(tipoEntrada==='general'){	
+	    	criterioP = {$and: [
+				{'created_time' : {$gte : debut}},
+				{'created_time' : {$lte : finale}},
+			    {'from_user_id' : {$ne: idFb}},
+				/*{$or : [
+					{'from.id' : {$ne : idFb}},
+					{'user.id' : {$ne : idTw}}
+				]},*/
+				{$or : [
+		    		{'sentiment' : {$exists : true}},
+		    		{'clasificacion' : {$exists:true}},
+		    		{$and:[
+		    			{'respuestas' : {$exists:true}},
+						{'respuestas':{$elemMatch: { 'user_id':{$ne: "direct-facebook"}}}}
+					]},
+		    	]},
+				{'descartado' : {$exists : false}},
+				{'atendido' : {$exists : false}},
+				{'retweeted_status' : {$exists:false}},
+				{'eliminado' : {$exists : false}}
+	    	]};
+		}else{
+	    	criterioP = {$and: [
+				{'created_time' : {$gte : debut}},
+				{'created_time' : {$lte : finale}},
+			    {'from_user_id' : {$ne: idFb}},
+				/*{$or : [
+					{'from.id' : {$ne : idFb}},
+					{'user.id' : {$ne : idTw}}
+				]},*/
+				{$or : [
+		    		{'sentiment' : {$exists : true}},
+		    		{'clasificacion' : {$exists:true}},
+		    		{$and:[
+		    			{'respuestas' : {$exists:true}},
+						{'respuestas':{$elemMatch: { 'user_id':{$ne: "direct-facebook"}}}}
+					]},
+		    	]},
+		    	{'obj':tipent},
+				{'descartado' : {$exists : false}},
+				{'atendido' : {$exists : false}},
+				{'retweeted_status' : {$exists:false}},
+				{'eliminado' : {$exists : false}}
+	    	]};
+		}
+
+		classdb.count(coleccion, criterioP, 'charts/chartPromedioCasos/obtieneEnProceso', function(proceso){
+	    	return callback(proceso);
+		});
+    }
+    function obtieneResueltosFacebook(coleccion, debut, finale, idFb, idTw, callback) {
+		var criterio = { $and: 
+			 [
+			    {'created_time' : {$gte : debut}},
+			    {'created_time' : {$lte : finale}},
+			    {'from_user_id' : {$ne: idFb}},
+			    {'retweeted_status' : {$exists:false}},
+			    {'respuestas.user_id':{$eq:"direct-facebook"}},			
+			    {'eliminado':{$exists: false}}
+			 ]
+		};	
+		console.log('!"·!"·!"·$!"·$!"·$!"·$!"·$!"·$!"·$!"·$!"·$!"·$!"·$');
+		console.log(JSON.stringify(criterio));
+		classdb.count(coleccion, criterio, 'charts/chartPromedioCasos/obtieneTodos', function(totalFacebook){
+	    	return callback(totalFacebook);
+		});
+	}
+
+    var nombreSistema=req.body.nombreSistema;
+    var tipoEntrada=req.body.tipo;
+    var inicia = new Date(req.body.fecha_inicial);
+    var termina = new Date(req.body.fecha_final);
+    //Obtenemos la cuenta
+    obtieneCuenta(nombreSistema, function(account){
+		var idCuenta = '', idTwitter = '';
+		if(typeof account[0] !== 'undefined' && typeof account[0].datosPage !== 'undefined' && account[0].datosPage.id && account[0].datosPage.id !== ''){
+	    	idCuenta = account[0].datosPage.id;
+	    	if (account[0].datosTwitter && account[0].datosTwitter.twitter_id_principal) {
+				idTwitter = account[0].datosTwitter.twitter_id_principal;
+	    	}
+		}
+		else if(typeof account[0] !== 'undefined' && typeof account[0].datosMonitoreo !== 'undefined' && account[0].datosMonitoreo.id && account[0].datosMonitoreo.id !== ''){
+	    	idCuenta = account[0].datosMonitoreo.id;
+	    	if (account[0].datosTwitter && account[0].datosTwitter.twitter_id_principal) {
+				idTwitter = account[0].datosTwitter.twitter_id_principal;
+	    	}
+		}
+		else {
+	    	if (typeof account[0] !== 'undefined' && typeof account[0].datosTwitter !== 'undefined' && account[0].datosTwitter.twitter_id_principal) {
+				idTwitter = account[0].datosTwitter.twitter_id_principal;
+	    	}
+		}
+		var colectio = nombreSistema+'_consolidada';
+		obtieneTodos(colectio, inicia, termina, idCuenta, idTwitter, function(todos) {
+	    	if (todos === 'error') {
+				res.jsonp(todos);
+	    	}
+	    	else {
+				obtieneAtendidos(colectio, inicia, termina, idCuenta, idTwitter, tipoEntrada, function(atendidos) {
+		    		if (atendidos === 'error') {
+						res.jsonp(atendidos);
+		    		}
+		    		else {
+						obtieneDescartados(colectio, inicia, termina, idCuenta, idTwitter, tipoEntrada, function(descartados) {
+			    			if (descartados === 'error') {
+								res.jsonp(descartados);
+			    			}
+			    			else {
+								obtieneNuevos(colectio, inicia, termina, idCuenta, idTwitter, tipoEntrada, function(nuevos) {
+				    				if (nuevos === 'error') {
+										res.jsonp(nuevos);
+				    				}
+				    				else {
+										obtieneEnProceso(colectio, inicia, termina, idCuenta, idTwitter, tipoEntrada, function(enproceso){
+					    					if (enproceso === 'error') {
+												res.jsonp(enproceso);
+					    					}
+					    					else {
+					    						obtieneResueltosFacebook(colectio, inicia, termina, idCuenta, idTwitter,function(facebook){
+									    			if(facebook === 'error'){
+									    				res.jsonp(facebook);
+									    			}else{
+									    				var obj = {};
+														//obj.Todos = todos;
+														obj.Entrada = nuevos;
+														obj.Completos = atendidos;
+														obj.Proceso = enproceso;
+														obj.Descartados = descartados;
+														obj.facebook = facebook;
+														console.log('Finalizo chartPromedioCasos');
+														//console.log(obj);
+														//console.log('El promedio de los casos');
+														res.jsonp(obj);
+									    			}
+									    		});
+					    					}
+										});
+				    				}
+								});
+			    			}
+						});
+		    		}
+				});
+	    	}
+		});
+    });
+};
+/*
+//Este exports es para la actualización de las graficas de total de casos y promedio de casos para el buzon unificado
+exports.chartPromedioCasos = function(req, res){
+    //funcion opara obtener la cuenta
+    function obtieneCuenta(nomeSis, callback){
+		var arregloUsuarios=[];
+		var coleccion = 'accounts';
+		var critcol = {'nombreSistema': nomeSis};
+		var sort = {};
+		classdb.buscarToArray(coleccion, critcol, sort, 'charts/chartPromedioCasos/obtieneCuenta', function(cuenta){
+	    	return callback(cuenta);
+		});		
+    }
+  
+    function obtieneTodos(coleccion, debut, finale, idFb, idTw, callback) {
+		var criterio = { $and: 
+			 [
+			    {'created_time' : {$gte : debut}},
+			    {'created_time' : {$lte : finale}},
+			    {'from.id' : {$ne : idFb}},
+			    {'user.id' : {$ne: idTw}},
+			    {'retweeted_status' : {$exists:false}},
+				{'eliminado':{$exists: false}}
+			 ]
+		};	
+		classdb.count(coleccion, criterio, 'charts/chartPromedioCasos/obtieneTodos', function(total){
+	    	return callback(total);
+		});
+    }
+
+    function obtieneAtendidos(coleccion, debut, finale, idFb, idTw, tipent, callback) {
+		var criterioA ={};
+		if(tipent ==='general'){			
+	    	criterioA={ $and: 
+				[
+					{'retweeted_status': {$exists: false}},
+			    	{'created_time' : {$gte : debut }},
+			    	{'created_time' : {$lte : finale }},
+			    	{'from.id' : {$ne : idFb}},
+			    	{'user.id' : {$ne : idTw}},
+					{'descartado':{$exists: false}}, 
+					//{'atendido':{$exists: true}}, 
+					{'eliminado':{$exists: false}}, 
+					{$or: [
+						{'sentiment' : { $exists : true }}, 
+						{'atendido':{$exists: true}}, 
+						{'clasificacion' : { $exists : true }},
+						{'respuestas' : { $exists: true }},	
+					]}
+				]
+		    };
+		}
+		else{
+	    	criterioA = { $and: 
+				[	
+					{'retweeted_status': {$exists: false}},
+			    	{'created_time' : {$gte : debut }},
+			    	{'created_time' : {$lte : finale }},
+			    	{'from.id' : {$ne : idFb}},
+			    	{'user.id' : {$ne : idTw}},
+					{'descartado':{$exists: false}}, 
+					//{'atendido':{$exists: true}}, 
+					{'eliminado':{$exists: false}},
+					{'obj' : tipent},
+					{$or: [
+						{'atendido':{$exists: true}}, 
+						{'sentiment' : { $exists : true }}, 
+						{'clasificacion' : { $exists : true }},
+						{'respuestas' : { $exists: true }},	
+					]}
+				]
+			};
+		}
+		classdb.count(coleccion, criterioA, 'charts/chartPromedioCasos/obtieneAtendidos', function(atendidos){
+	    	return callback(atendidos);
+		});
+    }
+
+    function obtieneDescartados(coleccion, debut, finale, idFb, idTw, tipent, callback) {
+		var criterioD ={};
+		if(tipoEntrada==='general'){
+	    	criterioD = { $and: 
+			  [
+			    {'descartado' : {$exists : true}},
+				{'atendido':{$exists: false}}, 
+			    {'created_time' : {$gte : debut}},
+			    {'created_time' : {$lte : finale}},
+			    {'from.id' : {$ne : idFb}},
+			    {'user.id' : {$ne : idTw}},
+			    {'retweeted_status' : {$exists:false}},
+				{'eliminado':{$exists: false}}
+			  ]
+			};
+		}
+		else{
+	    	criterioD = { $and: 
+				[
+				    {'descartado' : {$exists : true}},
+				    {'obj' : tipent},
+					{'atendido':{$exists: false}}, 
+				    {'created_time' : {$gte : debut}},
+				    {'created_time' : {$lte : finale }},
+				    {'from.id' : {$ne : idFb}},
+				    {'user.id' : {$ne : idTw}},
+				    {'retweeted_status' : {$exists:false}},
+					{'eliminado':{$exists: false}}
+				]
+			};
+		}
+		classdb.count(coleccion, criterioD, 'charts/chartPromedioCasos/obtieneDescartados', function(descartados){
+	    	return callback(descartados);
+		});
+    }
+
+    function obtieneNuevos(coleccion, debut, finale, idFb, idTw, tipent, callback) {
+		var criterioN ={};
+		if(tipoEntrada==='general'){
+	    	criterioN = { $and: 
+			  [
+			      {'created_time' : {$gte : debut}},
+			      {'created_time' : {$lte : finale}},
+			      {'from.id' : {$ne : idFb}},
+			      {'user.id' : {$ne: idTw}},
+			      {'descartado' : {$exists : false}},
+			      {'atendido' : {$exists : false}},
+			      {'sentiment' : {$exists : false}},
+			      {'clasificacion' : {$exists:false}},
+			      {'respuestas' : {$exists:false}},
+			      {'retweeted_status' : {$exists:false}},
+				  {'eliminado':{$exists: false}}
+			  ]
+			};
+		}
+		else{
+	    	criterioN = { $and: 
+			  [
+			      {'created_time' : {$gte : debut}},
+			      {'created_time' : {$lte : finale}},
+			      {'from.id' : {$ne : idFb}},
+			      {'user.id' : {$ne : idTw}},
+			      {'obj' : tipent},
+			      {'descartado' : {$exists : false}},
+			      {'atendido' : {$exists : false}},
+			      {'sentiment' : {$exists : false}},
+			      {'clasificacion' : {$exists:false}},
+			      {'respuestas' : {$exists:false}},
+			      {'retweeted_status' : {$exists:false}},
+					{'eliminado':{$exists: false}}
+			  ]
+			};
+		}
+		classdb.count(coleccion, criterioN, 'charts/chartPromedioCasos/obtieneNuevos', function(nuevos){
+	    	return callback(nuevos);
+		});
+    }
+
+    function obtieneEnProceso(coleccion, debut, finale, idFb, idTw, tipent, callback) {
+		var criterioP = {};
+		if(tipoEntrada==='general'){	
+	    	criterioP = {$and: [
+				{'created_time' : {$gte : debut}},
+				{'created_time' : {$lte : finale}},
+				{'from.id' : {$ne : idFb}},
+				{'user.id' : {$ne : idTw}},
+				{$or : [
+		    		{'sentiment' : {$exists : true}},
+		    		{'clasificacion' : {$exists:true}},
+		    		{'respuestas' : {$exists:true}}
+				]},
+				{'descartado' : {$exists : false}},
+				{'atendido' : {$exists : false}},
+				{'retweeted_status' : {$exists:false}}
+	    	]};
+		}else{
+	    	criterioP = {$and: [
+				{'created_time' : {$gte: debut}},
+				{'created_time' : {$lte : finale}},
+				{'from.id' : {$ne : idFb}},
+				{'user.id' : {$ne : idTw}},
+				{'obj':tipent},
+				{$or : [
+		    		{'sentiment' : {$exists : true}},
+		    		{'clasificacion' : {$exists : true}},
+		    		{'respuestas' : {$exists : true}}
+				]},
+				{'descartado' : {$exists : false}},
+				{'atendido' : {$exists:false}},
+				{'retweeted_status' : {$exists:false}}
+	    	]};
+		}
+		classdb.count(coleccion, criterioP, 'charts/chartPromedioCasos/obtieneEnProceso', function(proceso){
+	    	return callback(proceso);
+		});
+    }
+
+    var nombreSistema=req.body.nombreSistema;
+    var tipoEntrada=req.body.tipo;
+    var inicia = new Date(req.body.fecha_inicial);
+    var termina = new Date(req.body.fecha_final);
+    //Obtenemos la cuenta
+    obtieneCuenta(nombreSistema, function(account){
+		var idCuenta = '', idTwitter = '';
+		if(typeof account[0] !== 'undefined' && typeof account[0].datosPage !== 'undefined' && account[0].datosPage.id && account[0].datosPage.id !== ''){
+	    	idCuenta = account[0].datosPage.id;
+	    	if (account[0].datosTwitter && account[0].datosTwitter.twitter_id_principal) {
+				idTwitter = account[0].datosTwitter.twitter_id_principal;
+	    	}
+		}
+		else if(typeof account[0] !== 'undefined' && typeof account[0].datosMonitoreo !== 'undefined' && account[0].datosMonitoreo.id && account[0].datosMonitoreo.id !== ''){
+	    	idCuenta = account[0].datosMonitoreo.id;
+	    	if (account[0].datosTwitter && account[0].datosTwitter.twitter_id_principal) {
+				idTwitter = account[0].datosTwitter.twitter_id_principal;
+	    	}
+		}
+		else {
+	    	if (typeof account[0] !== 'undefined' && typeof account[0].datosTwitter !== 'undefined' && account[0].datosTwitter.twitter_id_principal) {
+				idTwitter = account[0].datosTwitter.twitter_id_principal;
+	    	}
+		}
+		var colectio = nombreSistema+'_consolidada';
+		obtieneTodos(colectio, inicia, termina, idCuenta, idTwitter, function(todos) {
+	    	if (todos === 'error') {
+				res.jsonp(todos);
+	    	}
+	    	else {
+				obtieneAtendidos(colectio, inicia, termina, idCuenta, idTwitter, tipoEntrada, function(atendidos) {
+		    		if (atendidos === 'error') {
+						res.jsonp(atendidos);
+		    		}
+		    		else {
+		    			console.log('EL TOTAL DE ATENDIDOS');
+		    			console.log(atendidos);
+						obtieneDescartados(colectio, inicia, termina, idCuenta, idTwitter, tipoEntrada, function(descartados) {
+			    			if (descartados === 'error') {
+								res.jsonp(descartados);
+			    			}
+			    			else {
+								obtieneNuevos(colectio, inicia, termina, idCuenta, idTwitter, tipoEntrada, function(nuevos) {
+				    				if (nuevos === 'error') {
+										res.jsonp(nuevos);
+				    				}
+				    				else {
+										var obj = {};
+										//obj.Todos = todos;
+										obj.Nuevos = nuevos;
+										obj.Atendidos = atendidos;
+										//obj.Proceso = enproceso;
+										obj.Descartados = descartados;
+										console.log('Finalizo chartPromedioCasos');
+										//console.log(obj);
+										res.jsonp(obj);
+				    				}
+								});
+			    			}
+						});
+		    		}
+				});
+	    	}
+		});
+    });
+};*/
+/*
+                _        _                _  ______                             _ _       _____                     
+               | |      | |              | | | ___ \                           | (_)     /  __ \                    
+  ___ _ __   __| |   ___| |__   __ _ _ __| |_| |_/ / __ ___  _ __ ___   ___  __| |_  ___ | /  \/ __ _ ___  ___  ___ 
+ / _ \ '_ \ / _` |  / __| '_ \ / _` | '__| __|  __/ '__/ _ \| '_ ` _ \ / _ \/ _` | |/ _ \| |    / _` / __|/ _ \/ __|
+|  __/ | | | (_| | | (__| | | | (_| | |  | |_| |  | | | (_) | | | | | |  __/ (_| | | (_) | \__/\ (_| \__ \ (_) \__ \
+ \___|_| |_|\__,_|  \___|_| |_|\__,_|_|   \__\_|  |_|  \___/|_| |_| |_|\___|\__,_|_|\___/ \____/\__,_|___/\___/|___/
+                                                                                                                    
+      _                _  ______                         _            _           
+     | |              | | |  _  \                       | |          | |          
+  ___| |__   __ _ _ __| |_| | | |___  ___  ___ __ _ _ __| |_ __ _  __| | ___  ___ 
+ / __| '_ \ / _` | '__| __| | | / _ \/ __|/ __/ _` | '__| __/ _` |/ _` |/ _ \/ __|
+| (__| | | | (_| | |  | |_| |/ /  __/\__ \ (_| (_| | |  | || (_| | (_| | (_) \__ \
+ \___|_| |_|\__,_|_|   \__|___/ \___||___/\___\__,_|_|   \__\__,_|\__,_|\___/|___/
+*/
+exports.chartDescartados = function(req, res){
+    var nombreSistema=req.body.nombreSistema;
+    var tipoEntrada=req.body.tipo;
+
+    //funciòn opara obtener la cuenta
+    function obtieneCuenta(nombreSistema,callback){
+		var coleccion = 'accounts';
+		var sort = {};
+		classdb.buscarToArray(coleccion, {'nombreSistema':nombreSistema}, sort, 'charts/chartDescartados/obtieneCuenta', function(cuenta){		    	
+	    	if(cuenta === 'error'){
+				return callback('error');
+	    	}else{
+				return callback(cuenta);
+	    	}
+		});		
+    }
+
+    //Obtenemos la cuenta
+    obtieneCuenta(nombreSistema, function(account){
+		var idCuenta = '', idTwitter = '';
+		if(typeof account[0] !== 'undefined' && typeof account[0].datosPage !== 'undefined' && account[0].datosPage.id && account[0].datosPage.id !== ''){
+	    	idCuenta = account[0].datosPage.id;
+	    	if (account[0].datosTwitter && account[0].datosTwitter.twitter_id_principal) {
+				idTwitter = account[0].datosTwitter.twitter_id_principal;
+	    	}
+		}
+		else if(typeof account[0] !== 'undefined' && typeof account[0].datosMonitoreo !== 'undefined' && account[0].datosMonitoreo.id && account[0].datosMonitoreo.id !== ''){
+	    	idCuenta = account[0].datosMonitoreo.id;
+	    	if (account[0].datosTwitter && account[0].datosTwitter.twitter_id_principal) {
+				idTwitter = account[0].datosTwitter.twitter_id_principal;
+	    	}
+		}
+		else {
+	    	if (typeof account[0] !== 'undefined' && typeof account[0].datosTwitter !== 'undefined' && account[0].datosTwitter.twitter_id_principal) {
+				idTwitter = account[0].datosTwitter.twitter_id_principal;
+	    	}
+		}
+	
+		var criterio = {};
+		if(tipoEntrada==='general'){
+	    	criterio = {$and:
+				[ 
+			    	{'descartado':{$exists:true}},
+			    	{'created_time':{$gte:new Date(req.body.fecha_inicial)}},
+			    	{'created_time':{$lte:new Date(req.body.fecha_final)}},
+			    	{'descartado':{$ne:''}},
+			    	{'from.id':{$ne : idCuenta}},
+			    	{'eliminado':{$exists: false}}
+				]
+		    };
+		}else{
+	    	criterio = {$and:
+				[
+			    	{'descartado':{$exists:true}},
+			    	{'obj':tipoEntrada},
+			    	{'created_time':{$gte:new Date(req.body.fecha_inicial)}},
+			    	{'created_time':{$lte:new Date(req.body.fecha_final)}},
+			    	{'descartado':{$ne:''}},
+			    	{'from.id':{$ne : idCuenta}},
+			    	{'eliminado':{$exists: false}}
+				]
+		    };
+		}
+		classdb.buscarToArrayFields(nombreSistema+'_consolidada',criterio,{'descartado' : ''},{},'chartDescartados',function(data){
+	    	if(data === 'error'){
+				//console.log(data);
+				res.jsonp('error');
+	    	}else{
+				if(data.length > 0){
+		    		var count = {};
+		    		var answered=0 , spam=0 , insult=0 , troll=0 , related=0 , otro=0 , campaign=0 , mediatico=0;
+		    		for(var i = 0; i < data.length; i++){
+						switch(data[i].descartado.motivo){
+							case 'answered': answered++; break;
+							case 'spam': spam++; break;
+							case 'insult': insult++; break;
+							case 'troll': troll++; break;
+							case 'not-related': related++; break;
+							case 'otro': otro++; break;
+							case 'campaign': campaign++;break;
+							case 'other_comments':mediatico++;break; 
+							default: console.log('Opcion invalida');
+						}
+		    		}
+		    		var objeto={};
+		    		objeto.total=data.length;
+		    		objeto.respondidas=answered;
+		    		objeto.spam=spam;
+		    		objeto.insulto=insult;
+		    		objeto.troll=troll;
+		    		objeto.irrelevante=related;
+		    		objeto.otro=otro;
+		    		//if(nombreSistema === 'dish'){
+			    		objeto.campaña=campaign;
+			    		objeto.mediático = mediatico;
+			    	//}
+		    		console.log('Finalizo chartDescartados');
+		    		res.jsonp(objeto);
+				}else{
+		    		//console.log('No hay resultados');
+		    		res.jsonp('No hubo resultados');
+				}
+	    	}
+		});
+    });
+};
+/*              _        _                _  ______                         _            _           
+               | |      | |              | | |  _  \                       | |          | |          
+  ___ _ __   __| |   ___| |__   __ _ _ __| |_| | | |___  ___  ___ __ _ _ __| |_ __ _  __| | ___  ___ 
+ / _ \ '_ \ / _` |  / __| '_ \ / _` | '__| __| | | / _ \/ __|/ __/ _` | '__| __/ _` |/ _` |/ _ \/ __|
+|  __/ | | | (_| | | (__| | | | (_| | |  | |_| |/ /  __/\__ \ (_| (_| | |  | || (_| | (_| | (_) \__ \
+ \___|_| |_|\__,_|  \___|_| |_|\__,_|_|   \__|___/ \___||___/\___\__,_|_|   \__\__,_|\__,_|\___/|___/
+*/
+
+/*    _                _  ______                                          _       
+     | |              | | |  _  \                                        (_)      
+  ___| |__   __ _ _ __| |_| | | |___  ___  ___ _ __ ___  _ __   ___ _ __  _  ___  
+ / __| '_ \ / _` | '__| __| | | / _ \/ __|/ _ \ '_ ` _ \| '_ \ / _ \ '_ \| |/ _ \ 
+| (__| | | | (_| | |  | |_| |/ /  __/\__ \  __/ | | | | | |_) |  __/ | | | | (_) |
+ \___|_| |_|\__,_|_|   \__|___/ \___||___/\___|_| |_| |_| .__/ \___|_| |_|_|\___/ 
+                                                        | |                       
+                                                        |_|
+*/
+exports.chartDesempenio = function(req, res){
+    //función opara obtener la cuenta
+    function obtieneCuenta(nomSis, callback){
+		var coleccion = 'accounts';
+		var sort = {};
+		classdb.buscarToArray(coleccion, {'nombreSistema':nomSis}, sort, 'charts/chartDesempenio/obtieneCuenta', function(cuenta){
+	    	return callback(cuenta);
+		});		
+    }
+
+    function armaArregloUsuarios(usuarios, index, arrusuarios, callback) {
+		var cuantos = usuarios.length;
+		var more = index+1;
+		if (more > cuantos) {
+	    	return callback(arrusuarios);
+		}
+		else {
+			setImmediate(function(){
+		    	var objetoUsuario = {};
+		    	objetoUsuario.idUsuario = usuarios[index]._id;
+		    	objetoUsuario.nombre = usuarios[index].displayName;
+		    	objetoUsuario.imagen = usuarios[index].imagen_src;
+		    	arrusuarios.push(objetoUsuario);
+		    	return armaArregloUsuarios(usuarios, more, arrusuarios, callback);
+		    });
+		}
+    }
+
+    function obtieneUsuarios(nomSis, callback){
+		var arregloUsuarios=[];
+		var coleccion = 'users';
+		var sort = {};
+		classdb.buscarToArray(coleccion, {'cuenta.marca':nomSis}, sort, 'charts/chartDesempenio/obtieneUsuarios', function(usuarios){		    	
+	    	if(usuarios === 'error'){
+				return callback('error');
+	    	}else{
+				armaArregloUsuarios(usuarios, 0, [], function(arregloUsuarios){
+		    		return callback(arregloUsuarios); 
+				});
+	    	}
+		});
+    }
+    
+    function consigueEnProceso(tipoent, inizio, fine, usuario, nombreSistema, idCuenta, idTwitter, callback){
+    	if(!idCuenta){
+    		idCuenta = '';
+    	}
+    	if(!idTwitter){
+    		idTwitter = '';
+    	}
+		var criterio = {};
+		var user_id = usuario.idUsuario.toString();
+		if(tipoent !== 'general'){ 
+	    	criterio = {$and: [ 
+				{'created_time' : {$gte : inizio}},
+				{'created_time' : {$lte : fine}},
+				{'descartado' : {$exists : false}},
+				{'atendido' : {$exists : false}},
+				{'retweeted_status' : {$exists:false}},
+				{'eliminado' : {$exists : false}},
+				{'obj':tipoent},
+			    {'from_user_id' : {$ne: idCuenta}},
+				{$or : [
+					{$and:[
+		    			{'sentiment' : {$exists : true}},
+						//{'sentiment_user_id' : new ObjectID(user_id.toString())}
+						{'sentiment_user_id' : user_id.toString()}
+					]},
+					{$and : [
+		    			{'clasificacion' : {$exists:true}},
+		    			//{'clasificacion.user_id' : new ObjectID(user_id.toString())}
+		    			{'clasificacion.user_id' : user_id.toString()}
+		    		]},
+		    		{$and:[
+		    			{'respuestas' : {$exists:true}},
+						{'respuestas':{$elemMatch: { 'user_id':{$ne: "direct-facebook"}}}},
+						//{'respuestas':{$elemMatch: { 'user_id':new ObjectID(user_id.toString())}}}
+						{'respuestas':{$elemMatch: { 'user_id': user_id.toString()}}}
+					]}
+		    	]}
+	    	]};
+		}else{
+	    	criterio = {$and: [ 
+				{'created_time' : {$gte : inizio}},
+				{'created_time' : {$lte : fine}},
+				{'descartado' : {$exists : false}},
+				{'atendido' : {$exists : false}},
+				{'retweeted_status' : {$exists:false}},
+				{'eliminado' : {$exists : false}},
+			    {'from_user_id' : {$ne: idCuenta}},
+				{$or : [
+					{$and:[
+		    			{'sentiment' : {$exists : true}},
+						//{'sentiment_user_id' : new ObjectID(user_id)}
+						{'sentiment_user_id' : user_id.toString()}
+					]},
+					{$and : [
+		    			{'clasificacion' : {$exists:true}},
+		    			//{'clasificacion.user_id' : new ObjectID(user_id)}
+		    			{'clasificacion.user_id' : user_id.toString()}
+		    		]},
+		    		{$and:[
+		    			{'respuestas' : {$exists:true}},
+						{'respuestas':{$elemMatch: { 'user_id':{$ne: "direct-facebook"}}}},
+						//{'respuestas':{$elemMatch: { 'user_id':new ObjectID(user_id.toString())}}}
+						{'respuestas':{$elemMatch: { 'user_id': user_id.toString()}}}
+					]}
+		    	]}
+	    	]};
+		}
+		classdb.count(nombreSistema+'_consolidada', criterio, 'charts/chartDesempenio/consigueEnProceso', function(data){
+	    	return callback(data);
+		});				
+    }
+    
+    function consigueAtendido(tipoent, inizio, fine, usuario, nombreSistema, idCuenta, idTwitter, callback){
+		var criterio = {};
+		var user_id = usuario.idUsuario.toString();
+		if(tipoent!=='general'){
+	    	criterio = { $and:
+				[
+			    	{'created_time':{$gte: inizio}},
+			    	{'created_time':{$lte: fine}},
+			    	{'atendido' : {$exists : true}},
+				    {'from_user_id' : {$ne: idCuenta}},
+					{'obj':tipoent},
+			    	{'atendido.usuario_id':user_id},
+			    	{'eliminado' : {$exists : false}},
+					{'retweeted_status': {$exists : false}}
+			 	]
+		    };
+		}else{
+	    	criterio = { $and:
+				[
+			    	{'created_time':{$gte: inizio}},
+			    	{'created_time':{$lte: fine}},
+			    	{'atendido' : {$exists : true}},
+				    {'from_user_id' : {$ne: idCuenta}},
+			    	{'atendido.usuario_id':user_id},
+			    	{'eliminado' : {$exists : false}},
+					{'retweeted_status': {$exists : false}}
+			 	]
+		    };
+		} 
+		classdb.count(nombreSistema+'_consolidada', criterio, 'charts/chartDesempenio/ConsigueAtendido', function(data){		
+	    	return callback(data);
+		});				
+    }
+    
+    function consigueDescartado(tipoent, inizio, fine, usuario, nombreSistema, idCuenta, idTwitter, callback){
+		var criterio = {};
+		var user_id = usuario.idUsuario.toString();
+		if(tipoent!=='general'){
+	    	criterio = { $and:
+				[
+			    	{'created_time' : {$gte: inizio}},
+			    	{'created_time' : {$lte: fine}},
+				    {'from_user_id' : {$ne: idCuenta}},
+			    	{'obj':tipoent},
+			    	{'descartado' : {$exists : true}},
+			    	{'eliminado' : {$exists : false}},
+			    	{'descartado.idUsuario' : user_id},
+			     	{'retweeted_status': {$exists : false}}
+				]
+		    };
+		}else{
+	    	criterio = {$and:
+				[
+					{'created_time' : {$gte: inizio}},
+			    	{'created_time' : {$lte: fine}},
+				    {'from_user_id' : {$ne: idCuenta}},
+			    	{'descartado' : {$exists : true}},
+			    	{'eliminado' : {$exists : false}},
+			    	{'descartado.idUsuario':user_id},
+			     	{'retweeted_status': {$exists : false}}
+				]
+		    };
+		}
+		classdb.count(nombreSistema+'_consolidada', criterio, 'charts/chartDesempenio/ConsigueDescartado', function(data){	    	
+	    	return callback(data);
+		});				
+    }
+    
+    function desglosaUsuarios(tipent, inizio, fine, usuarios, nombreSistema, idCuenta, idTwitter, index, callback){
+		var cuantos = usuarios.length;
+		var more = index+1;
+		if (more > cuantos) {
+	    	return callback (usuarios);
+		}
+		else {
+			setImmediate(function(){
+		    	//console.log(usuarios[index].idUsuario);
+		    	consigueEnProceso(tipent, inizio, fine, usuarios[index], nombreSistema, idCuenta, idTwitter, function(totalClasificacion){
+					if(totalClasificacion==='error'){
+			    		desglosaUsuarios(tipent, inizio, fine, usuarios, nombreSistema, idCuenta, idTwitter, more, callback);
+					}else{
+			    		usuarios[index].respuestas=totalClasificacion;
+			    		consigueAtendido(tipent, inizio, fine, usuarios[index], nombreSistema, idCuenta, idTwitter, function(totalAtendidos){
+							if(totalAtendidos==='error'){
+				    			desglosaUsuarios(tipent, inizio, fine, usuarios, nombreSistema, idCuenta, idTwitter, more, callback);
+							}else{
+				    			usuarios[index].atendidos=totalAtendidos;
+				    			consigueDescartado(tipent, inizio, fine, usuarios[index], nombreSistema, idCuenta, idTwitter, function(totalDescartado){
+									if(totalDescartado==='error'){
+					    				desglosaUsuarios(tipent, inizio, fine, usuarios, nombreSistema, idCuenta, idTwitter, more, callback);
+									}else{
+					    				usuarios[index].descartado=totalDescartado;
+					    				usuarios[index].total = totalAtendidos + totalDescartado + totalClasificacion;
+					    				desglosaUsuarios(tipent, inizio, fine, usuarios, nombreSistema, idCuenta, idTwitter, more, callback);
+									}
+				    			});
+							}
+			    		});
+					}
+		    	});
+			});
+		}
+    }
+
+    //var nombreSistema='arabela';
+    var nombreSistema=req.body.nombreSistema;
+    var fecha_inicial = new Date(req.body.fecha_inicial);
+    var fecha_final = new Date(req.body.fecha_final);
+    var tipoEntrada=req.body.tipo;
+
+    //Obtenemos la cuenta
+    obtieneCuenta(nombreSistema, function(account){
+		var idCuenta = '', idTwitter = '';
+		if(typeof account[0] !== 'undefined' && typeof account[0].datosPage !== 'undefined'){
+	    	idCuenta = account[0].datosPage.id;
+	    	if (typeof account[0].datosTwitter !== 'undefined' && account[0].datosTwitter.twitter_id_principal) {
+				idTwitter = account[0].datosTwitter.twitter_id_principal;
+	    	}
+		}
+		else if(typeof account[0] !== 'undefined' && typeof account[0].datosMonitoreo !== 'undefined'){
+	    	idCuenta = account[0].datosMonitoreo.id;
+	    	if (typeof account[0].datosTwitter !== 'undefined' && account[0].datosTwitter.twitter_id_principal) {
+				idTwitter = account[0].datosTwitter.twitter_id_principal;
+	    	}
+		}
+		else {
+	    	if (typeof account[0] !== 'undefined' && typeof account[0].datosTwitter !== 'undefined' && account[0].datosTwitter.twitter_id_principal) {
+				idTwitter = account[0].datosTwitter.twitter_id_principal;
+	    	}
+		}
+		obtieneUsuarios(nombreSistema,function(usuarios){
+	    	if(usuarios==='error'){
+				res.jsonp('Error en usuarios');
+	    	}else{
+				if(usuarios.length>0){
+		    		desglosaUsuarios(tipoEntrada, fecha_inicial, fecha_final, usuarios, nombreSistema, idCuenta, idTwitter, 0, function(usuariosActualizados){
+						if(usuariosActualizados){
+							for(var i=0;i<usuariosActualizados.length;i++){
+								if(usuariosActualizados[i].total === 0){
+									delete usuariosActualizados[i];
+								}
+							}
+
+							if(usuariosActualizados){
+								usuariosActualizados = usuariosActualizados.filter(function(){return true;}); 
+						    	var byName = usuariosActualizados.slice(0);
+								byName.sort(function(a,b) {
+				    				var y = a.total;
+				    				var x = b.total;
+				    				return x < y ? -1 : x > y ? 1 : 0;
+								});
+								console.log('Finalizo chartDesempenio');
+			    				res.jsonp(byName);
+			    			}
+						}
+		    		});
+				}else{
+					// No hay usuarios
+		    		res.jsonp(0);
+				}
+	    	}
+		});
+    });
+};
+/*
+//Codigo que genera los datos del desempeño pero solo funcionara con el buzon unificado
+exports.chartDesempenio = function(req, res){
+    //función opara obtener la cuenta
+    function obtieneCuenta(nomSis, callback){
+		var coleccion = 'accounts';
+		var sort = {};
+		classdb.buscarToArray(coleccion, {'nombreSistema':nomSis}, sort, 'charts/chartDesempenio/obtieneCuenta', function(cuenta){
+	    	return callback(cuenta);
+		});		
+    }
+
+    function armaArregloUsuarios(usuarios, index, arrusuarios, callback) {
+		var cuantos = usuarios.length;
+		var more = index+1;
+		if (more > cuantos) {
+	    	return callback(arrusuarios);
+		}
+		else {
+			setImmediate(function(){
+		    	var objetoUsuario = {};
+		    	objetoUsuario.idUsuario = usuarios[index]._id;
+		    	objetoUsuario.nombre = usuarios[index].displayName;
+		    	objetoUsuario.imagen = usuarios[index].imagen_src;
+		    	arrusuarios.push(objetoUsuario);
+		    	return armaArregloUsuarios(usuarios, more, arrusuarios, callback);
+		    });
+		}
+    }
+
+    function obtieneUsuarios(nomSis, callback){
+		var arregloUsuarios=[];
+		var coleccion = 'users';
+		var sort = {};
+		classdb.buscarToArray(coleccion, {'cuenta.marca':nomSis}, sort, 'charts/chartDesempenio/obtieneUsuarios', function(usuarios){		    	
+	    	if(usuarios === 'error'){
+				return callback('error');
+	    	}else{
+				armaArregloUsuarios(usuarios, 0, [], function(arregloUsuarios){
+		    		return callback(arregloUsuarios); 
+				});
+	    	}
+		});
+    }
+    
+    function consigueEnProceso(tipoent, inizio, fine, usuario, nombreSistema, idCuenta, idTwitter, callback){
+		var criterio = {};
+		var user_id = usuario.idUsuario.toString();
+		if(tipoent !== 'general'){ 
+	    	criterio = { $and: 
+				[
+			    	{'created_time':{$gte: inizio}},
+			    	{'created_time':{$lte: fine}},
+			    	{'from.id':{$ne : idCuenta}},
+			    	{'user.id' : {$ne: idTwitter}},
+			    	{'obj':tipoent},
+			    	{$or : [
+						{'clasificacion.user_id' : user_id},
+						{'sentiment_user_id' : user_id},
+						{'respuestas.$.user_id' : user_id}
+			     	]},
+			     	{'retweeted_status': {$exists : false}},
+			     	{'descartado': {$exists: false}},
+			     	{'atendido': {$exists: false}}
+			 	]
+		    };
+		}else{
+			console.log('general');
+			
+	    	criterio = { $and: 
+				[
+			    	{'created_time':{$gte: inizio}},
+			    	{'created_time':{$lte: fine}},
+			    	{'from.id':{$ne : idCuenta}},
+			    	{'user.id' : {$ne: idTwitter}},
+			    	{$or : [
+						{'clasificacion.user_id' : user_id},
+						{'sentiment_user_id' : user_id},
+						{'respuestas.$.user_id' : user_id}
+			     	]},
+			     	{'retweeted_status': {$exists : false}},
+			     	{'descartado': {$exists: false}},
+			     	{'atendido': {$exists: false}}
+			 	]
+		    };
+		}
+		
+		
+		
+		classdb.count(nombreSistema+'_consolidada', criterio, 'charts/chartDesempenio/consigueEnProceso', function(data){
+	    	return callback(data);
+		});				
+    }
+    
+    function consigueAtendido(tipoent, inizio, fine, usuario, nombreSistema, idCuenta, idTwitter, callback){
+		var criterio = {};
+		var user_id = usuario.idUsuario.toString();
+		if(tipoent!=='general'){
+	    	criterio = { $and:
+				[
+			    	{'atendido.fecha':{$gte: inizio}},
+			    	{'atendido.fecha':{$lte: fine}},
+					{'atendido':{$exists: true}},
+					{'descartado':{$exists: false}},
+			    	{'from.id':{$ne : idCuenta}},
+			    	{'user.id' : {$ne : idTwitter}},
+			    	{'obj':tipoent},
+			    	{'atendido.usuario_id':user_id},
+					{'retweeted_status': {$exists : false}},
+					{$or: [
+						{'sentiment' : { $exists : true }}, 
+						{'clasificacion' : { $exists : true }},
+						{'respuestas' : { $exists: true }},
+						
+					]}
+			 	]
+			 };
+		}else{
+	    	criterio = { $and:
+				[
+			    	{'atendido.fecha':{$gte: inizio}},
+			    	{'atendido.fecha':{$lte: fine}},
+					{'atendido':{$exists: true}},
+					{'descartado':{$exists: false}},
+			    	{'from.id':{$ne : idCuenta}},
+			    	{'user.id' : {$ne : idTwitter}},
+			    	{'atendido.usuario_id':user_id},
+					{'retweeted_status': {$exists : false}},
+					{$or: [
+						{'sentiment' : { $exists : true }}, 
+						{'clasificacion' : { $exists : true }},
+						{'respuestas' : { $exists: true }},
+						
+					]}
+			 	]
+		    };
+		} 
+		classdb.count(nombreSistema+'_consolidada', criterio, 'charts/chartDesempenio/ConsigueAtendido', function(data){		
+	    	return callback(data);
+		});				
+    }
+    
+    function consigueDescartado(tipoent, inizio, fine, usuario, nombreSistema, idCuenta, idTwitter, callback){
+		var criterio = {};
+		var user_id = usuario.idUsuario.toString();
+		console.log('EL ID DE LA CUENTA');
+		console.log(idCuenta);
+		if(tipoent!=='general'){
+	    	criterio = { $and:
+				[
+			    	{'descartado.fecha' : {$gte: inizio}},
+			    	{'descartado.fecha' : {$lte: fine}},
+			    	//{'created_time' : {$gte: inizio}},
+			    	//{'created_time' : {$lte: fine}},
+					{'descartado':{$exists: true}}, 
+					{'atendido':{$exists: false}}, 
+			    	{'from.id' : {$ne : idCuenta}},
+			    	{'user.id' : {$ne : idTwitter}},
+			    	{'obj':tipoent},
+			    	{'descartado.idUsuario' : user_id},
+			     	{'retweeted_status': {$exists : false}}
+				]
+		    };
+		}else{
+	    	criterio = {$and:
+				[
+			    	{'descartado.fecha' : {$gte: inizio}},
+			    	{'descartado.fecha' : {$lte: fine}},
+					{'descartado':{$exists: true}}, 
+					{'atendido':{$exists: false}}, 
+			    	{'from.id' : {$ne : idCuenta}},
+			    	{'user.id' : {$ne : idTwitter}},
+			    	{'descartado.idUsuario':user_id},
+			     	{'retweeted_status': {$exists : false}}
+				]
+		    };
+		}
+		classdb.count(nombreSistema+'_consolidada', criterio, 'charts/chartDesempenio/ConsigueDescartado', function(data){	    	
+	    	return callback(data);
+		});				
+    }
+    
+    function desglosaUsuarios(tipent, inizio, fine, usuarios, nombreSistema, idCuenta, idTwitter, index, callback){
+		var cuantos = usuarios.length;
+		var more = index+1;
+		if (more > cuantos) {
+	    	return callback (usuarios);
+		}
+		else {
+			setImmediate(function(){
+		    	//console.log(usuarios[index].idUsuario);
+		    	//consigueEnProceso(tipent, inizio, fine, usuarios[index], nombreSistema, idCuenta, idTwitter, function(totalClasificacion){
+				//	if(totalClasificacion==='error'){
+			    //		desglosaUsuarios(tipent, inizio, fine, usuarios, nombreSistema, idCuenta, idTwitter, more, callback);
+				//	}else{
+			    //		usuarios[index].respuestas=totalClasificacion;
+			    		consigueAtendido(tipent, inizio, fine, usuarios[index], nombreSistema, idCuenta, idTwitter, function(totalAtendidos){
+							if(totalAtendidos==='error'){
+				    			desglosaUsuarios(tipent, inizio, fine, usuarios, nombreSistema, idCuenta, idTwitter, more, callback);
+							}else{
+				    			usuarios[index].atendidos=totalAtendidos;
+				    			consigueDescartado(tipent, inizio, fine, usuarios[index], nombreSistema, idCuenta, idTwitter, function(totalDescartado){
+									if(totalDescartado==='error'){
+					    				desglosaUsuarios(tipent, inizio, fine, usuarios, nombreSistema, idCuenta, idTwitter, more, callback);
+									}else{
+					    				usuarios[index].descartado=totalDescartado;
+					    				usuarios[index].total = totalAtendidos + totalDescartado;
+					    				desglosaUsuarios(tipent, inizio, fine, usuarios, nombreSistema, idCuenta, idTwitter, more, callback);
+									}
+				    			});
+							}
+			    		});
+					//}
+		    	//});
+			});
+		}
+    }
+
+    //var nombreSistema='arabela';
+    var nombreSistema=req.body.nombreSistema;
+    var fecha_inicial = new Date(req.body.fecha_inicial);
+    var fecha_final = new Date(req.body.fecha_final);
+    var tipoEntrada=req.body.tipo;
+
+    //Obtenemos la cuenta
+    obtieneCuenta(nombreSistema, function(account){
+		var idCuenta = '', idTwitter = '';
+		if(typeof account[0] !== 'undefined' && typeof account[0].datosPage !== 'undefined'){
+	    	idCuenta = account[0].datosPage.id;
+	    	if (typeof account[0].datosTwitter !== 'undefined' && account[0].datosTwitter.twitter_id_principal) {
+				idTwitter = account[0].datosTwitter.twitter_id_principal;
+	    	}
+		}
+		else if(typeof account[0] !== 'undefined' && typeof account[0].datosMonitoreo !== 'undefined'){
+	    	idCuenta = account[0].datosMonitoreo.id;
+	    	if (typeof account[0].datosTwitter !== 'undefined' && account[0].datosTwitter.twitter_id_principal) {
+				idTwitter = account[0].datosTwitter.twitter_id_principal;
+	    	}
+		}
+		else {
+	    	if (typeof account[0] !== 'undefined' && typeof account[0].datosTwitter !== 'undefined' && account[0].datosTwitter.twitter_id_principal) {
+				idTwitter = account[0].datosTwitter.twitter_id_principal;
+	    	}
+		}
+		obtieneUsuarios(nombreSistema,function(usuarios){
+	    	if(usuarios==='error'){
+				res.jsonp('Error en usuarios');
+	    	}else{
+				if(usuarios.length>0){
+		    		desglosaUsuarios(tipoEntrada, fecha_inicial, fecha_final, usuarios, nombreSistema, idCuenta, idTwitter, 0, function(usuariosActualizados){
+						if(usuariosActualizados){
+							console.log('Finalizo chartDesempenio');
+						    var byName = usuariosActualizados.slice(0);
+							byName.sort(function(a,b) {
+				    			var y = a.total;
+				    			var x = b.total;
+				    			return x < y ? -1 : x > y ? 1 : 0;
+							});
+			    			res.jsonp(byName);
+						}
+		    		});
+				}else{
+					// No hay usuarios
+		    		res.jsonp(0);
+				}
+	    	}
+		});
+    });
+};*/
+/*
+                _        _                _  ______                                          _       
+               | |      | |              | | |  _  \                                        (_)      
+  ___ _ __   __| |   ___| |__   __ _ _ __| |_| | | |___  ___  ___ _ __ ___  _ __   ___ _ __  _  ___  
+ / _ \ '_ \ / _` |  / __| '_ \ / _` | '__| __| | | / _ \/ __|/ _ \ '_ ` _ \| '_ \ / _ \ '_ \| |/ _ \ 
+|  __/ | | | (_| | | (__| | | | (_| | |  | |_| |/ /  __/\__ \  __/ | | | | | |_) |  __/ | | | | (_) |
+ \___|_| |_|\__,_|  \___|_| |_|\__,_|_|   \__|___/ \___||___/\___|_| |_| |_| .__/ \___|_| |_|_|\___/ 
+                                                                           | |                       
+                                                                           |_|                                                                                                                                                                \__|                                        
+      _                _  ______                             _ _      ______                                _        
+     | |              | | | ___ \                           | (_)     | ___ \                              | |       
+  ___| |__   __ _ _ __| |_| |_/ / __ ___  _ __ ___   ___  __| |_  ___ | |_/ /___  ___ _ __  _   _  ___  ___| |_ __ _ 
+ / __| '_ \ / _` | '__| __|  __/ '__/ _ \| '_ ` _ \ / _ \/ _` | |/ _ \|    // _ \/ __| '_ \| | | |/ _ \/ __| __/ _` |
+| (__| | | | (_| | |  | |_| |  | | | (_) | | | | | |  __/ (_| | | (_) | |\ \  __/\__ \ |_) | |_| |  __/\__ \ || (_| |
+ \___|_| |_|\__,_|_|   \__\_|  |_|  \___/|_| |_| |_|\___|\__,_|_|\___/\_| \_\___||___/ .__/ \__,_|\___||___/\__\__,_|
+                                                                                     | |                             
+                                                                                     |_|                            
+*/
+exports.chartPromedioRespuesta = function(req, res){
+	//var nombreSistema='arabela';
+	var nombreSistema=req.body.nombreSistema;
+	var tipoEntrada=req.body.tipo;
+	
+	//función opara obtener la cuenta
+	function obtieneCuenta(nombreSistema,callback){
+		var arregloUsuarios=[];
+		var coleccion = 'accounts';
+		var sort = {};
+		classdb.buscarToArray(coleccion, {'nombreSistema':nombreSistema}, sort, 'charts/chartPromedioCasos/obtieneCuenta', function(cuenta){		    	
+			if(cuenta === 'error'){
+				return callback('error');
+			}else{
+				return callback(cuenta);
+			}
+		});		
+	}
+
+	function obtieneRespuestas(nombreSistema,idCuenta,callback){
+		var criterio = {};
+		var sort = {};
+		if(tipoEntrada!=='general'){
+		   	criterio={$and:[
+		   		{'respuestas':{$exists:true}},
+		   		{'obj':tipoEntrada},
+		   		{'created_time':{$gte:new Date(req.body.fecha_inicial)}},
+		   		{'created_time':{$lte:new Date(req.body.fecha_final)}},
+		   		{'from_user_id':{$ne : idCuenta}}
+		   	]};
+		}else{
+		    criterio={$and:[
+		    	{'respuestas':{$exists:true}},	    	
+		    	{'created_time':{$gte:new Date(req.body.fecha_inicial)}},
+		    	{'created_time':{$lte:new Date(req.body.fecha_final)}},
+		    	{'from_user_id':{$ne : idCuenta}}
+		    ]};
+		}
+		classdb.buscarToArrayFields(nombreSistema+'_consolidada', criterio,{'respuestas' : ''}, sort, 'charts/chartPromedioRespuesta/obtieneRespuestas', function(respuestas){		    	
+			if(respuestas === 'error'){
+				return callback('error');
+			}else{
+				return callback(respuestas);
+			}
+		});
+	}
+
+	function desglosaRespuestas(respuestas,nombreSistema,index,arregloRespuestas,callback){
+		var cuantos = respuestas.length;
+		var more = index+1;
+		if (more <= cuantos) {
+			setImmediate(function(){
+				for(var i=0;i<respuestas[index].respuestas.length;i++){
+					arregloRespuestas.push(respuestas[index].respuestas[i].timestamp);
+				}
+				desglosaRespuestas(respuestas,nombreSistema,more,arregloRespuestas,callback);
+			});
+		}else{
+			return callback(arregloRespuestas);
+		}
+	}
+
+	//Obtenemos la cuenta
+	obtieneCuenta(nombreSistema, function(account){
+		var idCuenta = '', idTwitter = '';
+		if(typeof account[0] !== 'undefined' && typeof account[0].datosPage !== 'undefined' && account[0].datosPage.id && account[0].datosPage.id !== ''){
+	    	idCuenta = account[0].datosPage.id;
+	    	if (account[0].datosTwitter && account[0].datosTwitter.twitter_id_principal) {
+				idTwitter = account[0].datosTwitter.twitter_id_principal;
+	    	}
+		}
+		else if(typeof account[0] !== 'undefined' && typeof account[0].datosMonitoreo !== 'undefined' && account[0].datosMonitoreo.id && account[0].datosMonitoreo.id !== ''){
+	    	idCuenta = account[0].datosMonitoreo.id;
+	    	if (account[0].datosTwitter && account[0].datosTwitter.twitter_id_principal) {
+				idTwitter = account[0].datosTwitter.twitter_id_principal;
+	    	}
+		}
+		else {
+	    	if (typeof account[0] !== 'undefined' && typeof account[0].datosTwitter !== 'undefined' && account[0].datosTwitter.twitter_id_principal) {
+				idTwitter = account[0].datosTwitter.twitter_id_principal;
+	    	}
+		}
+		obtieneRespuestas(nombreSistema,idCuenta,function(respuestas){
+			var respuestasDesglosadas=[];
+			if(respuestas==='error'){
+				res.jsonp('error');
+			}else{
+				if(respuestas.length>0){
+					desglosaRespuestas(respuestas,nombreSistema,0,respuestasDesglosadas,function(resDesglose){
+						var objetoTiempos={
+							'9:00-13:00':0,
+							'13:00-17:00':0,
+							'17:00-21:00':0,
+							'21:00-00:00':0,
+							'otros':0
+						};
+						var horas=0;
+						var minutos=0;
+						var segundos=0;
+						var horasConvertidas=0;
+						var minutosConvertidos=0;
+						var fecha = '';
+						var totalSegundos=0;
+						for(var index=0; index<resDesglose.length;index++){
+							fecha=new Date(resDesglose[index]);
+							horas=fecha.getHours();
+							minutos=fecha.getMinutes();
+							segundos=fecha.getSeconds();
+							horasConvertidas=horas*3600;
+							minutosConvertidos=minutos*60;
+							totalSegundos=horasConvertidas+minutosConvertidos+segundos;
+
+							if(totalSegundos>=32400 && totalSegundos<=46799){
+								objetoTiempos['9:00-13:00']=objetoTiempos['9:00-13:00']+1;
+							}
+							else if(totalSegundos>=46800 && totalSegundos<=61199){
+								objetoTiempos['13:00-17:00']=objetoTiempos['13:00-17:00']+1;
+							}
+							else if(totalSegundos>=61200 && totalSegundos<=75599){
+								objetoTiempos['17:00-21:00']=objetoTiempos['17:00-21:00']+1;
+							}
+							else if((totalSegundos===0 && totalSegundos<=3599) || (totalSegundos>=75600 && totalSegundos<=86400)){
+								objetoTiempos['21:00-00:00']=objetoTiempos['21:00-00:00']+1;
+							}
+							else if(totalSegundos>=3600 && totalSegundos<=32399){
+								//console.log('otros');
+								objetoTiempos.otros=objetoTiempos.otros+1;
+							}
+						}
+						console.log('Finalizo chartPromedioRespuesta');
+						res.jsonp(objetoTiempos);
+					});
+				}else{
+					res.jsonp('No hubo resultados');
+				}
+			}
+		});
+	});
+};
+/*
+                _        _                _  ______                             _ _      ______                                _        
+               | |      | |              | | | ___ \                           | (_)     | ___ \                              | |       
+  ___ _ __   __| |   ___| |__   __ _ _ __| |_| |_/ / __ ___  _ __ ___   ___  __| |_  ___ | |_/ /___  ___ _ __  _   _  ___  ___| |_ __ _ 
+ / _ \ '_ \ / _` |  / __| '_ \ / _` | '__| __|  __/ '__/ _ \| '_ ` _ \ / _ \/ _` | |/ _ \|    // _ \/ __| '_ \| | | |/ _ \/ __| __/ _` |
+|  __/ | | | (_| | | (__| | | | (_| | |  | |_| |  | | | (_) | | | | | |  __/ (_| | | (_) | |\ \  __/\__ \ |_) | |_| |  __/\__ \ || (_| |
+ \___|_| |_|\__,_|  \___|_| |_|\__,_|_|   \__\_|  |_|  \___/|_| |_| |_|\___|\__,_|_|\___/\_| \_\___||___/ .__/ \__,_|\___||___/\__\__,_|
+                                                                                                        | |                             
+                                                                                                        |_|       
+      _                _  ______                             _ _     _____ _                            
+     | |              | | | ___ \                           | (_)   |_   _(_)                           
+  ___| |__   __ _ _ __| |_| |_/ / __ ___  _ __ ___   ___  __| |_  ___ | |  _  ___ _ __ ___  _ __   ___  
+ / __| '_ \ / _` | '__| __|  __/ '__/ _ \| '_ ` _ \ / _ \/ _` | |/ _ \| | | |/ _ \ '_ ` _ \| '_ \ / _ \ 
+| (__| | | | (_| | |  | |_| |  | | | (_) | | | | | |  __/ (_| | | (_) | | | |  __/ | | | | | |_) | (_) |
+ \___|_| |_|\__,_|_|   \__\_|  |_|  \___/|_| |_| |_|\___|\__,_|_|\___/\_/ |_|\___|_| |_| |_| .__/ \___/ 
+                                                                                           | |          
+                                                                                           |_|                                                                                                                                    
+*/
+exports.chartPromedioTiempo = function(req,res){ 
+	//var nombreSistema='arabela';
+	var nombreSistema=req.body.nombreSistema;
+	var tipoEntrada=req.body.tipo;
+	var fecha_inicial = req.body.fecha_inicial;
+	var fecha_final = req.body.fecha_final;
+
+	//función opara obtener la cuenta
+	function obtieneCuenta(nombreSistema,callback){
+		var arregloUsuarios=[];
+		var coleccion = 'accounts';
+		var sort = {};
+		classdb.buscarToArray(coleccion, {'nombreSistema':nombreSistema}, sort, 'charts/chartPromedioCasos/obtieneCuenta', function(cuenta){		    	
+			if(cuenta === 'error'){
+				return callback('error');
+			}else{
+				return callback(cuenta);
+			}
+		});		
+	}
+
+	function obtieneRespuestas(nombreSistema,idCuenta,callback){
+		var criterio = {};
+		var sort = {};
+		if(tipoEntrada!=='general'){
+			criterio={
+				$and:[
+					{'respuestas':{$exists:true}},
+					{'obj':tipoEntrada},
+					{'created_time':{$gte:new Date(fecha_inicial)}},
+					{'created_time':{$lte:new Date(fecha_final)}},
+					{'from.id':{$ne : idCuenta}}
+				]
+			};
+		}else{
+			criterio={$and:[{'respuestas':{$exists:true}},{'created_time':{$gte:new Date(fecha_inicial)}},{'created_time':{$lte:new Date(fecha_final)}},{'from.id':{$ne : idCuenta}}]};
+		}
+		//var coleccion = db.collection(nombreSistema+'_consolidada');
+		classdb.buscarToArrayFields(nombreSistema+'_consolidada', criterio, {'respuestas' : '', 'created_time': ''} , sort, 'charts/chartPromedioTiempo/obtieneRespuestas', function(respuestas){		    	
+			if(respuestas === 'error'){
+				return callback('error');
+			}else{
+				return callback(respuestas);
+			}
+		});
+	}
+
+	function desglosaRespuestas(respuestas,nombreSistema,index,arregloRespuestas,callback){
+		var cuantos = respuestas.length;
+		var more = index+1;
+		var objeto = {};
+		if (more <= cuantos) {
+			objeto.tiempoLlegada = respuestas[index].created_time;
+			setImmediate(function(){
+				for(var i=0;i<respuestas[index].respuestas.length;i++){
+					objeto.tiempoLlegada = respuestas[index].created_time;
+					objeto.tiempoRespuesta = respuestas[index].respuestas[i].timestamp;
+					//console.log(respuestas[index].respuestas[i]);
+					//arregloRespuestas.push(respuestas[index].respuestas[i].timestamp);
+					arregloRespuestas.push(objeto);				
+				}
+				desglosaRespuestas(respuestas,nombreSistema,more,arregloRespuestas,callback);
+			});
+		}else{
+			return callback(arregloRespuestas);
+			//console.log('Termino');
+		}
+	}
+
+	//Obtenemos la cuenta
+	obtieneCuenta(nombreSistema, function(account){
+		var idCuenta='';
+		if(account[0] && account[0].datosPage){
+			//console.log('TIENE FACEBOOk');
+			idCuenta = account[0].datosPage.id;
+		}
+		else if(account[0] && account[0].datosMonitoreo){
+			//console.log('TIENE MONITOREO');
+			idCuenta = account[0].datosMonitoreo.id;
+		}	
+		obtieneRespuestas(nombreSistema,idCuenta,function(respuestas){
+			var respuestasDesglosadas=[];
+			if(respuestas==='error'){
+				res.jsonp('error'); 
+			}else{
+			    if(respuestas.length>0){
+				//res.jsonp(respuestas.length);
+				desglosaRespuestas(respuestas,nombreSistema,0,respuestasDesglosadas,function(resDesglose){
+				    var objetoTiempos={
+						'promedio':0
+				    };
+				    //var more = index+1;
+				    //var cuantos=timestamps.length;
+				    var horasLlegada = 0;
+				    var minutosLlegada = 0;
+				    var segundosLlegada = 0;
+
+				    var horasRespuesta = 0;
+				    var minutosRespuesta = 0;
+				    var segundosRespuesta = 0;
+
+				    var horasConvertidasLlegada = 0;
+				    var minutosConvertidosLlegada = 0;
+
+				    var horasConvertidasRespuesta = 0;
+				    var minutosConvertidosRespuesta = 0;
+
+				    var fechaLlegada ='';
+				    var fechaRespuesta = '';
+				    var totalSegundosLlegada = 0;
+				    var totalSegundosRespuesta = 0;
+
+				    var totalSegundos = 0;
+				    var restanteSegundos = 0;
+				    for(var index = 0; index < resDesglose.length;index++) {
+						fechaLlegada = new Date(resDesglose[index].tiempoLlegada);
+						fechaRespuesta = new Date (resDesglose[index].tiempoRespuesta);
+
+						horasLlegada = fechaLlegada.getHours();
+						minutosLlegada = fechaLlegada.getMinutes();
+						segundosLlegada = fechaLlegada.getSeconds();
+
+						horasRespuesta = fechaRespuesta.getHours();
+						minutosRespuesta = fechaRespuesta.getMinutes();
+						segundosRespuesta = fechaRespuesta.getSeconds();
+
+						horasConvertidasLlegada = horasLlegada*3600;
+						minutosConvertidosLlegada = minutosLlegada*60;
+						totalSegundosLlegada = horasConvertidasLlegada+minutosConvertidosLlegada+segundosLlegada;					
+
+						horasConvertidasRespuesta = horasRespuesta*3600;
+						minutosConvertidosRespuesta = minutosRespuesta*60;
+						totalSegundosRespuesta = horasConvertidasRespuesta+minutosConvertidosRespuesta+segundosRespuesta;
+
+						restanteSegundos = totalSegundosRespuesta - totalSegundosLlegada;
+						if(restanteSegundos<0){
+							restanteSegundos =restanteSegundos * -1;
+						}
+						totalSegundos =totalSegundos + restanteSegundos;
+				    }
+
+				    var promedio = totalSegundos / resDesglose.length;
+				    promedio = Math.round(promedio);
+				    var horas = 0;
+				    var minutos = 0;
+				    var segundos = 0;
+				    var horasMenos = 0;
+
+				    //Validaciones para convertir los segundos a horas, minutos o segundos
+				    if(promedio>=3600){
+				    	horas = Math.floor(promedio/3600);
+				    	promedio = promedio - (horas * 3600);
+				    }
+
+				    if(promedio>=60){
+				    	minutos = Math.floor(promedio/60);
+				    	promedio = promedio - (minutos * 60);
+				    	if(minutos<10){
+				    		minutos = '0'+minutos;
+				    	}
+				    }
+
+				    if(promedio<60){
+				    	segundos = promedio;
+				    	if(segundos <10){
+				    		segundos = '0'+segundos;
+				    	}
+				    }
+
+				    if(horas !== 0){
+				    	//objetoTiempos.promedio=horas+':'+minutos+':'+segundos;
+				    	if(minutos < 10){
+				    		minutos = '0'+minutos;
+				    	}
+				    	objetoTiempos.promedio=horas+':'+minutos;
+						objetoTiempos.tipo='hrs';
+						res.jsonp(objetoTiempos);
+				    }else{
+				    	if(minutos !== 0){
+				    		objetoTiempos.promedio=minutos+':'+segundos;
+							objetoTiempos.tipo='min';
+							res.jsonp(objetoTiempos);
+				    	}else{
+				    		objetoTiempos.promedio=segundos;
+				    		objetoTiempos.tipo='seg';
+				    		res.jsonp(objetoTiempos);
+				    	}
+				    }
+					console.log('Finalizo chartPromedioTiempo');
+					});
+				}else{
+					res.jsonp('No hubo resultados');
+				}
+			}
+		});
+	});
+};
+/*
+                _        _                _  ______                             _ _     _____ _                            
+               | |      | |              | | | ___ \                           | (_)   |_   _(_)                           
+  ___ _ __   __| |   ___| |__   __ _ _ __| |_| |_/ / __ ___  _ __ ___   ___  __| |_  ___ | |  _  ___ _ __ ___  _ __   ___  
+ / _ \ '_ \ / _` |  / __| '_ \ / _` | '__| __|  __/ '__/ _ \| '_ ` _ \ / _ \/ _` | |/ _ \| | | |/ _ \ '_ ` _ \| '_ \ / _ \ 
+|  __/ | | | (_| | | (__| | | | (_| | |  | |_| |  | | | (_) | | | | | |  __/ (_| | | (_) | | | |  __/ | | | | | |_) | (_) |
+ \___|_| |_|\__,_|  \___|_| |_|\__,_|_|   \__\_|  |_|  \___/|_| |_| |_|\___|\__,_|_|\___/\_/ |_|\___|_| |_| |_| .__/ \___/ 
+                                                                                                              | |          
+                                                                                                              |_|          
+       _                _   _   _ _           _  _____                 _      _       
+      | |              | | | \ | (_)         | |/ ____|               (_)    (_)      
+   ___| |__   __ _ _ __| |_|  \| |___   _____| | (___   ___ _ ____   ___  ___ _  ___  
+  / __| '_ \ / _` | '__| __| . ` | \ \ / / _ \ |\___ \ / _ \ '__\ \ / / |/ __| |/ _ \ 
+ | (__| | | | (_| | |  | |_| |\  | |\ V /  __/ |____) |  __/ |   \ V /| | (__| | (_) |
+  \___|_| |_|\__,_|_|   \__|_| \_|_| \_/ \___|_|_____/ \___|_|    \_/ |_|\___|_|\___/ 
+                                                                                                                                                                                                                 
+*/
+
+exports.chartNivelServicio = function(req,res){
+	var fecha1 = new Date(req.body.fecha_inicial);
+	var fecha2 = new Date(req.body.fecha_final);
+	var nombreSistema=req.body.nombreSistema;
+	var tipoEntrada=req.body.tipo;
+//	console.log('Entro al chartNivelServicio');
+//	console.log(req.body);
+	//función opara obtener la cuenta
+	function obtieneCuenta(nombreSistema,callback){
+		var arregloUsuarios=[];
+		var coleccion = 'accounts';
+		var sort = {};
+		classdb.buscarToArray(coleccion, {'nombreSistema':nombreSistema}, sort, 'charts/chartPromedioCasos/obtieneCuenta', function(cuenta){		    	
+			if(cuenta === 'error'){
+				return callback('error');
+			}else{
+				return callback(cuenta);
+			}
+		});		
+	}
+
+	function obtieneRespuestas(nombreSistema,idCuenta,callback){
+		var criterio = {};
+		var sort = {};
+		if(tipoEntrada!=='general'){
+			//console.log('Entro al criterio que no es general');
+			criterio={$and:[{'respuestas':{$exists:true}},{'obj':tipoEntrada},{'created_time':{$gte:fecha1}},{'created_time':{$lte:fecha2}},{'from.id':{$ne : idCuenta}},{'eliminado':{$exists: false}}]};
+		}else{
+			//console.log('Criterio general');
+			criterio={$and:[{'respuestas':{$exists:true}},{'created_time':{$gte:fecha1}},{'created_time':{$lte:fecha2}},{'from.id':{$ne : idCuenta}},{'eliminado':{$exists: false}}]};
+		}
+		//var coleccion = db.collection(nombreSistema+'_consolidada');
+		classdb.buscarToArrayFields(nombreSistema+'_consolidada', criterio,{'respuestas' : '', 'created_time' : ''}, sort, 'charts/chartPromedioTiempo/obtieneRespuestas', function(respuestas){		    	
+			if(respuestas === 'error'){
+				return callback('error');
+			}else{
+				return callback(respuestas);
+			}
+		});
+	}
+
+	function desglosaRespuestas(respuestas,nombreSistema,index,arregloRespuestas,callback){
+		var cuantos = respuestas.length;
+		var obj={};
+		var more = index+1;
+		if (more <= cuantos) {
+			setImmediate(function(){
+				for(var i=0;i<respuestas[index].respuestas.length;i++){
+					obj.created_time=respuestas[index].created_time;
+					obj.tiempo_respuesta=respuestas[index].respuestas[i].timestamp;
+					arregloRespuestas.push(obj);
+				}
+				desglosaRespuestas(respuestas,nombreSistema,more,arregloRespuestas,callback);
+			});
+		}else{
+			return callback(arregloRespuestas);
+		}
+	}
+
+	//Obtenemos la cuenta
+	obtieneCuenta(nombreSistema, function(account){
+		var idCuenta='';
+		if(account[0] && account[0].datosPage){
+			//console.log('TIENE FACEBOOk');
+			idCuenta = account[0].datosPage.id;
+		}
+		else if(account[0] && account[0].datosMonitoreo){
+			//console.log('TIENE MONITOREO');
+			idCuenta = account[0].datosMonitoreo.id;
+		}
+		obtieneRespuestas(nombreSistema,idCuenta,function(respuestas){
+			var respuestasDesglosadas=[];
+			if(respuestas==='error'){
+				res.jsonp('error');
+			}else{
+				if(respuestas.length>0){
+					desglosaRespuestas(respuestas,nombreSistema,0,respuestasDesglosadas,function(resDesglose){
+						var objetoTiempos={};
+						if(!objetoTiempos.menosHora){
+							objetoTiempos.menosHora=0;
+						}
+						if(!objetoTiempos.unaOcho){
+							objetoTiempos.unaOcho=0;
+						}	
+						if(!objetoTiempos.ochoVeinticuatro){
+							objetoTiempos.ochoVeinticuatro=0;
+						}
+						if(!objetoTiempos.masVeinticuatro){
+							objetoTiempos.masVeinticuatro=0;
+						}
+						var horas=0;
+						var minutos=0;
+						var segundos=0;
+						var horasConvertidas=0;
+						var minutosConvertidos=0;
+						var horasCreated=0;
+						var minutosCreated=0;
+						var segundosCreated=0;
+						var horasCreatedConvertidas=0;
+						var minutosCreatedConvertidos=0;
+						var fecha = '';
+						var fechaCreated = '';
+						var totalSegundos=0;
+						var totalSegundosCreated=0;
+						var totalSegundosRespuesta=0;
+						var menosHora=0;
+						var unaOcho=0;
+						var ochoVeinticuatro=0;
+						var masVeinticuatro=0;
+						for(var index = 0; index<=resDesglose.length;index++){
+							if(typeof resDesglose[index]!=='undefined'){
+								fecha=new Date(resDesglose[index].tiempo_respuesta);
+								fechaCreated=new Date(resDesglose[index].created_time);
+								horas=fecha.getHours();
+								minutos=fecha.getMinutes();
+								segundos=fecha.getSeconds();
+								horasCreated=fechaCreated.getHours();
+								minutosCreated=fechaCreated.getMinutes();
+								segundosCreated=fechaCreated.getSeconds();
+								horasConvertidas=horas*3600;
+								minutosConvertidos=minutos*60;
+								totalSegundosRespuesta=horasConvertidas+minutosConvertidos+segundos;
+			
+								horasCreatedConvertidas=horasCreated*3600;
+								minutosCreatedConvertidos=minutosCreated*60;
+								totalSegundosCreated=horasCreatedConvertidas+minutosCreatedConvertidos+segundosCreated;
+								totalSegundos=totalSegundosCreated-totalSegundosRespuesta;
+
+								if(totalSegundos<=3600){
+									objetoTiempos.menosHora=objetoTiempos.menosHora+1;
+									//console.log('Menos de una hora');
+								}
+								else if(totalSegundos>=3600 && totalSegundos<=28800){
+									//console.log('Una a Ocho horas');
+									objetoTiempos.unaOcho=objetoTiempos.unaOcho+1;
+								}
+								else if(totalSegundos>=28800 && totalSegundos<=86400){
+									objetoTiempos.ochoVeinticuatro=objetoTiempos.ochoVeinticuatro+1;
+									//console.log('De ocho a Veinticuatro horas');
+								}
+								else if(totalSegundos>86400){
+									objetoTiempos.masVeinticuatro=objetoTiempos.masVeinticuatro+1;
+									//console.log('Mas de Veinticuatro');
+								}
+							}
+						}
+						console.log('Finalizo chartNivelServicio');
+						res.jsonp(objetoTiempos);
+					});
+				}else{
+					res.jsonp('No hubo resultados');
+				}
+			}
+		});
+	});
+};
+
+/*
+                 _        _                _   _   _ _           _  _____                 _      _       
+                | |      | |              | | | \ | (_)         | |/ ____|               (_)    (_)      
+   ___ _ __   __| |   ___| |__   __ _ _ __| |_|  \| |___   _____| | (___   ___ _ ____   ___  ___ _  ___  
+  / _ \ '_ \ / _` |  / __| '_ \ / _` | '__| __| . ` | \ \ / / _ \ |\___ \ / _ \ '__\ \ / / |/ __| |/ _ \ 
+ |  __/ | | | (_| | | (__| | | | (_| | |  | |_| |\  | |\ V /  __/ |____) |  __/ |   \ V /| | (__| | (_) |
+  \___|_| |_|\__,_|  \___|_| |_|\__,_|_|   \__|_| \_|_| \_/ \___|_|_____/ \___|_|    \_/ |_|\___|_|\___/ 
+                                                                                                         
+*/
+
+
+exports.chartDatosCuenta = function(req,res){
+	var nombreSistema='arabela';
+/*var T  = new Twit({
+	        'consumer_key'        : account.datosTwitter.twitter_consumer_key,
+	        'consumer_secret'     : account.datosTwitter.twitter_consumer_secret,
+	        'access_token'        : account.datosTwitter.twitter_access_token,
+	        'access_token_secret' : account.datosTwitter.twitter_access_token_secret
+	    });
+	
+	T.post('statuses/update', {'status': req.body.resp, 'in_reply_to_status_id':req.body.id, 'wrap_links':'true' }, function(err, reply) {
+            if(err) return (res.jsonp(err.allErrors[0].code));
+            //guardamos la respuesta en mongo	
+	    db.open(function(err, db) {
+		var id = req.body.id;
+		var subtema_nuevo = req.body.subtema.toString();
+		var col = db.collection(coleccion);
+		if(err === null){
+		    col.update({id_str:id},{$set:{clasificacion:{tema:req.body.tema,subtema:req.body.subtema}}},function(err,updated){
+		 	col.update({id_str:id},{$addToSet:{respuestas:{usuario:req.body.user,texto:req.body.resp,timestamp:req.body.tiempo,id_str:reply.id_str}}},function(err,updated){
+		 	    console.log(updated+' : Agregado  '+err);
+		 	});
+		    });
+		}else{
+		    res.jsonp('Error en la conexión: '+err);
+		}
+	    });
+            return true;
+	});*/
+	function obtieneDatosCuenta(callback){
+	    var critere = {'respuestas':{$exists:true}};
+	    var elsort = {};
+	    
+	    classdb.buscarToArray('accounts', critere, elsort, 'charts/chartDatosCuenta/obtieneDatosCuenta', function(respuestas){
+		return callback(respuestas);
+	    });
+	}
+
+	//var nombreSistema=req.body.nombreSistema;
+	function obtieneRespuestas(nombreSistema,callback){
+	    var critere = {'respuestas':{$exists:true}};
+	    var elsort = {};
+
+	    classdb.buscarToArray(nombreSistema+'_consolidada', critere, elsort, 'charts/chartDatosCuenta/obtieneRespuestas', function(respuestas){
+		return callback(respuestas);
+	    });
+	}	
+	res.jsonp('chartDatosCuenta');
+};
+
+/**
+ * Chart authorization middleware
+ */
+exports.hasAuthorization = function(req, res, next) {
+	if (req.chart.user.id !== req.user.id) {
+		return res.status(403).send('User is not authorized');
+	}
+	next();
+};
+
+exports.chartTwit = function(req, res){
+	var criterio = {_id: new ObjectID(req.body.id_cuenta)};
+	classdb.buscarToStream('accounts', criterio, {},{}, function(cuenta){
+		if (cuenta === 'error') {res.jsonp('error');}
+		else {
+			if(!cuenta[0].datosTwitter){
+				console.log('No tiene datosTwitter');
+				res.jsonp({error:true});
+			}else{
+				console.log('Tiene datosTwitter');
+				var screen_name = cuenta[0].datosTwitter.twitter_screenname_principal;
+				var conexion_propia = false;
+				var T ={};
+				if(compruebaAccesosTwitter(cuenta[0].datosTwitter)){
+					conexion_propia = true;
+					T  = new Twit({
+						'consumer_key'        : cuenta[0].datosTwitter.twitter_consumer_key,
+						'consumer_secret'     : cuenta[0].datosTwitter.twitter_consumer_secret,
+						'access_token'        : cuenta[0].datosTwitter.twitter_access_token,
+						'access_token_secret' : cuenta[0].datosTwitter.twitter_access_token_secret
+					});
+				}else{
+					T  = new Twit({
+						'consumer_key'        : 'lutOodQP4NsPbVSPCn6udwXZi',
+				        'consumer_secret'     : 'dtMAXgMFUJZLdyg4UHxDOIe7uE3DAFrxnKHh2YtU24MHfDCwol',
+				        'access_token'        : '231684217-C2Au3LKtQSIEdxnQQhGtCEwHTVg1xGFLHOJlPIzD',
+				        'access_token_secret' : 'xKSN3zJK0nkDBedifna0cTu0yqYwDAE5srcpKPhKe6Wua'
+					});
+				}
+				console.log('Realizando post');
+				T.get('statuses/user_timeline', {'screen_name': screen_name, 'count':50}, function(error_twit, reply) {
+					if(error_twit){
+						if(conexion_propia){
+							var T  = new Twit({
+								'consumer_key'        : 'lutOodQP4NsPbVSPCn6udwXZi',
+						        'consumer_secret'     : 'dtMAXgMFUJZLdyg4UHxDOIe7uE3DAFrxnKHh2YtU24MHfDCwol',
+						        'access_token'        : '231684217-C2Au3LKtQSIEdxnQQhGtCEwHTVg1xGFLHOJlPIzD',
+						        'access_token_secret' : 'xKSN3zJK0nkDBedifna0cTu0yqYwDAE5srcpKPhKe6Wua'
+							});
+							T.get('statuses/user_timeline', {'screen_name': screen_name, 'count':50}, function(error2_twit, reply2) {
+								if(error2_twit){
+									console.log('Error en el segundo intento');
+									res.jsonp(error2_twit);
+								}else{
+									console.log('Hubo respuesta en el segundo intento de twitter');
+									res.jsonp(reply2);
+								}
+							});
+						}else{
+							console.log('Error de twitter');
+							res.jsonp(error_twit);
+						}
+					}else{
+						console.log('Respuesta de Twitter');
+						res.jsonp(reply);	
+					}
+				});
+			}
+		}
+    });
+    function compruebaAccesosTwitter(datos){
+    	if(datos.twitter_access_token){
+    		if(datos.twitter_access_token_secret){
+    			if(datos.twitter_consumer_key){
+    				if(datos.twitter_consumer_secret){
+    					return true;
+    				}else{
+    					return false;
+    				}
+    			}else{
+    				return false;
+    			}
+    		}else{
+    			return false;
+    		}
+    	}else{
+    		return false;
+    	}
+    }
+};
+exports.getStringTagCloudEspecialTwitter = function(req,res){
+    var coleccion = req.query.cuenta;
+    var fecha1 = new Date(req.query.fecha);
+    var fecha2 = new Date(req.query.fecha2);
+    var palabras = [];
+    var palabrasTemp = [];	
+    var abjeto = {};
+	
+    /*consulta*/
+
+    function encadenafrases(contenidos, callback) {
+	var palabras = [];
+	var cuantos = contenidos.length-1;
+	// var palabrasTemp = [];
+	for (var pal in contenidos) {
+	    var frase = '';
+	    if (typeof contenidos[pal].message !== 'undefined' && contenidos[pal].message !== '') {
+		frase = contenidos[pal].message;
+	    }
+	    else {
+		if (typeof contenidos[pal].text !== 'undefined' && contenidos[pal].message !== '') {
+		    frase = contenidos[pal].text;
+		}
+	    }
+	    
+	    if(frase !== ''){
+		//palabrasTemp = frase.split(' ');
+		palabras = palabras.concat(frase.split(' '));
+	    }
+	    if (Number(pal) === cuantos) {
+		return callback(palabras);
+	    }
+	}	
+	
+    }
+
+    function clasificapalabras(palabras, callback) {
+	var cuantas = palabras.length;
+	var numeroCaracteresMinimos = 10;
+	var palabrasExcluidas = ['a','que','de','y','te','la','los','el','hola','en','por','nos','mi','sin','Hola','las','con','un','son','si','se','tu','su',
+				 'lo','res','?','??','me','...','y','Y','ya','mas','más','sí','es','Si','Te','ok','para','pero','Por','No','1','2','3','4','5',
+				 '6','7','8','9','0','o','mar','tus','Son','son','tal','1era','mi','estas?','Buenos','una','Les','les','De','de','como','.|.',
+				 ':D',':)','','\n','mucho','script','undefined'];
+	var objetoPalabrasTerminos = [];
+	var objetoPalabrasHashtag = [];
+	var objetoPalabrasMencion = [];
+	var objetoPalabras = [];
+	var palabraActual = null;
+	var contadorPalabras = 0;
+	for (var i = 0; i < palabras.length; i++) {
+
+            if (palabras[i] !== palabraActual) {
+
+		if (contadorPalabras > 0) {
+
+                    if((palabrasExcluidas.indexOf(palabraActual) < 0) && (palabraActual.length > numeroCaracteresMinimos)) {
+
+			var palabraProcesada = palabraActual;
+			palabraProcesada = palabraProcesada.replace('\n','');
+			palabraProcesada = palabraProcesada.replace(':','');
+			palabraProcesada = palabraProcesada.replace(',','');
+			palabraProcesada = palabraProcesada.replace('!','');
+			palabraProcesada= palabraProcesada.replace('-','');
+			palabraProcesada = palabraProcesada.replace('<script>','');
+			palabraProcesada = palabraProcesada.replace('</script>','');
+			if(palabraActual.search('@') === 0){
+			    objetoPalabrasMencion.push({'text':palabraProcesada,'weight':contadorPalabras});	
+			}else if(palabraActual.search('#') === 0){
+			    objetoPalabrasHashtag.push({'text':palabraProcesada,'weight':contadorPalabras});	
+			}else{
+			    objetoPalabrasTerminos.push({'text':palabraProcesada,'weight':contadorPalabras});	
+			}
+	
+                    }
+
+		}
+		palabraActual = palabras[i];
+		contadorPalabras = 1;
+
+            } else {
+		contadorPalabras++;
+            }
+
+	    if (i === cuantas-1) {
+		return callback(objetoPalabrasMencion, objetoPalabrasHashtag, objetoPalabrasTerminos);
+	    }
+	}	
+    }
+
+    var criterius = { $and : [{created_time : {$gte: new Date('1-05-2015')}}, {obj:'twitter'}]};
+    var elsort = {created_time: -1};
+    var campos = {message : 1, text : 1};
+    classdb.buscarToArrayFieldsLimit(coleccion, criterius, campos, elsort, 2000, 'charts/getStringTagCloud.main', function(items) {
+	if (items === 'error') {
+	    res.jsonp(abjeto);
+	}
+	else {
+	    encadenafrases(items, function(palabras){
+		palabras.sort();
+		clasificapalabras(palabras, function(mentions, hashtags, terms){
+		    var objetoPalabras = [];
+		    terms.sort(function(a, b){
+			return  b.weight - a.weight;
+		    });
+		    hashtags.sort(function(a, b){
+			return  b.weight - a.weight;
+		    });
+		    mentions.sort(function(a, b){
+			return  b.weight - a.weight;
+		    });
+
+ 		    objetoPalabras.push({'terminos':terms});
+ 		    objetoPalabras.push({'hashtags':hashtags});
+ 		    objetoPalabras.push({'menciones':mentions});
+		    res.jsonp(objetoPalabras);	
+		});
+	    });
+	}
+    });
+};
+
+exports.chartSentiment = function(req,res){
+console.log('LA INFO');
+console.log(req.body);
+};

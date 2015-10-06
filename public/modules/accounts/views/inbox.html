@@ -1,0 +1,54 @@
+<!--Header-->
+<div class="pure-u-md-1-1 header">
+    <div class="pure-g border-inf-blanco bg-azul1" style="position:relative;">  
+        <div class="pure-u-md-4-24">
+            <div class="pure-g">
+                <div class="pure-u-1-2 border-interno-der">
+                    <a href="/auth/signout" class="complete activate_modal" name="salir" id="btn-salir"></a>
+                </div>
+                <div class="pure-u-1-2">
+                    <a href="#" class="complete border-interno-der  tooltipstered" id="campana-salir"></a>
+                </div>      
+            </div>
+        </div>  
+        
+        <div class="pure-u-20-24" align="center">
+            <!--<div class="pure-u-md-1-5 izq border-interno-der">
+                <p class="txt-centro negrita txt-blanco may buzon">Buzón</p>
+            </div>
+            <div class="pure-u-md-2-5 izq border-interno-der">
+                <a href="#" class="complete triagle txt-blanco negrita" style="padding:16px 0px;">1 Octubre <span class="ligera">2014</span>&nbsp;&nbsp;▼</a>
+            </div>
+            <div class="pure-u-md-2-5 izq">
+                <a href="#" class="complete triagle txt-blanco negrita" style="padding:16px 0px;">30 Diciembre <span class="ligera">2014</span>&nbsp;&nbsp;▼</a>
+            </div>-->
+             <p class="txt-blanco negrita" style="opacity: .5;" translate>MAILBOX</p>
+        </div> 
+        
+             
+    </div>      
+</div>
+<!--Finaliza header-->
+
+<!--<section data-ng-controller="FeedsController" data-ng-init="getFb()">-->
+<div class="pure-g" id="contenedor-completo">
+
+<style type="text/css">
+    #contenedor-feed{
+        
+    }
+</style>    
+    
+  <!--Llamada del side-->
+  <div class="pure-u-md-4-24 border-interno-der" id="lateral">
+    <div data-ng-include="'/modules/core/views/side.html'"></div>
+  </div>
+
+
+
+  <div class="pure-u-md-20-24" data-ng-controller="AccountsController" ng-init="getInbox()" id="contenedor-feed">
+    
+  	<h1>Posts de Facebook</h1>
+  	{{inbox}}
+</div>
+</div>
