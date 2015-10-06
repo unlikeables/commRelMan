@@ -1,2 +1,2 @@
 # commRelMan
-Community Relationship Managment
+Community Relationship Managment - Based on MEAN.JS
