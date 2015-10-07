@@ -947,12 +947,16 @@ $http.post('/chartPromedioCasos',{nombreSistema:nombreSistema,fecha_inicial:$sco
 					floating: false,
 					verticalAlign: 'bottom',
 					y: -105,
-					fontWeight: 'bold'
+            		style: {
+               			color: '#FF00FF',
+                		fontWeight: 'bold'
+            		}
+					
 				},
 
 				series : [{
 					type : 'pie',
-					name : 'Porcentaje de Casos',
+					name : 'Número de Casos',
 					innerSize : '50%',
 					data : [
 					{
@@ -2261,6 +2265,9 @@ for(var o in obj){
 		/*if(typeof $scope.chartTotalCasos.loading !== 'undefined'){
 			$scope.chartTotalCasos.loading = true;
 		}*/
+		if(typeof $scope.chartDona.loading !== 'undefined'){
+			$scope.chartDona.loading = true;
+		}
 		if(typeof $scope.chartPromedioCasos.loading !== 'undefined'){
 			$scope.chartPromedioCasos.loading = true;
 		}

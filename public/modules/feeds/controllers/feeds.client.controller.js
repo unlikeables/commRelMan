@@ -676,14 +676,10 @@ angular.module('feeds')
 	    
 	    /*+-+-+-+-+-+-++-+-+-+-+-+-+-+-+-+-+-+ SOCEKTS TIEMPO REAL +-+-+-+-+-+-+-+++-+---+-+-+-+-+-+-*/
 	    Socket.on('tiempoRealFront', function(obj_actualizar){
-	    	console.log('Son estos posts !');
-	    	console.log(_.size($scope.posts));
 	    	if(_.size($scope.posts) < 5){
-	    		console.log('Llamando a load more por que se acaban los posts !!');
 	    		$scope.loadMoreUnificado('getMailbox');
 	    	}
 	    	if(obj_actualizar.cuenta === Authentication.user.cuenta.marca){
-
 		    	switch($scope.tipoBuzon){
 		    		case 'nuevos':	
 		    			for(var i in $scope.posts){
@@ -710,8 +706,6 @@ angular.module('feeds')
 				    				existe = true;
 				    				$scope.posts[i].tipoMensaje = 'descartado';
 				    				$scope.posts[i].descartado = obj_actualizar.descartado;
-				    				console.log('Uncheck de '+i);
-				    				console.log(Authentication.user);
 				    				if(Authentication.user.username === obj_actualizar.descartado.usuario){
 				    					$scope.lote = new Array();
 				    					var elem = angular.element(document.getElementById('selector_'+$scope.posts[i]._id));
@@ -742,8 +736,6 @@ angular.module('feeds')
 				    			if($scope.posts[i]._id === obj_actualizar._id){
 				    				$scope.posts[i].tipoMensaje = 'descartado';
 				    				$scope.posts[i].descartado = obj_actualizar.descartado;
-				    				console.log('Uncheck de '+i);
-				    				console.log(Authentication.user);
 				    				if(Authentication.user.username === obj_actualizar.descartado.usuario){
 				    					$scope.lote = new Array();
 				    					var elem = angular.element(document.getElementById('selector_'+$scope.posts[i]._id));
@@ -758,7 +750,17 @@ angular.module('feeds')
 				    				$scope.posts[i].clasificacion = {
 				    					tema: obj_actualizar.tema,
 				    					subtema: obj_actualizar.subtema,
+										user_name: obj_actualizar.username,
+										user_id: obj_actualizar.user,
+										imagen_usuario: obj_actualizar.user_image
 				    				};
+									console.log('ACTUALIZANDO USERNAME!');
+									console.log(obj_actualizar);
+									console.log(obj_actualizar.username);
+									$scope.posts[i].atendido ={
+										"usuario_id": obj_actualizar.user,
+										"user_name": obj_actualizar.username
+									}
 				    				$scope.posts[i].sentiment = obj_actualizar.sentiment;
 				    				$scope.posts[i].tipoMensaje = 'atendido';
 				    				$scope.posts = $scope.posts.filter(function(){return true;});
@@ -866,6 +868,7 @@ angular.module('feeds')
 					for(var i in data.cuenta){
 						console.log(data.cuenta[i]);
 						data.cuenta[i].conv_cuenta = 2;
+						data.cuenta[i].conversacion = new Array('1','2');
 						data.cuenta[i].tipoMensaje = 'nuevo';
 						$scope.posts.unshift(data.cuenta[i]);
 					}
@@ -2453,8 +2456,6 @@ angular.module('feeds')
 		};
 
 		$scope.$on('actualizaPost', function(event, selectedItem){
-			console.log('Actualizando post');
-			console.log(selectedItem);
 			$scope.act(selectedItem);
 		});	
 		$scope.act_nuevobuzon = function(twit){
@@ -2696,8 +2697,6 @@ $scope.constant = CONSTANT;
       }
     });
     modalInstance.result.then(function (selectedItem) {
-    	console.log('Resolviendo !!!!');
-    	console.log(selectedItem);
     	delete selectedItem.conversacion;
     	selectedItem.conversacion = new Array();
     	$scope.$emit('actualizaPost', selectedItem);
@@ -4968,6 +4967,8 @@ FUNCIONES DE LA LIBRERÍA DE TWITTER
 					'user_id' : Authentication.user._id,
 					'timestamp' : new Date()
 				};
+				console.log('AUTHENTICACION !!!!');
+				console.log(Authentication.user);
 				var obj_actualizar = {
 					'_id' : $scope.items[0]._id,
 					'mensajeBuzon': $scope.items[0].tipoMensaje,
@@ -4976,6 +4977,8 @@ FUNCIONES DE LA LIBRERÍA DE TWITTER
 					'sentiment' : items[0].sentiment, 
 					'answer' : answer,
 					'user' : $scope.authentication.user._id,
+					'username': Authentication.user.username,
+					'user_image': Authentication.user.imagen_src,
 					'cuenta' : $scope.authentication.user.cuenta.marca,
 					'tipoBuzon': $scope.tipoBuzon
 				};
@@ -5688,7 +5691,8 @@ $scope.respondePostFb = function(param){
 		  						descartado: {
 			  						idUsuario: idUsuario,
 			  						motivo: descartado,
-			  						usuario:username
+			  						usuario:username,
+									usuario_foto: Authentication.user.imagen_src
 			  					}
 		  					};
 		  					Socket.emit('tiempoRealServer', obj_actualizar_descartado);
@@ -5741,6 +5745,7 @@ $scope.respondePostFb = function(param){
 	  						idUsuario: idUsuario,
 	  						motivo: descartado,
 	  						usuario:username,
+							usuario_foto: Authentication.user.imagen_src
 	  					};
 	  					Socket.emit('liberaOcupado',{cuenta:$scope.authentication.user.cuenta.marca,_id:idPost});
 	  					$scope.$emit('actualizaPost',$scope.items[0]);

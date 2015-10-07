@@ -2718,13 +2718,17 @@ exports.obtieneBuzon = function(req, res) {
 							lositems[i].urlEnlace = 'https://www.facebook.com/'+page_id+'/posts/' + post[0] + '?comment_id=' + post[1] + '&reply_comment_id=' + id[1] + '';
 						} else {
 							if(typeof lositems[i].parent_post !== 'undefined'){
-								var post = lositems[i].parent_post.split('_');
+							    var post = lositems[i].parent_post.split('_');
+							    if (lositems[i].parent_comment) {
 								var comentario = lositems[i].parent_comment.split('_');
 								lositems[i].urlEnlace = 'https://www.facebook.com/'+page_id+'/posts/'+ post[1]+'?comment_id='+comentario[1];
+							    }
 							}else{                                                  
-								var post = lositems[i].parent_post.split('_');
+							    var post = lositems[i].parent_post.split('_');
+							    if (lositems[i].parent_comment) {
 								var comentario = lositems[i].parent_comment.split('_');
 								lositems[i].urlEnlace = 'https://www.facebook.com/' + post[0] + '/posts/' + post[1] + '?comment_id=' + comentario[1];
+							    }
 							}
 						}
     				} else if (lositems[i].tipo == 'facebook_inbox') {
