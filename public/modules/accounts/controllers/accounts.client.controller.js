@@ -956,27 +956,24 @@ $http.post('/chartPromedioCasos',{nombreSistema:nombreSistema,fecha_inicial:$sco
 					innerSize : '50%',
 					data : [
 					{
+						index:0,
 						name: 'Atendidos en CRM',
 						color: '#0DBEC8',
 						y: casos.crm					
 					},
-					{
+					{	
+						index:1,
 						name: 'Atendidos en Facebook',
 						color: '#4A669F',
 						y: casos.facebook
 					},
 					{
+						index:2,
 						name: 'No Atendidos',
 						color: '#EBEEF3',
 						y: casos.resto
 					}
-					,{
-						name : 'Proprietary or Undetectable',
-						y : 0.2,
-						dataLabels : {
-							enabled : false
-						}
-					}],
+					],
 				dataLabels: {
 					enabled:false
 				}					

@@ -2698,9 +2698,14 @@ exports.obtieneBuzon = function(req, res) {
 						lositems[i].urlUsuario = 'https://twitter.com/'+lositems[i].user.screen_name;
 					} 	           
 				}else if(lositems[i].obj==='facebook'){
+				    if (lositems[i].foto) {
 					var img = lositems[i].foto.replace('https', 'http');
-					lositems[i].nombre = lositems[i].from.name;
 					lositems[i].imagen = img;
+				    }
+				    else {
+					lositems[i].imagen = '';
+				    }
+					lositems[i].nombre = lositems[i].from.name;
 					lositems[i].imagen_https = lositems[i].foto;
 					lositems[i].texto = lositems[i].message;
 					lositems[i].urlUsuario = 'http://facebook.com/'+lositems[i].from.id;
