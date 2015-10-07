@@ -677,9 +677,15 @@ angular.module('feeds')
 	    /*+-+-+-+-+-+-++-+-+-+-+-+-+-+-+-+-+-+ SOCEKTS TIEMPO REAL +-+-+-+-+-+-+-+++-+---+-+-+-+-+-+-*/
 	    Socket.on('tiempoRealFront', function(obj_actualizar){
 	    	if(_.size($scope.posts) < 5){
-	    		$scope.loadMoreUnificado('getMailbox');
+				console.log('Pediremos mas de este buzon !!!');
+				console.log($scope.tipoBuzon);
+	    		$scope.loadMoreUnificado();
 	    	}
 	    	if(obj_actualizar.cuenta === Authentication.user.cuenta.marca){
+				$http.post('/totalPendientes',{coleccion: Authentication.user.cuenta.marca+'_consolidada',id_cuenta: Authentication.user.cuenta._id}).success(function(data){
+					$scope.pendientes = parseInt(data);
+					$scope.textoSelectorBandeja = "Nuevos ("+$scope.pendientes+")"
+				});
 		    	switch($scope.tipoBuzon){
 		    		case 'nuevos':	
 		    			for(var i in $scope.posts){
@@ -1116,6 +1122,8 @@ angular.module('feeds')
 				delete $scope.fechas;
 				$scope.muestraLoading=true;
 				var idUsuario = $scope.authentication.user._id;
+				console.log('URL !!!');
+				console.log('/mailbox/?id='+$scope.authentication.user.cuenta._id+'&firstdate='+parametros+'&eltipo='+tipoFiltro+'&organizacion='+tipoOrganizacion+'&idUsuario='+idUsuario+'&tipoBuzon='+tipoBuzon+'&palabra='+palabra);
 				$http.get('/mailbox/?id='+$scope.authentication.user.cuenta._id+'&firstdate='+parametros+'&eltipo='+tipoFiltro+'&organizacion='+tipoOrganizacion+'&idUsuario='+idUsuario+'&tipoBuzon='+tipoBuzon+'&palabra='+palabra).success(function(data){
 		    		if(data){
 		    			var cuentaData = 0;
@@ -1978,6 +1986,7 @@ angular.module('feeds')
                 if(typeof data.length !== 'undefined'){
                     $scope.hayPost = true;      
                 }else{
+					$scope.muestraLoadingPrimario=false;
                     $scope.hayPost = false;
                 }
 

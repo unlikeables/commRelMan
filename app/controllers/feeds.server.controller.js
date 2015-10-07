@@ -4222,8 +4222,9 @@ exports.totalPendientes = function(req,res){
 		    $and : [
 			{'descartado':{$exists: false}}, 
 			{'atendido':{$exists: false}}, 
+			{'clasificacion':{$exists: false}},
 			{'eliminado':{$exists: false}},
-			{'clasificacion.tema':{$ne:'Tema'}},
+			{'retweeted_status':{$exists:false}},
 			{sentiment:{$exists:false}},
 			criteriopage, 
 			criterioobj, 
