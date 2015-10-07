@@ -567,11 +567,9 @@
 
 				<div class="pure-u-md-1-1" align="center" data-ng-show="mostrarMetrics" style="vertical-align: middle;" id="metricas">
 					
-					<div>
-						<div id="stock"></div>
-					</div>					
+			
 					
-					<div class="pure-u-md-1-1 contenedor-grafica"  style="width: 96%;">
+					<div class="pure-u-md-1-1 contenedor-grafica"  style="width: 96%; display:none;">
 							<div class="titulo">
 								<h1>Crecimiento</h1>
 							</div>				
@@ -602,7 +600,8 @@
 							</div>
 							
 							<div class="grafica" data-ng-if="porcentajeTotalCasos > 0">
-								<highchart config='chartTotalCasos'></highchart>
+								<highchart config='chartDona'></highchart>
+								<!--<highchart config='chartTotalCasos'></highchart>-->
 							</div>
 							<div class="pure-u-md-1-1 pure-u-sm-1-1"  data-ng-if="porcentajeTotalCasos <= 0">
 							<img src="/modules/core/img/no-data-no-text.png" style="max-width: 100%; height: auto;"/>

@@ -849,10 +849,144 @@ $http.post('/chartPromedioCasos',{nombreSistema:nombreSistema,fecha_inicial:$sco
 		$scope.loadingTotalCasos = false;	
 		}
 		
+
 		
-	$scope.loadingTotalCasos = true;
 		
-		$scope.chartTotalCasos = {
+/*dona*/		
+		var casos = {};
+		casos.crm = data.Completos + data.Descartados + data.Proceso;
+		casos.facebook = data.facebook;
+		casos.total = data.Completos + data.Descartados + data.Entrada + data.Proceso + data.facebook;
+		casos.resto = casos.total - (casos.crm+casos.facebook);
+		console.log(casos);
+		
+			$scope.chartDona = {
+				loading : true,
+				options : {
+
+					chart : {
+					events:{
+						redraw:function(){
+							$scope.chartDona.loading = false;
+						}
+					},						
+					},
+					title : {
+						text : ' ',
+						align : 'center',
+						verticalAlign : 'middle',
+						y : 40
+					},
+					tooltip : {
+						enabled:true,
+						//pointFormat : '{series.name}: {series.y} <b>({point.percentage:.1f}%)</b>'
+					},
+					plotOptions : {
+						pie : {
+							borderWidth: 1,
+							 borderColor: 'silver',
+							dataLabels : {
+								enabled : true,
+								distance : -50,
+								style : {
+									fontWeight : 'bold',
+									color : 'white',
+									textShadow : '0px 1px 2px black'
+								}
+							},
+							startAngle : -90,
+							endAngle : 90,
+							//center : ['50%', '25%']
+						}
+					},
+					exporting : {
+						//width: 1000,
+						chartOptions : {
+							width : 2000,
+							margin : [100, 100, 100, 100]
+						},
+						buttons : {
+							contextButton : {
+								//text: 'Exportar',
+								menuItems : [{
+									textKey : 'downloadPNG',
+									text : 'Exportar a PNG',
+									onclick : function() {
+										var nombreCorto = 'total_de_casos';
+										var nombreCompleto = 'Total de Casos';
+										var nombreMeses = ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"];
+										var fecha1 = new Date($scope.dt);
+										var fecha2 = new Date($scope.dt2);
+										var fechaFinal = fecha1.getDate() + "_" + (nombreMeses[fecha1.getMonth() + 1]) + "_" + fecha1.getFullYear() + '__' + fecha2.getDate() + "_" + (nombreMeses[fecha2.getMonth() + 1]) + "_" + fecha2.getFullYear();
+										this.exportChart({
+											filename : $scope.account + '_' + nombreCorto + '_' + fechaFinal
+										}, {
+											title : {
+												//text:nombreCompleto
+											}
+										});
+									}
+								}]
+							}
+						}
+					}
+				},
+
+				title : {
+					text : $scope.porcentajeTotalCasos + '%',
+					//text:' ',
+					//y: 0,
+					style : {
+						fontWeight : 'bold',
+						fontSize : '30px'
+					}
+				},
+				
+				subtitle:{
+					text:'<div style="text-align:center; border:0px !important;"><span style="font-size:14px;color:black;">'+(casos.total - casos.resto)+' de '+casos.total+' Casos</span><br/>',
+					floating: false,
+					verticalAlign: 'bottom',
+					y: -105,
+					fontWeight: 'bold'
+				},
+
+				series : [{
+					type : 'pie',
+					name : 'Porcentaje de Casos',
+					innerSize : '50%',
+					data : [
+					{
+						name: 'Atendidos en CRM',
+						color: '#0DBEC8',
+						y: casos.crm					
+					},
+					{
+						name: 'Atendidos en Facebook',
+						color: '#4A669F',
+						y: casos.facebook
+					},
+					{
+						name: 'No Atendidos',
+						color: '#EBEEF3',
+						y: casos.resto
+					}
+					,{
+						name : 'Proprietary or Undetectable',
+						y : 0.2,
+						dataLabels : {
+							enabled : false
+						}
+					}],
+				dataLabels: {
+					enabled:false
+				}					
+				}],
+
+			}
+/*dona*/
+		
+		
+		/*$scope.chartTotalCasos = {
 			loading : true,
 			options: {
 				tooltip:{
@@ -886,7 +1020,7 @@ $http.post('/chartPromedioCasos',{nombreSistema:nombreSistema,fecha_inicial:$sco
 					}
 				},
 
-				/*esto es la configuracion de exportado para las graficas*/
+				
 				exporting: { 
 					//width: 1000,
 					chartOptions:{
@@ -971,12 +1105,15 @@ $http.post('/chartPromedioCasos',{nombreSistema:nombreSistema,fecha_inicial:$sco
 						borderWidth: 0,
 						useHTML: true
 					}
-            	}
+            }            
         	},	
-			loading: false
+		
 
 
-		};
+		}*/
+		
+		
+		
 		//$scope.loadingTotalCasos = false;
 		$scope.loadingPromedioCasos = true;
 		$scope.tipoPromedioCasos = 'pie';
@@ -1743,7 +1880,7 @@ for(var o in obj){
 				enabled : true
 			},
 			navigator : {
-				enabled : true
+				enabled : false
 			},
 			exporting : {
 				width : 1000,
@@ -1792,7 +1929,7 @@ for(var o in obj){
 
 
     
-    
+    /*estas series son para alimentar la gráfica de crecimiento*/
     $scope.graficaCrecimiento.series.push({
         id: 1,
         name:'Facebook',
@@ -1832,7 +1969,9 @@ for(var o in obj){
 
     }
 
-    );  
+    );
+    
+/*estas series son para alimentar la gráfica de crecimiento*/
     
 /*grafica crecimiento*/      
 
@@ -2122,9 +2261,9 @@ for(var o in obj){
 		if(typeof $scope.chartDesempenio.loading !== 'undefined'){
 		$scope.chartDesempenio.loading = true;
 		}
-		if(typeof $scope.chartTotalCasos.loading !== 'undefined'){
+		/*if(typeof $scope.chartTotalCasos.loading !== 'undefined'){
 			$scope.chartTotalCasos.loading = true;
-		}
+		}*/
 		if(typeof $scope.chartPromedioCasos.loading !== 'undefined'){
 			$scope.chartPromedioCasos.loading = true;
 		}
