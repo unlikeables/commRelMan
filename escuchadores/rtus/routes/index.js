@@ -821,6 +821,7 @@ router.post('/', function(req, res){
 		requestGraph('not', fotopath, function(error_foto, response_foto){
 		    if (error_foto) {
 			// no tenemos foto, mandamos así
+			objeto.comment.foto = '';
 			console.log('rtus/index/obtenerComment - error en  foto '+error_foto);
 			objeto.comment.photo_error = error_foto;
 			return callback(objeto);
@@ -1143,7 +1144,9 @@ router.post('/', function(req, res){
 				    comentario.comment.from_user_id = 'not_available';
 				}
 				insertaBase(coleccion_comment, comentario.comment, tipo, coleccion_mongoerror, function(respcom){
-				    nueMens(created_time, 'comment', ctnm);
+				    if (comentario.comment.from && pageId !== comentario.comment.from.id) {
+					nueMens(created_time, 'comment', ctnm);
+				    }
 				    return callback('rtus/index/procesaComment.add/obtenerComment.ok - cta: '+ctnm+' - comment: '+comment_id+' - insert: '+respcom);
 				});
 			    }
@@ -1321,6 +1324,7 @@ router.post('/', function(req, res){
 			    }
 			    requestGraph('not', fotopath, function(error_foto, response_foto){
 				if (error_foto) {
+				    objeto.post.foto = '';
 				    objeto.post.photo_error = error_foto;
 				    insertaBase(coleccion_post, objeto.post, tipo, coleccion_post_mongoerror, function(respo){
 					return callback('rtus/index/procesaPost.add/requestGraph.fotopath' + objeto.post.id+ ' ' +respo);
@@ -1329,7 +1333,9 @@ router.post('/', function(req, res){
 				else {
 				    objeto.post.foto = response_foto.data.url;
 				    insertaBase(coleccion_post, objeto.post, tipo, coleccion_post_mongoerror, function(respo){
-					nueMens(created_time, 'post', post_raw.cuenta);
+					if (objeto.post.from && pageId !== objeto.post.from.id) {
+					    nueMens(created_time, 'post', post_raw.cuenta);
+					}
 					return callback('rtus/index/procesaPost.add/requestGraph.fotopath' + objeto.post.id+ ' ' +respo);
 				    });
 				}
@@ -1590,13 +1596,16 @@ router.post('/', function(req, res){
 	    	    var fotopath = globales.fbapiversion+mensaje.from.id+'/picture?redirect=false';
 		    requestGraph2(fotopath, function(foto){
 			if (foto === 'error' || foto === 'invalid') {
+			    mensaje.foto = '';
 			    classdb.inserta(nombreSistema+'_consolidada', mensaje, 'rtus/index/guardaBaseMensaje', function(inserta) {
 				if (mensaje.from.id === page_id) {
 				    verificaRespuestas(nombreSistema, page_id, mensaje, function(risposta){
 					console.log('verificaRespuestas '+risposta);
 				    });
 				}
-				nueMens(mensaje.created_time, 'facebook_inbox', nombreSistema);
+				else {
+				    nueMens(mensaje.created_time, 'facebook_inbox', nombreSistema);
+				}
 				console.log('mensaje '+mensaje.id+' de la conversacion '+mensaje.conversation_id+' insertado correctamente');
 				return cback(inserta);
 			    });			
@@ -1609,10 +1618,12 @@ router.post('/', function(req, res){
 					console.log('verificaRespuestas '+risposta);
 				    });
 				}
-				nueMens(mensaje.created_time, 'facebook_inbox', nombreSistema);
+				else {
+				    nueMens(mensaje.created_time, 'facebook_inbox', nombreSistema);
+				}
 				console.log('mensaje '+mensaje.id+' de la conversacion '+mensaje.conversation_id+' insertado correctamente');
 				return cback(inserta);
-			    });			
+			    });
 			}
 		    });
 	    	} else {

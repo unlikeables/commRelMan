@@ -330,12 +330,14 @@ router.get('/', function(req, res, next) {
     }
 
     // mongod insertamos post
-    function insertaPost(datosPost, nombreSistema, callback){
+    function insertaPost(datosPost, nombreSistema, pa_id, callback){
 	datosPost.post.obj = 'facebook';
 	datosPost.post.coleccion_orig = nombreSistema+'_fb_comment';
 	datosPost.post.coleccion = nombreSistema+'_consolidada';
 	classdb.inserta(nombreSistema+'_consolidada', datosPost.post, 'solicitudes/getautopp/insertaPost', function(inserta){
-          nueMens(datosPost.post.created_time, 'post', nombreSistema);
+	    if (datosPost.post.from && pa_id !== datosPost.post.from.id) {
+		nueMens(datosPost.post.created_time, 'post', nombreSistema);
+	    }
 	    return callback(inserta);
 	});
     }
@@ -397,6 +399,7 @@ router.get('/', function(req, res, next) {
 		}
 		requestGraph(fotopath, function(error_foto, response_foto){
 		    if (error_foto) {
+			objeto.post.foto = '';
 			objeto.post.photo_error = error_foto;
 			return callback(objeto);
 		    }
@@ -451,7 +454,7 @@ router.get('/', function(req, res, next) {
 				    });	    
 				}
 				else {
-				    insertaPost(obtencion, nombreSistema, function(insercion){
+				    insertaPost(obtencion, nombreSistema, page_id, function(insercion){
 					eliminaPost(posts_raw[index].id, nombreSistema, function(eliminacion){
 					    if (insercion === 'error') {
 						console.log('solicitudes/getautopp/desglosaPosts - error al insertar en consolidada - eliminacion de pending: '+eliminacion);

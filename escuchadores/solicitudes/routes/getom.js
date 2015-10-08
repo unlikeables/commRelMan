@@ -296,15 +296,20 @@ router.get('/', function(req, res, next) {
 	var fotopath = globales.fbapiversion+comment.from.id+'/picture?redirect=false';
 	reqGraph('not', fotopath, nombreSistema, function(foto){
 	    if (foto === 'error') {
+		comment.foto = '';
 		classdb.inserta(nombreSistema+'_consolidada', comment, 'solicitudes/getom/insertaCommentMonitoreo', function(insert){
-                  nueMens(comment.created_time, 'comment', nombreSistema);
+		    if (comment.from && page_id !== comment.from.id) {
+			nueMens(comment.created_time, 'comment', nombreSistema);
+		    }
 		    return callback(insert);
 		});			    
 	    }
 	    else {
 		comment.foto = foto.data.url;
 		classdb.inserta(nombreSistema+'_consolidada', comment, 'solicitudes/getom/insertaCommentMonitoreo', function(insert){
-                  nueMens(comment.created_time, 'comment', nombreSistema);
+		    if (comment.from && page_id !== comment.from.id) {
+			nueMens(comment.created_time, 'comment', nombreSistema);
+		    }
 		    return callback(insert);
 		});
 	    }
@@ -351,8 +356,8 @@ router.get('/', function(req, res, next) {
     function insertaPostMonitoreo(token, cuenta, post, callback){
 	var nombreSistema = cuenta.nombreSistema,
 	    post_created_time = post.created_time,
+	    page_id = cuenta.idMonitoreo,
 	    created_time = new Date (post_created_time.replace('+','.'));
-
 	post.created_old = post.created_time;
 	post.created_time = created_time;
 	post.from_user_id = ''+post.from.id;
@@ -381,15 +386,20 @@ router.get('/', function(req, res, next) {
 	var fotopath = globales.fbapiversion+post.from.id+'/picture?redirect=false';
 	reqGraph('not', fotopath, nombreSistema, function(foto){
 	    if (foto === 'error') {
+		post.foto = '';
 		classdb.inserta(nombreSistema+'_consolidada', post, 'solicitudes/getom/insertaPostMonitoreo', function(insert){
-                  nueMens(post.created_time, 'post', nombreSistema);
+		    if (post.from && page_id !== post.from.id) {
+			nueMens(post.created_time, 'post', nombreSistema);
+		    }
 		    return callback(insert);
 		});
 	    }
 	    else {
 		post.foto = foto.data.url;
 		classdb.inserta(nombreSistema+'_consolidada', post, 'solicitudes/getom/insertaPostMonitoreo', function(insert){
-                  nueMens(post.created_time, 'post', nombreSistema);
+		    if (post.from && page_id !== post.from.id) {
+			nueMens(post.created_time, 'post', nombreSistema);
+		    }
 		    return callback(insert);
 		});
 	    }

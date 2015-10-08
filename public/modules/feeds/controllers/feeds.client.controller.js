@@ -171,7 +171,8 @@ angular.module('feeds')
 .filter('facebookMentions',['$filter',
     function($filter) {
 	return function(text) {
-		if(text !== ''){
+		//if(text !== ''){
+		if(text){
  			var replacedText = text;
 			var patronHashtag = /(^|\s)\@(\[)(\w*[0-9]+\w*)(:)(\w*[0-9]+\w)(:)(\w*[\sa-z\SA-Z]+\w)(\])/gim;
             replacedText = replacedText.replace(patronHashtag, '$1<a target="_blank" class="link-twitter link-twitter-hastag" href="https://facebook.com/$3">@$7</a>');
@@ -244,8 +245,6 @@ angular.module('feeds')
 			}
 		},
 		getDesempenio : function(){
-			
-
 			return $http.post('/obtieneDesempenioDiario', {idUsuario:Authentication.user._id,cuenta:Authentication.user.cuenta.marca}).success(function(data){
 				return data;
 			});
@@ -296,7 +295,8 @@ angular.module('feeds')
 		$scope.constant = CONSTANT;
 		//funcion que muestra la notificacion por ensima de los filtros
 		$scope.showNotificacion = function (notificacion) {	
-			if($location.$$path === '/feeds/getMailBox'){
+			//if($location.$$path === '/feeds/getMailBox'){
+			if($location.$$path === '/mailbox'){
 				$scope.abrirNotificaciones();
 		    	$http.get('getOneContent?colec='+notificacion.coleccion+'&mo_id='+notificacion.mongo_id).then(function(data){
 				    var obj = data.data;
@@ -310,7 +310,8 @@ angular.module('feeds')
 				    NotificacionService.add(obj);
 				});
 			}else{
-				var url = $location.path('/feeds/getMailBox').search({colec: notificacion.coleccion,mo_id:notificacion.mongo_id,not_id:notificacion._id});
+				//var url = $location.path('/feeds/getMailBox').search({colec: notificacion.coleccion,mo_id:notificacion.mongo_id,not_id:notificacion._id});
+				var url = $location.path('/mailbox').search({colec: notificacion.coleccion,mo_id:notificacion.mongo_id,not_id:notificacion._id});
 			}				
 		};
 		var backspace = 0;
@@ -873,8 +874,8 @@ angular.module('feeds')
 					console.log(data);
 					for(var i in data.cuenta){
 						console.log(data.cuenta[i]);
-						data.cuenta[i].conv_cuenta = 2;
-						data.cuenta[i].conversacion = new Array('1','2');
+						data.cuenta[i].conv_cuenta = 3;
+						data.cuenta[i].conversacion = new Array();
 						data.cuenta[i].tipoMensaje = 'nuevo';
 						$scope.posts.unshift(data.cuenta[i]);
 					}
@@ -1260,10 +1261,6 @@ angular.module('feeds')
 		Socket.on('mensajeNuevo', function(mensaje){
 
 			if(mensaje.cuenta === Authentication.user.cuenta.marca){
-				console.log('Entro un mensaje nuevo: ');
-				console.log(mensaje);
-				console.log('FECHA !!');
-				console.log(mensaje.created_time);
 
 				switch($scope.tipo){
 				
@@ -1305,8 +1302,6 @@ angular.module('feeds')
 					break;
 					
 					default:
-						console.log('Esta en general ');
-						console.log(mensaje);
 						$scope.setNuevos('todos','todos');																									
 				}
 
@@ -1526,7 +1521,7 @@ angular.module('feeds')
 	    		$http.post('/finalizar',{
 	    			twit: auxiliar_twit,
 	    			user_id:$scope.authentication.user._id,
-	    			user_name:$scope.authentication.user.displayName,
+	    			user_name:$scope.authentication.user.username,
 	    			coleccion:Authentication.user.cuenta.marca+'_consolidada'
 	    		}).success(function(data){
 	    			//Borramos o actualizamos en tiempo real los posts
@@ -5925,7 +5920,7 @@ $scope.respondePostFb = function(param){
 					var obj_atendido = {_id:$scope.mensaje._id, cuenta: Authentication.user.cuenta.marca,asignado:obj.asignado,mensaje:$scope.mensaje};
 					Socket.emit('socketAsignaServer',obj_atendido);
 					console.log($scope.mensaje);
-					if($scope.mensaje.influencers || $scope.mensaje.asignado){
+					if($scope.mensaje.influencers){
 					   	console.log('Eliminando notificacion');
 					   	console.log($scope.mensaje);
 					   	Socket.emit('eliminaNotificacion',$scope.mensaje._id);

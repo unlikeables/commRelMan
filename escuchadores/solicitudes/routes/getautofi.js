@@ -382,13 +382,16 @@ router.get('/', function(req, res, next) {
 	    	    var fotopath = globales.fbapiversion+mensaje.from.id+'/picture?redirect=false';
 		    requestGraph(fotopath, function(foto){
 			if (foto === 'error') {
+			    mensaje.foto = '';
 			    classdb.inserta(nombreSistema+'_consolidada', mensaje, 'solicitudes/getautofi/guardaBaseMensaje', function(inserta) {
 				if (mensaje.from.id === page_id) {
 				    verificaRespuestas(nombreSistema, page_id, mensaje, function(risposta){
 					console.log('verificaRespuestas '+risposta);
 				    });
 				}
-                              nueMens(mensaje.created_time, 'facebook_inbox', nombreSistema);
+				else {
+				    nueMens(mensaje.created_time, 'facebook_inbox', nombreSistema);
+				}
 				return cback(inserta);
 			    });			
 			}
@@ -400,7 +403,9 @@ router.get('/', function(req, res, next) {
 					console.log('verificaRespuestas '+risposta);
 				    });
 				}
-                              nueMens(mensaje.created_time, 'facebook_inbox', nombreSistema);
+				else{
+				    nueMens(mensaje.created_time, 'facebook_inbox', nombreSistema);
+				}
 				return cback(inserta);
 			    });			
 			}

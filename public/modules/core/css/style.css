@@ -3479,6 +3479,8 @@ clear:both;
   /* right: 0%; */
   width: 84%;
   height: calc(100% - 100px);
+  /*height: 100vh;*/
+  /*border:1px solid black;*/
   /* background-color: rgba(0%,0%,0%,0.8); */
   transition: 0.5s ease;
   background-color: #fff;

@@ -487,7 +487,7 @@ router.get('/', function(req, res, next) {
 	});
     }
 
-    function guardaBaseComment(token, nombreSistema, fechacta, comment, cback){
+    function guardaBaseComment(token, nombreSistema, p_id, fechacta, comment, cback){
 	if (!comment.from) {
 	    console.log(comment);
 	}
@@ -506,15 +506,20 @@ router.get('/', function(req, res, next) {
 		    else {
 			requestGraph(fotopath, function(foto){
 			    if (foto === 'error') {
+				comment.foto = '';
 				classdb.inserta(nombreSistema+'_consolidada', comment, 'solicitudes/getautomu/guardaBaseComment', function(inserta) {
-				    nueMens(comment.created_time, 'comment', nombreSistema);
+				    if (comment.from && p_id !== comment.from.id) {
+					nueMens(comment.created_time, 'comment', nombreSistema);
+				    }
 				    return cback(inserta);
 				});			
 			    }
 			    else {
 				comment.foto = foto.data.url;
 				classdb.inserta(nombreSistema+'_consolidada', comment, 'solicitudes/getautomu/guardaBaseComment', function(inserta) {
-				    nueMens(comment.created_time, 'comment', nombreSistema);
+				    if (comment.from && p_id !== comment.from.id) {
+					nueMens(comment.created_time, 'comment', nombreSistema);
+				    }
 				    return cback(inserta);
 				});			
 			    }
@@ -575,7 +580,7 @@ router.get('/', function(req, res, next) {
 		    comentarios[index].coleccion = ns+'_consolidada';
 		    comentarios[index].tipo = 'comment';
 
-		    guardaBaseComment(tk, ns, facta, comentarios[index], function(resp){
+		    guardaBaseComment(tk, ns, pid, facta, comentarios[index], function(resp){
 			if(resp === 'error' || resp === 'existe') {
 			    return procesaCommentsdecom(ns, tk, pid, cm, facta, comentarios, more, callback);
 			}
@@ -650,7 +655,7 @@ router.get('/', function(req, res, next) {
 		    else {
 			cmnts[index].from_user_id = 'not_available';
 		    }
-		    guardaBaseComment(token, nombreSyst, altacuenta, cmnts[index], function(resp){
+		    guardaBaseComment(token, nombreSyst, page_id, altacuenta, cmnts[index], function(resp){
 			if(resp === 'error' || resp === 'existe') {
 			    return insertandoComments(nombreSyst, token, page_id, post_id, altacuenta, cmnts, more, callback);
 			}
@@ -675,7 +680,7 @@ router.get('/', function(req, res, next) {
 	}
     }
 
-    function insertaPost(nombreSistema, post, callback) {
+    function insertaPost(nombreSistema, post, page_id, callback) {
 	var criterio = {'id': post.id};
 	classdb.existefind(nombreSistema+'_consolidada', criterio, 'solicitudes/getautomu/insertaPost', function(existe){
 	    if (existe === 'error' || existe === 'existe') {
@@ -685,15 +690,20 @@ router.get('/', function(req, res, next) {
 		var fotopath = globales.fbapiversion+post.from.id+'/picture?redirect=false';
 		requestGraph(fotopath, function(foto) {
 		    if (foto === 'error') {
+			post.foto = '';
 			classdb.inserta(nombreSistema+'_consolidada', post, 'solicitudes/getautomu/insertaPost', function(inserta) {
-                          nueMens(post.created_time, 'post', nombreSistema);
+			    if (post.from && page_id !== post.from.id) {
+				nueMens(post.created_time, 'post', nombreSistema);
+			    }
 			    return callback(inserta);
 			});			
 		    }
 		    else {
 			post.foto = foto.data.url;
 			classdb.inserta(nombreSistema+'_consolidada', post, 'solicitudes/getautomu/guardaBaseMensaje', function(inserta) {
-                          nueMens(post.created_time, 'post', nombreSistema);
+			    if (post.from && page_id !== post.from.id) {
+				nueMens(post.created_time, 'post', nombreSistema);
+			    }
 			    return callback(inserta);
 			});
 		    }
@@ -702,7 +712,7 @@ router.get('/', function(req, res, next) {
 	});
     }
 
-    function postDeFeed(post, nombreSistema, altacta, callback) {
+    function postDeFeed(post, nombreSistema, pagid, altacta, callback) {
 	var created_time = '';
 	if (typeof post.created_time !== 'undefined') {
 	    created_time = new Date(post.created_time.replace('+','.'));
@@ -746,7 +756,7 @@ router.get('/', function(req, res, next) {
 		console.log(post);
 		return callback('error');
 	    }
-	    insertaPost(nombreSistema, post, function(postInsertado) {
+	    insertaPost(nombreSistema, post, pagid, function(postInsertado) {
 		if (postInsertado === 'error') { return callback('error'); } else { return callback('ok'); }
 	    });
 	}
@@ -765,7 +775,7 @@ router.get('/', function(req, res, next) {
 	else {
 	    setImmediate(function(){
 		if (typeof elfeed[index] !== 'undefined' && typeof elfeed[index].id !== 'undefined') {
-		    postDeFeed(elfeed[index], nameSystem, alta_cta, function(elpost) {
+		    postDeFeed(elfeed[index], nameSystem, pageid, alta_cta, function(elpost) {
 			if (elpost === 'error') {
 			    return procesaFeed(nameSystem, page_token, pageid, alta_cta, elfeed, more, callback);			    
 			}

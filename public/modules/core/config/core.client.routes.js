@@ -15,8 +15,8 @@ angular.module('core').config(['$stateProvider', '$urlRouterProvider',
 		}).
 		state('home', {
 			url: '/home',
-			templateUrl: 'modules/feeds/views/lista.fb.view.html'
-			//templateUrl: 'modules/feeds/views/buzon.view.html'
+			//templateUrl: 'modules/feeds/views/lista.fb.view.html'
+			templateUrl: 'modules/feeds/views/buzon.view.html'
 		}).
 
 		state('politicas', {

@@ -334,13 +334,16 @@ router.get('/', function(req, res, next) {
     }
 
     // mongod insertamos comment
-    function insertaComment(datosComment,nombreSistema,callback){
+    function insertaComment(datosComment,comment_raw, nombreSistema,callback){
+	var page_id = comment_raw.page_id;
 	datosComment.comment.obj = 'facebook';
 	datosComment.comment.coleccion_orig = nombreSistema+'_fb_comment';
 	datosComment.comment.coleccion = nombreSistema+'_consolidada';
 	classdb.inserta(nombreSistema+'_consolidada', datosComment.comment, 'peticiones/getCommentPendientes/insertaComment', function(inserta){
-          var lafecha = datosComment.comment.created_time;
-          nueMens(lafecha, 'comment', nombreSistema);
+	    if (datosComment.comment.from && page_id !== datosComment.comment.from.id) {
+		var lafecha = datosComment.comment.created_time;
+		nueMens(lafecha, 'comment', nombreSistema);
+	    }
 	  return callback(inserta);
 	});
     }
@@ -641,6 +644,7 @@ router.get('/', function(req, res, next) {
 		requestGraph(fotopath, function(error_foto, response_foto){
 		    if (error_foto) {
 			// no tenemos foto, mandamos así
+			objeto.comment.foto = '';
 			console.log('rtus/index/obtenerComment - error en  foto '+error_foto);
 			objeto.comment.photo_error = error_foto;
 			return callback(objeto);
@@ -706,7 +710,7 @@ router.get('/', function(req, res, next) {
 				    else {
 					obtencion.comment.from.id = 'not_available';
 				    }
-				    insertaComment(obtencion, nombreSistema, function(insercion){
+				    insertaComment(obtencion, comments_raw[index], nombreSistema, function(insercion){
 					eliminaComment(comments_raw[index].id,nombreSistema,function(eliminacion){
 					    if (insercion === 'error') {
 						console.log('solicitudes/getautocp/desglosaComments - error al insertar en consolidada - eliminacion de pending: '+eliminacion);

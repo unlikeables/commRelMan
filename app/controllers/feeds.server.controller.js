@@ -74,7 +74,7 @@ exports.respondePostFb = function(req, res){
     else {
  	var criterio = {id:id};
 	var set_clas = {clasificacion:{tema:extra.tema,subtema:extra.subtema,user_name:extra.username,user_id:extra.userid}};
-	var set_resps = {respuestas:{user_name:extra.username,user_id:extra.userid,texto:req.body.resp,timestamp:new Date(),id_str:req.body.id_str}};
+	var set_resps = {respuestas:{user_name:extra.username,user_id:extra.userid,texto:decodeURI(req.body.resp),timestamp:new Date(),id_str:req.body.id_str}};
 	classdb.actualiza(coleccion, criterio, set_clas, 'feed/respondePostFb', function(updated){
 	    if (updated === 'error') {
 		console.log('error en el update de la clasificacion');
@@ -761,7 +761,7 @@ exports.respondeTweet = function(req, res){
 				    res.jsonp(laclasificacion);
 				}
 				else {
-				    var eladdtoset = {respuestas:{user_name:extra.username,user_id: extra.userid,texto:reply.text,timestamp: new Date(),id_respuesta:reply.id_str}};
+				    var eladdtoset = {respuestas:{user_name:extra.username,user_id: extra.userid,texto:decodeURI(reply.text),timestamp: new Date(),id_respuesta:reply.id_str}};
 				    classdb.actualizaAddToSet(coleccion, criteriou, eladdtoset, 'feeds/respondeTweet', function(larespuesta){
 					res.jsonp(larespuesta);
 				    });
@@ -2724,7 +2724,6 @@ exports.obtieneBuzon = function(req, res) {
 								lositems[i].urlEnlace = 'https://www.facebook.com/'+page_id+'/posts/'+ post[1]+'?comment_id='+comentario[1];
 							    }
 							}else{                                                  
-							    var post = lositems[i].parent_post.split('_');
 							    if (lositems[i].parent_comment) {
 								var comentario = lositems[i].parent_comment.split('_');
 								lositems[i].urlEnlace = 'https://www.facebook.com/' + post[0] + '/posts/' + post[1] + '?comment_id=' + comentario[1];
@@ -3960,7 +3959,7 @@ exports.respDM = function(req, res){
 			respuestas:{
 			    user_name:extra.username,
 			    user_id: extra.userid,
-			    texto:reply.text,
+			    texto:decodeURI(reply.text),
 			    timestamp: new Date(),
 			    id_respuesta:reply.id
 			}

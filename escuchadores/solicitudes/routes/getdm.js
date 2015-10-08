@@ -68,18 +68,21 @@ router.get('/', function(req, res, next) {
     }
 
     //Función para guardar los DMs en mongo
-    function guardaDM(nombreSistema, created_time, datos, callback) {
+    function guardaDM(nombreSistema, created_time, cuenta_id, datos, callback) {
 	var collection = nombreSistema+'_consolidada';
 	datos.created_time = new Date(datos.created_at);
 	datos.from_user_id = ''+datos.sender_id;
 	datos.from_user_name = datos.sender_screen_name;
+	datos.foto = datos.sender.profile_image_url;
 	datos.obj = 'twitter';
 	datos.coleccion_orig = nombreSistema+'_DM';
 	datos.coleccion = collection;
-	datos.tipo = 'direct_message';	
+	datos.tipo = 'direct_message';
 	if( Date.parse(datos.created_time) > Date.parse(created_time) ){
 	    classdb.inserta(collection, datos, 'solicitudes/getdm/guardaDM', function(respuesta){
-              nueMens(datos.created_time, 'direct_message', nombreSistema);
+		if (datos.from_user_id !== cuenta_id) {
+		    nueMens(datos.created_time, 'direct_message', nombreSistema);
+		}
 		return callback(respuesta);
 	    });
 	}else{
@@ -98,7 +101,7 @@ router.get('/', function(req, res, next) {
     }
 
     //Función que pasa uno por uno los DMs a revisión y luego los guarda
-    function desglosaDMs(nombreSistema, datos, created_time, index, callback) {
+    function desglosaDMs(nombreSistema, datos, acc_id, created_time, index, callback) {
 	var cuantos = datos.length;
 	var more = index+1;
 	if (more > cuantos) {
@@ -109,16 +112,16 @@ router.get('/', function(req, res, next) {
 		revisaDM(nombreSistema, datos[index], function(answer){
 		    if (answer === 'error' || answer === 'existe' ) {
 			console.log('solicitudes/getdm/desglosaDMs - Hubo un error de conexión o en el count, o dm ya existe');
-			desglosaDMs(nombreSistema, datos,created_time, more, callback);
+			desglosaDMs(nombreSistema, datos, acc_id, created_time, more, callback);
 		    }
 		    else {
-		    	guardaDM(nombreSistema,created_time, datos[index], function(respuesta){
+		    	guardaDM(nombreSistema, created_time, acc_id, datos[index], function(respuesta){
 			    if (respuesta === 'error') {
 				console.log('solicitudes/getdm/desglosaDMs - error al guardar DM');
-				desglosaDMs(nombreSistema, datos, created_time,more, callback);
+				desglosaDMs(nombreSistema, datos, acc_id, created_time,more, callback);
 			    }
 			    else {
-				desglosaDMs(nombreSistema, datos, created_time, more, callback);
+				desglosaDMs(nombreSistema, datos, acc_id, created_time, more, callback);
 			    }
 		    	});
 		    }
@@ -135,13 +138,15 @@ router.get('/', function(req, res, next) {
   	    access_token: datosCuenta.datosTwitter.twitter_access_token,
   	    access_token_secret: datosCuenta.datosTwitter.twitter_access_token_secret
 	});
+	var tokenelements = datosCuenta.datosTwitter.twitter_access_token.split('-');
+	var cta_id = tokenelements[0];
 	T.get('direct_messages', { count: 50, full_text: true }, function(err, data, response) {
 	    if(err){
 		console.log('solicitudes/getdm/obtieneDMs - Error en solicitud a twitter para '+datosCuenta.nombreSistema+': '+err);
 		return callback('error');
 	    }
 	    else{
-		desglosaDMs(datosCuenta.nombreSistema, data, datosCuenta.created_time, 0, function(respuesta){
+		desglosaDMs(datosCuenta.nombreSistema, data, cta_id, datosCuenta.created_time, 0, function(respuesta){
 		    if (respuesta === 'ok') {
 			return callback('ok');
 		    }

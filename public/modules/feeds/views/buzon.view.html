@@ -35,7 +35,7 @@
         <!-- Notificacion -->
         <div>
             <ul class="listado-mensajes" style="padding-top: 15px;" ng-show="notificacion_activa[0]._id">
-                        <li ng-class="{'ocupado': evalua_ocupado(twit._id),'no-leido': !twit.clasificacion }" ng-hide="evalOculto(twit._id)" data-ng-repeat="twit in notificacion_activa" id="li_post_{{twit._id}}" style="position:relative; border:2px solid #0DBEC8">
+                        <li ng-class="{'ocupado': evalua_ocupado(twit._id),'no-leido': !twit.clasificacion }" ng-hide="evalOculto(twit._id)" data-ng-repeat="twit in notificacion_activa" id="li_post_{{twit._id}}" style="position:relative; border:2px solid #0DBEC8; margin-bottom: 0% !important;">
                             <div ng-class="{bloquea: evalua_ocupado(twit._id)}"></div>
                             <div class="mensaje-cont limpiar">
                                 <div class="usuario">
@@ -159,7 +159,7 @@
                                         </ul>
                                     </li>-->
                                     <li class="globo-conversacion" style="color:#fff; font-weight: 400;" data-ng-controller="ModalDemoCtrl" data-ng-click="open(twit)">
-                                        <p style="margin: 0px; margin-top: -2px;font-size: 12px;" class="txt-centro txt-blanco" ></p>
+                                        <p style="margin: 0px;font-size: 21px; line-height:0;" class="txt-centro txt-blanco" >...</p>
                                         <ul class='menu-globo' style="left:-32px;">
                                             <li translate>Answer</li>
                                             <!--<li data-ng-controller="ModalDemoCtrl" data-ng-click="openDescartados({{twit}})">Reject</li>-->
@@ -399,7 +399,7 @@
                                         </ul>
                                     </li>-->
                                     <li class="globo-conversacion" style="color:#fff; font-weight: 400;" data-ng-controller="ModalDemoCtrl" data-ng-click="open(twit)">
-                                        <p style="margin: 0px; margin-top: -2px;font-size: 12px;" class="txt-centro txt-blanco" ></p>
+                                        <p style="margin: 0px;font-size: 21px; line-height:0;" class="txt-centro txt-blanco" >...</p>
                                         <ul class='menu-globo' style="left:-32px;">
                                             <li translate>Answer</li>
                                             <!--<li data-ng-controller="ModalDemoCtrl" data-ng-click="openDescartados({{twit}})">Reject</li>-->

@@ -24,7 +24,7 @@ router.get('/', function(req, res, next) {
 	    respi.on('end', function() {
 		if (access_token.error) {
 		    console.log('solicitudes/getom/requestAT - error en access_token: '+access_token);
-		    return callbback('error');
+		    return callback('error');
 		}
 		else {
 		    return callback(access_token);
