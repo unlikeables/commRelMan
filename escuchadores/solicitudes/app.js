@@ -20,6 +20,7 @@ var getautomu = require('./routes/getautomu');
 var getautofi = require('./routes/getautofi');
 var getautocp = require('./routes/getautocp');
 var getautopp = require('./routes/getautopp');
+var getdesempenio = require('./routes/getdesempenio');
 var app = express();
 
 // view engine setup
@@ -48,6 +49,7 @@ app.use('/getautomu', getautomu);
 app.use('/getautofi', getautofi);
 app.use('/getautocp', getautocp);
 app.use('/getautopp', getautopp);
+app.use('/getdesempenio', getdesempenio);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
