@@ -510,7 +510,7 @@ angular.module('feeds')
 	
 	    };
 
-	    
+	    /*
 	    if (Authentication.user.hasOwnProperty('additionalProvidersData')) {
 		if (Authentication.user.additionalProvidersData.facebook) {
 		    var fbobj = Authentication.user.additionalProvidersData.facebook;
@@ -520,8 +520,8 @@ angular.module('feeds')
 		    var acc_nm = Authentication.user.cuenta.marca;
 		    var us_dn = Authentication.user.displayName;
 		    var us_id = Authentication.user._id;
-		    
-		    setInterval(function() { 
+	     */
+		    /* setInterval(function() {  */
 		    	/*var dest = $(angular.element(document.getElementById('object-0'))).offset().top;
 		    	console.log('offset');
 				console.log(dest);
@@ -532,6 +532,7 @@ angular.module('feeds')
 					console.log(longdiv.scrollTop);
 					$scope.scrollTo(longdiv,dest,3000);
 				}*/
+		    /*
 			$http.post('/procesapendientes/', { 
 			    access_token : at,
 			    fbuid : fuid,
@@ -550,8 +551,12 @@ angular.module('feeds')
 					console.log(datae);
 			    });
 		    }, 30000);
+		     */
+	    /*
 		}
 	    }
+	     */
+
 		$scope.scrollTo = function(element, to, duration) {
 			console.log('Scrollenado !');
 		    if (duration < 0) return;
