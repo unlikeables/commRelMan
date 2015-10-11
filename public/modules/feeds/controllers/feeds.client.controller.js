@@ -510,64 +510,16 @@ angular.module('feeds')
 	
 	    };
 
-	    /*
-	    if (Authentication.user.hasOwnProperty('additionalProvidersData')) {
-		if (Authentication.user.additionalProvidersData.facebook) {
-		    var fbobj = Authentication.user.additionalProvidersData.facebook;
-		    var at = fbobj.accessToken;
-		    var fuid = fbobj.id;
-		    var acc_id = Authentication.user.cuenta._id;
-		    var acc_nm = Authentication.user.cuenta.marca;
-		    var us_dn = Authentication.user.displayName;
-		    var us_id = Authentication.user._id;
-	     */
-		    /* setInterval(function() {  */
-		    	/*var dest = $(angular.element(document.getElementById('object-0'))).offset().top;
-		    	console.log('offset');
-				console.log(dest);
-				if(dest !== 191){
-					console.log('menor');
-					var longdiv = document.querySelector("#listado-mensajes");
-					console.log(longdiv);
-					console.log(longdiv.scrollTop);
-					$scope.scrollTo(longdiv,dest,3000);
-				}*/
-		    /*
-			$http.post('/procesapendientes/', { 
-			    access_token : at,
-			    fbuid : fuid,
-			    account_name : acc_nm,
-			    account_id : acc_id,
-			    screen_name : us_dn,
-			    user_id : us_id })
-			    .success(function(datae) {
-				if(datae===0){
-				    $scope.mensajeActualizacion='Ocurrio un error al procesar el resto de posts';
-				}else if(datae===1){
-				    $scope.mensajeActualizacion='Los posts pendientes fueron procesados';
-				}
-    			    })
-			    .error(function(datae) {
-					console.log(datae);
-			    });
-		    }, 30000);
-		     */
-	    /*
-		}
-	    }
-	     */
-
 		$scope.scrollTo = function(element, to, duration) {
 			console.log('Scrollenado !');
 		    if (duration < 0) return;
 		    var difference = to - element.scrollTop;
 		    console.log('Diferencia');
-		    console.log
 		    var perTick = difference / duration * 10;
 
 		    setTimeout(function () {
 		        element.scrollTop = element.scrollTop + perTick;
-		        console.log('Subiendo')
+		        console.log('Subiendo');
 		        console.log(perTick);
 		        console.log(element.scrollTop);
 		        if (element.scrollTop == to) return;
@@ -614,12 +566,13 @@ angular.module('feeds')
 		   return;
 		 }
 
-		 if (Notification.permission !== "granted")
-		   Notification.requestPermission();
+		 if (Notification.permission !== "granted") 
+		     Notification.requestPermission();
+		 
 		 else {
 		   var notification = new Notification('Likeable crm', {
 		     icon: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACoAAAAqCAYAAADFw8lbAAAAAXNSR0IArs4c6QAABMBJREFUWAnNmV+IFVUcx7/n3Ll796orsmi4ayaCEWYrWAmBvmT10MuKoUG4EPTUQ6b5IBIZYb1sECZB9BDSg/UiCW70FBGhS2QvofgHpWw17+LuslG70r3uzD39fufOnebMzD2zM3fv6sCy5/x+v/P7feb8n98VaOOZfgsDUBiUAo8roF8I9CuFfnZJ5QqVKwKo1BUuQ2Ck9xgu5g1HfrI9DCcUXoPETgGxPktrBXUDdZxRAieyQs8bdHo/HqFeel9IDFF/ySyAcVtVV3WcpB4/0nscN+P6uCQV9NIedK15GEep6QEaz1LcRTsSVaWpc/z2n3h30yncs3mygo7vw6ruIk7TEG+3OWlXR1PiXHUOL/V9gslWvlqC0lBvFgWMEOS6Vo0XUk6wY8rDIE2FC0l+E0E1pMSoEGJZUiOrjKavWLoSanbCapakVErN0tzdlgQbWxQ83Lon80BS9PLQV+h5bxyl599OYrHKuGM4NjNEDQ1QXjj+nMw/3NQlFBDdL36Awtqt0XipdZ5qzMAsYWMDtG8tbT/tLhy3Fvjv2v5GUM5SYAZ/pwmaBaC8T1LlzUCTsyCW9AYtC+ueCcqZCwL7manZLgDlzZw28u6mItd/Wkjh4ZbL9WmayxWzNJgazTWoPhb1iZPTp9+s+OReyOWrAydq7t+gnKfAp6C+T1BjDarP7naPRfJaeuEdg0fNjBv17BUhG2w+KF8wsjsxWxS3vILCqkcNoXf7V6Oeq+KzSb25Z7wFRQOKntXoHvwoKob7248xWVYB7QDrmVHSiA1mbWzY04xfMvQlZM9Dhlh5LtzL3xiyvBVmdOgM3ZjXAd+Oy7s/g7Ph2bgL2viXvv59XB6S8GKr/fAh3Atfh6TxIjM6+mYe16VLnBLKL3+Orqf2JtoKpwuFvicSdWGh8+op3P1iN9yLp8Nio8yMDnXKvDa70o7DQLGM+l9jmDt/AssOnCeQAcNh3kpxYJcVlBkd/sahQupT2nEIorwC7o1RDbpQkBw4bdExY3AypZJ20MC7+XOqd0m9WUm16rBBYc0WawRmlPxJa7XqsJIuy6hPXbdGYUb6JL+/oNVvD8P74ycrKDNKWvpXrFYdVqq7U6kROIHBoGdSLRMMeMgW4lEzd9LdUJZFcsZCZzDSzQ0L/txo9/EmrsH9/azVDbMxY2N7ojSL1boDSlX3MPvx00Btxu7dZ9OgnAsC6HBe1IdGhG4b9odSP5rNv4/q4adckL2Rqa2Nfkqv5pnCedaUew+1744C1X+sLajrTjaTacFE0x93Etda5ZckbcpCOlA0VPWJqzoAH6ly5QZ6XYcGJLq4QnVDp+BN0r5Z/dsKSQ6r1A+PNZNoASi3mj6IYcpzHErxsDhqpYZXHAPdhBqPMUnGb+EIJ6yayvv1nxk4wxeOb/QoK/wM3i+csQgbLlaZIMcos7c1mtmLgTKQ/o7KmyRr440yJck4DmfTaMVt47drI26mphyLYyZl8tiRMUfDnrkBDwHPl7C8E2WOwbFaQXLMlqCs5HlSuYXnaOsZpr//s1+sXJCHU+NqmGNE52TUfeIcjRpxnfdZOt4f3B8botAP/M83UWC/lzdzcoCGZSOdQy1/ECPdFVooI7Y5mOQ/LPsPLhKekoKwE4gAAAAASUVORK5CYII=',
-		     body: "Tienes 1 nuevo mensajes de "+data[0].screen_name,
+		     body: "Tienes 1 nuevo mensajes de "+data[0].screen_name
 		   });
 
 		   notification.onclick = function () {

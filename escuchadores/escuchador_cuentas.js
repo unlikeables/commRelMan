@@ -338,11 +338,21 @@ function procesatweet(tweet, colecciones, index, callback) {
 	    }
 	    else {
 		if (influ.length < 1) {
-		    if (tweet.user.followers_count > 500000000000000000000000000000000000000000) {
-			tweet.influencers = tweet.user.followers_count+' followers';
+		    if (basecol === 'imss'){
+			if (tweet.user.followers_count > 5000) {
+			    tweet.influencers = tweet.user.followers_count+' followers';
+			}
+			else {
+			    delete tweet.influencers;
+			}
 		    }
 		    else {
-			delete tweet.influencers;
+			if (tweet.user.followers_count > 5000000 ) {
+			    tweet.influencers = tweet.user.followers_count+' followers';
+			}
+			else {
+			    delete tweet.influencers;
+			}
 		    }
 		} else {
 		    tweet.influencers = influ[0].categoria;

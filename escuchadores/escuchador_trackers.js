@@ -31,7 +31,12 @@ function getAccountsConTrackers(callback) {
   };
 
   classdb.buscarToArrayFields ('accounts', criterium, accountfields, {}, 'escuchadores/escuchador_trackers/getAccountsConTrackers', function(diecuenten) {
-    return callback(diecuenten);
+      if (diecuenten.length > 0) {
+	  return callback(diecuenten);
+      }
+      else {
+	  return callback('error');
+      }
   });
 };
 
@@ -64,7 +69,7 @@ function getFirstArrays(accounts, index, cuentas, cctid, track, tracklc, datosct
     tracklc.sort(function(a, b){ return b.length - a.length; });
     datosctas.cuentas = cuentas;
     datosctas.cuentascontid = cctid;
-    datosctas.tracklc = _.uniq(tracklc)
+    datosctas.tracklc = _.uniq(tracklc);
     datosctas.track = _.uniq(track);
     return callback(datosctas);	
   }
@@ -78,7 +83,7 @@ function getFirstArrays(accounts, index, cuentas, cctid, track, tracklc, datosct
           var lostrackers = accounts[index].trackers.trackers;
           procesaElementos(lostrackers, 0, [], [], function(tracker, trackerlc){
             track = track.concat(tracker);
-            tracklc = tracklc.concat(trackerlc)
+            tracklc = tracklc.concat(trackerlc);
             return getFirstArrays(accounts, more, cuentas, cctid, track, tracklc, datosctas, callback);
           });
 	}
@@ -352,12 +357,22 @@ function procesatweet(tweet, colecciones, index, callback) {
       }
       else {
 	if (influ.length < 1) {
-	  if (tweet.user.followers_count > 5000000 ) {
-	    tweet.influencers = tweet.user.followers_count+' followers';
-	  }
-	  else {
-	    delete tweet.influencers;
-	  }
+	    if (basecol === 'imss'){
+		if (tweet.user.followers_count > 5000) {
+		    tweet.influencers = tweet.user.followers_count+' followers';
+		}
+		else {
+		    delete tweet.influencers;
+		}
+	    }
+	    else {
+		if (tweet.user.followers_count > 5000000 ) {
+		    tweet.influencers = tweet.user.followers_count+' followers';
+		}
+		else {
+		    delete tweet.influencers;
+		}
+	    }
 	} else {
 	  tweet.influencers = influ[0].categoria;
 	}
@@ -488,6 +503,10 @@ function armacolecciones(arreglo, sufijo, index, nuevoarreglo, callback) {
 };
 
 getAccountsConTrackers(function(ctascontrackers){
+    if (ctascontrackers === 'error') {
+	console.log('no hay trackers, no hacemos nada, IDLE script.......');
+    }
+    else {
   var dataectas = { cuentas : [], cuentascontid: {}, track : [], tracklc: [], tracks_accounts : {} };
 
   getFirstArrays(ctascontrackers, 0, [], {}, [], [], dataectas, function(losdatos) {
@@ -554,4 +573,5 @@ getAccountsConTrackers(function(ctascontrackers){
       });
     });
   });
+    }
 });

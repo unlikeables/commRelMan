@@ -1865,7 +1865,6 @@ for(var o in obj){
 
         
 /*grafica crecimiento*/
-
 	$scope.graficaCrecimiento = {
 		loading : true,
 		options : {
@@ -1878,7 +1877,15 @@ for(var o in obj){
 				}
 			},
 			rangeSelector : {
-				enabled : true
+				enabled : true,
+				selected : 4,
+				inputEnabled : false,
+				buttonTheme : {
+					visibility : 'hidden'
+				},
+				labelStyle : {
+					visibility : 'hidden'
+				}
 			},
 			navigator : {
 				enabled : false
@@ -1909,16 +1916,6 @@ for(var o in obj){
 					}
 				}
 			},
-			rangeSelector : {
-				selected : 4,
-				inputEnabled : false,
-				buttonTheme : {
-					visibility : 'hidden'
-				},
-				labelStyle : {
-					visibility : 'hidden'
-				}
-			}
 		},
 
 		series : [],
