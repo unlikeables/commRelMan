@@ -643,7 +643,9 @@ angular.module('feeds')
 	    	if(obj_actualizar.cuenta === Authentication.user.cuenta.marca){
 				$http.post('/totalPendientes',{coleccion: Authentication.user.cuenta.marca+'_consolidada',id_cuenta: Authentication.user.cuenta._id}).success(function(data){
 					$scope.pendientes = parseInt(data);
-					$scope.textoSelectorBandeja = "Nuevos ("+$scope.pendientes+")"
+					if($scope.tipoBuzon === 'nuevos'){
+						$scope.textoSelectorBandeja = "Nuevos ("+$scope.pendientes+")"
+					}
 				});
 		    	switch($scope.tipoBuzon){
 		    		case 'nuevos':	
@@ -5710,9 +5712,9 @@ $scope.respondePostFb = function(param){
 							usuario_foto: Authentication.user.imagen_src
 	  					};
 	  					Socket.emit('liberaOcupado',{cuenta:$scope.authentication.user.cuenta.marca,_id:idPost});
-	  					$scope.$emit('actualizaPost',$scope.items[0]);
-	  					var obj_actualizar = {descartado:true, _id:$scope.items[0]._id,user: Authentication.user._id,cuenta:Authentication.user.cuenta.marca};
-	  					Socket.emit('actualizaClasificacion',obj_actualizar);
+	  					//$scope.$emit('actualizaPost',$scope.items[0]);
+	  					//var obj_actualizar = {descartado:true, _id:$scope.items[0]._id,user: Authentication.user._id,cuenta:Authentication.user.cuenta.marca};
+	  					//Socket.emit('actualizaClasificacion',obj_actualizar);
 	  					var obj_actualizar_descartado ={
 	  						username: Authentication.user.displayName,
 	  						cuenta: Authentication.user.cuenta.marca,

@@ -2377,8 +2377,8 @@ exports.obtieneBuzon = function(req, res) {
     function querybuzon (cole, fecha, page_id, eltipo, organizacion, tipoBuzon, palabra, callback) {
 		var criteriopage = { id : { $exists : true }};
 		var criteriotipo = { _id : {$exists : true }};
-		var criterioobj = { _id : {$exists : true }};
-		var criterioPalabra = { _id : {$exists : true}};
+		var criterioobj = { obj : {$exists : true }};
+		var criterioPalabra = { created_time : {$exists : true}};
 		var lositems = [];
 		if(palabra !== ''){
 			criterioPalabra = {
@@ -2466,9 +2466,10 @@ exports.obtieneBuzon = function(req, res) {
 					{'atendido':{$exists: true}}, 
 					{'eliminado':{$exists: false}}, 
 					{$or: [
+
 						{'sentiment' : { $exists : true }}, 
 						{'clasificacion' : { $exists : true }},
-						{'respuestas' : { $exists: true }},
+						{'respuestas' : { $exists: true }}
 						
 					]},
 					criteriopage, 
@@ -2484,7 +2485,7 @@ exports.obtieneBuzon = function(req, res) {
 				$and:[
 					{'retweeted_status': {$exists: false}},
 					{'descartado':{$exists: true}}, 
-					{'atendido':{$exists: false}}, 
+					// {'atendido':{$exists: false}}, 
 					criteriopage, 
 					criterioobj, 
 					criteriotipo,
@@ -2664,7 +2665,7 @@ exports.obtieneBuzon = function(req, res) {
 		} 
 		classdb.buscarToStreamLimit(cole, elcriterio, elsort, ellimit, 'feeds/getMailbox/querybuzon', function(lositems){
 			for(var i=0;i<lositems.length;i++){
-				if(lositems[i].descartado && !lositems[i].atendido){    
+				if(lositems[i].descartado){    
 					lositems[i].tipoMensaje = 'descartado';
 					//console.log('DESCARTADO');
 				//}else if(lositems[i].atendido && !lositems[i].descartado && !lositems[i].eliminado){

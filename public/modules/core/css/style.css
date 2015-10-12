@@ -2191,9 +2191,9 @@ input.editar {
   font-size: 12px;
   line-height: normal;
   margin: 0;
-  padding: 4px 0;
+  padding: 4px 6px;
   text-align: center;
-  width: 61px;	
+/*  width: 61px;	 */
 }
 
 
@@ -2205,9 +2205,9 @@ input.editar {
   font-size: 12px;
   line-height: normal;
   margin: 0;
-  padding: 4px 0;
+  padding: 4px 6px;
   text-align: center;
-  width: 61px;	
+/*  width: 61px;	*/
 }
 
 
@@ -2219,9 +2219,9 @@ input.editar {
   font-size: 12px;
   line-height: normal;
   margin: 0;
-  padding: 4px 0;
+  padding: 4px 6px;
   text-align: center;
-  width: 61px;	
+/*  width: 61px;	*/
 }
 
 .etiqueta-spam {
@@ -2232,9 +2232,9 @@ input.editar {
   font-size: 12px;
   line-height: normal;
   margin: 0;
-  padding: 4px 0;
+  padding: 4px 6px;
   text-align: center;
-  width: 61px;
+/*  width: 61px; */
 }
 
 .etiqueta-troll {
@@ -2245,9 +2245,9 @@ input.editar {
   font-size: 12px;
   line-height: normal;
   margin: 0;
-  padding: 4px 0;
+  padding: 4px 6px;
   text-align: center;
-  width: 61px;
+/*  width: 61px; */
 }
 
 .etiqueta-campaign {
@@ -2258,9 +2258,9 @@ input.editar {
   font-size: 12px;
   line-height: normal;
   margin: 0;
-  padding: 4px 0;
+  padding: 4px 6px;
   text-align: center;
-  width: 61px;
+/*  width: 61px; */
 }
 
 .etiqueta-bully {
@@ -2271,9 +2271,9 @@ input.editar {
   font-size: 12px;
   line-height: normal;
   margin: 0;
-  padding: 4px 0;
+  padding: 4px 6px;
   text-align: center;
-  width: 61px;
+/*  width: 61px; */
 }
 
 .etiqueta-bot {
@@ -2284,9 +2284,9 @@ input.editar {
   font-size: 12px;
   line-height: normal;
   margin: 0;
-  padding: 4px 0;
+  padding: 4px 6px;
   text-align: center;
-  width: 61px;
+/*  width: 61px; */
 }
 
 .etiqueta-irrelevante {
@@ -2297,9 +2297,9 @@ input.editar {
   font-size: 12px;
   line-height: normal;
   margin: 0;
-  padding: 4px 0;
+  padding: 4px 6px;
   text-align: center;
-  width: 61px;
+/*  width: 61px; */
 }
 
 .etiqueta-otro {
@@ -2310,11 +2310,11 @@ input.editar {
   font-size: 12px;
   line-height: normal;
   margin: 0;
-  padding: 4px 0;
+  padding: 4px 6px;
   text-align: center;
-  width: 61px;
+/*  width: 61px; */
 }
-
+/*
 .etiqueta-otro {
   background-color: #FCA1BF !important;
   border: 0 none;
@@ -2323,11 +2323,11 @@ input.editar {
   font-size: 12px;
   line-height: normal;
   margin: 0;
-  padding: 4px 0;
+  padding: 4px 6px;
   text-align: center;
   width: 61px;
 }
-
+*/
 .etiqueta-campaign {
   background-color: #E3684D !important;
   border: 0 none;
@@ -2336,9 +2336,9 @@ input.editar {
   font-size: 12px;
   line-height: normal;
   margin: 0;
-  padding: 4px 0;
+  padding: 4px 6px;
   text-align: center;
-  width: 61px;
+/*  width: 61px; */
 }
 
 .etiqueta-other_comments {
@@ -2349,27 +2349,24 @@ input.editar {
   font-size: 12px;
   line-height: normal;
   margin: 0;
-  padding: 4px 4px;
+  padding: 4px 6px;
   text-align: center;
-  /*width: 61px;*/
+  /* width: 61px; */
 }
 
-
-
 .etiqueta-facebook,.etiqueta-facebook:hover,.etiqueta-facebook:visited{
-
-background-color: #375697 !important;
-  border: 0 none;
-  color: #fff;
-  display: block;
-  font-size: 9px;
-  line-height: normal;
-  margin: 0;
-  padding: 4px 0;
-  text-align: center;
-  width: 61px;
-  border-radius:3px;
-  font-weight:300;
+    background-color: #375697 !important;
+    border: 0 none;
+    color: #fff;
+    display: block;
+    font-size: 9px;
+    line-height: normal;
+    margin: 0;
+    padding: 4px 6px;
+    text-align: center;
+    /*  width: 61px; */
+    border-radius:3px;
+    font-weight:300;
 }
 
 
@@ -2383,16 +2380,16 @@ background-color: #1BB2FF !important;
   font-size: 9px;
   line-height: normal;
   margin: 0;
-  padding: 4px 0;
+  padding: 4px 6px;
   text-align: center;
-  width: 61px;
+/*  width: 61px; */
   font-weight:300;
 }
 
 
 
 .etiqueta-gris{
-	border-radius:3px;
+border-radius:3px;
 /*background-color: #EBEEF3 !important;*/
   background-color: #9DACC7 !important;
   border: 0 none;
@@ -2402,7 +2399,7 @@ background-color: #1BB2FF !important;
   font-size: 9px;
   line-height: normal;
   margin: 0;
-  padding: 4px 4px;
+  padding: 4px 6px;
   text-align: center;
   /*width: 61px;*/	
   font-weight:300;
@@ -2411,7 +2408,7 @@ background-color: #1BB2FF !important;
 
 
 .etiqueta-entrada,.etiqueta-nuevo{
-	border-radius:3px;
+    border-radius:3px;
 /*background-color: #EBEEF3 !important;*/
   background-color:#465769 !important;
   border: 0 none;
@@ -2421,7 +2418,7 @@ background-color: #1BB2FF !important;
   font-size: 9px;
   line-height: normal;
   margin: 0;
-  padding: 4px 4px;
+  padding: 4px 6px;
   text-align: center;
   /*width: 61px;*/	
   font-weight:300;
@@ -2440,7 +2437,7 @@ background-color: #1BB2FF !important;
   font-size: 9px;
   line-height: normal;
   margin: 0;
-  padding: 4px 4px;
+  padding: 4px 6px;
   text-align: center;
   /*width: 61px;*/	
   font-weight:300;
@@ -2449,9 +2446,10 @@ background-color: #1BB2FF !important;
 
 
 .etiqueta-descartado{
-	border-radius:3px;
+    border-radius:3px;
 /*background-color: #EBEEF3 !important;*/
-  background-color: #8ED996 !important;
+/*background-color: #8ED996 !important;*/
+    background-color: #F75E32 !important;
   border: 0 none;
   /*color: #465769;*/
  color:#fff;
@@ -2459,7 +2457,7 @@ background-color: #1BB2FF !important;
   font-size: 9px;
   line-height: normal;
   margin: 0;
-  padding: 4px 4px;
+  padding: 4px 6px;
   text-align: center;
   /*width: 61px;*/	
   font-weight:300;
@@ -2478,7 +2476,7 @@ background-color: #1BB2FF !important;
   font-size: 9px;
   line-height: normal;
   margin: 0;
-  padding: 4px 4px;
+  padding: 4px 6px;
   text-align: center;
   /*width: 61px;*/	
   font-weight:300;

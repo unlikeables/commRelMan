@@ -380,7 +380,7 @@
                             <div class="iconos-lateral">
                                 <ul>
                                 	<li class="descartado-usuario" data-ng-show="twit.tipoMensaje === 'descartado'">
-                                		<p><img ng-src="{{twit.descartado.usuario_foto}}" fallback-image="/modules/core/img/usuario-sem-imagem.png" class="circular-ligero" /><a title="{{twit.descartado.usuario}}" style="padding: 4px 5px; color:#0DBEC8; min-width:190px;">Descartado por {{twit.descartado.usuario}}</a></p>
+                                		<p><img ng-src="{{twit.descartado.imagenUsuario}}" fallback-image="/modules/core/img/usuario-sem-imagem.png" class="circular-ligero" /><a title="{{twit.descartado.usuario}}" style="padding: 4px 5px; color:#0DBEC8; min-width:190px;">Descartado por {{twit.descartado.usuario}}</a></p>
                                 	</li>                                  	
                                 	<li class="atendido-usuario" data-ng-show="twit.tipoMensaje === 'completo'">
                                 		<p><img ng-src="{{twit.clasificacion.imagen_usuario}}" fallback-image="/modules/core/img/usuario-sem-imagem.png" class="circular-ligero" /><a title="{{twit.atendido.user_name}}" style="padding: 4px 5px; color:#0DBEC8; min-width:190px;">Atendido por {{twit.atendido.user_name}}</a></p>
@@ -1454,6 +1454,6 @@
 display: block;
 clear: both;
 float: left;
-
+margin-left: 14%;
 }
 </style>
