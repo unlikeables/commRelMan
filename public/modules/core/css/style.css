@@ -4565,8 +4565,8 @@ border: solid 3px #45576a;
     background-color: lightsalmon;
     font-weight: 400;
     color: #fff;
-    padding-left: 5px;
-    padding-right: 5px;
+    padding-left: 1px;
+    padding-right: 1px;
 }
 
 .grupo-etiquetas-hora{

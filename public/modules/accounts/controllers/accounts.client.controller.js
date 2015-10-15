@@ -214,7 +214,8 @@ Highcharts.setOptions({
 			        	id:i,
 			        	events:{
 				    		click: function (e,i) {
-								alert(e.point.name);
+								
+								window.open('https://alberto.likeable.mx/#!/filtroAccount?first='+fecha_inicial+'&second='+fecha_final+'&tema='+e.point.name+'&total='+e.point.y+'&cuenta='+nombreSistema);
 				    		}
 						},
 			        	data:[]
@@ -444,7 +445,13 @@ Highcharts.setOptions({
 			//Generando objeto para gráfica temas
 			
 			for(var i in topTemasDrill){
-	    		objTemas.push({name:topTemasDrill[i].name, y:topTemasDrill[i].y});
+	    		objTemas.push({name:topTemasDrill[i].name, y:topTemasDrill[i].y,
+				events : {
+					click : function(e,i){
+						window.open('https://alberto.likeable.mx/#!/filtroAccount?first='+fecha_inicial+'&second='+fecha_final+'&tema='+e.point.name+'&total='+e.point.y+'&cuenta='+nombreSistema);	
+					}
+				}
+				});
 			}
 			if(objTemas.length > 0){
 				$scope.mostrarTemas = true;
@@ -611,7 +618,13 @@ Highcharts.setOptions({
 			var totalSubtemas = 0;
 			for(var i in graf_subtemas){
 				totalSubtemas = totalSubtemas +graf_subtemas[i];
-				objSubTemasC.push({name:i,y:graf_subtemas[i]});
+				objSubTemasC.push({name:i,y:graf_subtemas[i],
+				events : {
+					click : function(e,i){
+						window.open('https://alberto.likeable.mx/#!/filtroAccount?first='+fecha_inicial+'&second='+fecha_final+'&subtema='+e.point.name+'&total='+e.point.y+'&cuenta='+nombreSistema);	
+					}
+				}
+				});
 				//objSubTemasC.push({name:i,y:graf_subtemas[i],color:$scope.esquemaColores[contadorSubtemas]});
 				contadorSubtemas++;	    	
 				//objSubTemasC.push([i,graf_subtemas[i]]);
@@ -1433,6 +1446,7 @@ for(var o in obj){
 */
 	$http.post('/chartDescartados',{nombreSistema:nombreSistema,fecha_inicial:$scope.dt,fecha_final:$scope.dt2, tipo: opcion}).success(function(data_graf_descartados){
 		if(data_graf_descartados !== 'No hubo resultados'){
+			console.log(data_graf_descartados);
 			$scope.mostrarMotivoDescarte = true;
 			var objDescartados = new Array();
 			var coloresDescartados = {
@@ -1446,10 +1460,50 @@ for(var o in obj){
 				"mediático":"#7CB5EC",
 				"campaña":"#5F7082"
 		    };
-
+			var op;
 			for(var i in data_graf_descartados){
+				switch(i){
+					case 'respondidas':
+						op = 'answered';
+					break;
+					case 'insulto':
+						op = 'insult';
+					break;
+					case 'troll':
+						op = 'troll'
+					break;
+					case 'otro':
+						op = 'otro';
+					break;
+					case 'irrelevante':
+						op = 'not-related';
+					break;
+					case 'mediático':
+						op = 'mediatico';
+					break;
+					case 'campaña':
+						op = 'campaign';
+					break;
+					case 'spam':
+						op = 'spam';
+					break;
+				}
 				if(i !== 'total'){
-				objDescartados.push({name:i,y:data_graf_descartados[i],color:coloresDescartados[i]});	
+				objDescartados.push({name:i,y:data_graf_descartados[i],color:coloresDescartados[i],
+				events : {
+					click : function(e,i){
+						//alert(e.point.name);
+						
+						//window.open($scope.constant.host+'/#!/filtroAccount?first='+fecha_inicial+'&second='+fecha_final+'&descartado='+e.point.name+'&total='+e.point.y);
+						window.open('https://alberto.likeable.mx/#!/filtroAccount?first='+fecha_inicial+'&second='+fecha_final+'&descartado='+e.point.op+'&total='+e.point.y+'&cuenta='+nombreSistema);
+						
+						//document.location = 'google.com?first='+fecha_inicial+'&second='+fecha_final+'&descartado='+e.point.name+'&total='+e.point.y;
+						console.log(e.point);
+						console.log(e);	
+					}
+				},
+				op:op
+				});	
 				}
 			}
 			
@@ -1533,7 +1587,15 @@ for(var o in obj){
 											}
 										});
 									}
-								}]
+								},
+								{
+									//textKey : 'downloadPNG',
+									text: 'Exportar CSV Descartados',
+									onclick : function() {	
+										$scope.descargaDescartados($scope.nombre_cuenta,$scope.dt,$scope.dt2, opcion);
+									}
+								}
+								]
 							}
 						}
 					} 
@@ -2045,6 +2107,47 @@ for(var o in obj){
 			link.setAttribute("download", obj.nombreSistema+'_'+fecha_string_inicial+'_to_'+fecha_string_final+'.csv');
 			link.click();
 	  	});
+	};
+	$scope.descargaDescartados = function(nombreSistema,fecha_inicial,fecha_final, tipo){
+		//window.open($scope.archivo);
+		if(nombreSistema === undefined){
+			nombreSistema = Authentication.user.cuenta.marca;
+		}
+	     $http.post('/getDescartados', {'nombreSistema':nombreSistema, 'fecha_inicial' : fecha_inicial, 'fecha_final' : fecha_final, 'tipo' : tipo}).success(function(descartados){
+		 	if(descartados !== 'error'){
+				var data = [];
+				var mensaje = '';
+				data.push(['Mensaje', 'Fecha Entrada', 'Fecha Descarte', 'Usuario', 'Red', 'Tipo', 'Motivo Descarte', 'Descartó']);
+				for(var i in descartados){
+					if(descartados[i].mensaje){
+						mensaje = descartados[i].mensaje.replace(/,/g,'-');
+						data.push([mensaje, descartados[i].fechaEntrada, descartados[i].fechaDescarte , descartados[i].usuario, descartados[i].red, descartados[i].tipo, descartados[i].motivoDescarte, descartados[i].usuarioDescarte]);
+					}
+				}
+				var dataString;
+				var csvContent = "";
+				data.forEach(function(infoArray, index){
+					dataString = infoArray.join(",");
+					csvContent += index < data.length ? dataString+ "\n" : dataString;
+				}); 
+				var csvData;
+				var encodedUri = encodeURI(csvContent);
+				csvData = new Blob([csvContent], { type: 'text/csv' });
+				var csvUrl = URL.createObjectURL(csvData);
+				var link = document.createElement("a");
+				//link.setAttribute("href", encodedUri);
+				link.setAttribute("href", csvUrl);
+				var fecha_string_inicial = new Date($scope.dt).toDateString().replace(/ /g,'');
+				var fecha_string_final = new Date($scope.dt2).toDateString().replace(/ /g,'');
+				link.setAttribute("download", nombreSistema+'_descartados_'+fecha_string_inicial+'_to_'+fecha_string_final+'.csv');
+				link.click();
+			}
+		 	//$scope.inbox = resp.data;			
+	     }).error(function(err){
+		 	console.log('Error !!!');
+		 	console.log(err);
+	     });
+
 	};
 
 	$scope.descargaTemas = function(nombreSistema,temas,totalTemas){

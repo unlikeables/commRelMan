@@ -9,7 +9,10 @@ angular.module('feeds').config(['$stateProvider',
 			url: '/feeds',
 			templateUrl: 'modules/feeds/views/list-feeds.client.view.html'
 		}).
-
+		state('filtro', {
+			url: '/filtroAccount',
+			templateUrl: 'modules/feeds/views/filtro-account.view.html'
+		}).
 		state('nuevoBuzon', {
 			url: '/nuevo',
 			templateUrl: 'modules/feeds/views/lista-feeds-buzon.client.view.html'

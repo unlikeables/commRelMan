@@ -31,9 +31,12 @@ module.exports = function(app) {
 	app.route('/chartSentiment')	
 		.post(charts.chartSentiment);
 
-     app.route('/getStringTagCloud')
-    .get(charts.getStringTagCloud);	
+    app.route('/getStringTagCloud')
+    	.get(charts.getStringTagCloud);	
 
     app.route('/getStringTagCloudEspecialTwitter')
-    .get(charts.getStringTagCloudEspecialTwitter);	
+    	.get(charts.getStringTagCloudEspecialTwitter);	
+
+	app.route('/getDescartados')
+		.post(charts.getDescartados);
 };

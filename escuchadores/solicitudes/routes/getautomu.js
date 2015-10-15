@@ -224,7 +224,7 @@ router.get('/', function(req, res, next) {
 			return procesaSiblings(page_id, account, eltexto, siblings, more, newsiblings, callback);
 		    }
 		    else {
-			classdb.buscarToArray(account+'_consolidada', critere, 'solicitudes/getautomu/procesaSiblings', function(items){
+			classdb.buscarToArray(account+'_consolidada', critere, {}, 'solicitudes/getautomu/procesaSiblings', function(items){
 			    if (items === 'error') {
 				// error, no hacemos nada
 				return procesaSiblings(page_id, account, eltexto, siblings, more, newsiblings, callback);

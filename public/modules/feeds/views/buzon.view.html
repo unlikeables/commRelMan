@@ -146,7 +146,7 @@
                                 		<p><img src="/modules/core/img/usuario-sem-imagem.png" class="circular-ligero" /><a title="{{twit.atendido.user_name}}" style="padding: 4px 5px; color:#0DBEC8; min-width:190px;">Atendido por {{twit.atendido.user_name}}</a></p>
                                 	</li>                                	
                                 	<li class="atendido-usuario" data-ng-show="twit.tipoMensaje === 'atendido'">
-                                		<p><img src="/modules/core/img/usuario-sem-imagem.png" class="circular-ligero" /><a title="{{twit.clasificacion.user_name}}" style="padding: 4px 5px; display: block; color:#0DBEC8; min-width:190px;">Atendido por {{twit.clasificacion.user_name}}</a></p>
+                                		<p><img src="/modules/core/img/usuario-sem-imagem.png" class="circular-ligero" /><a title="{{twit.atendido.user_name}}" style="padding: 4px 5px; display: block; color:#0DBEC8; min-width:190px;">Atendido por {{twit.atendido.user_name}}</a></p>
                                 	</li>
                                     <li class="asignado-usuario" ng-show="(twit.asignado && !evalua_ocupado(twit._id)) && (twit.tipoMensaje !== 'proceso' && twit.tipoMensaje !== 'completo' && twit.tipoMensaje !== 'descartado')">
                                         <p><img src="{{twit.asignado.usuario_asignado_image}}" class="circular-ligero" /><a class="muestra_ocupado_por" title="{{twit.asignado.usuario_asignado_displayName}}" style="padding: 4px 5px; display: block; color:#0DBEC8; min-width:190px;">Asignado a : {{twit.asignado.usuario_asignado_displayName}}</a></p>
@@ -187,7 +187,8 @@
                     </ul>
             </div>
         <!-- /Notificacion -->
-        <div class="pure-u-md-1-1 pure-u-sm-1-1" style="padding-top: 25px;">
+
+        <div class="pure-u-md-1-1 pure-u-sm-1-1" style="padding-top: 25px; padding-bottom: 12px; border-bottom: solid 1px #646e7a; border-radius: 10px; border-style: dotted;">
 
             <div style="float:left;display:block; margin-right: 2%; width: 20%; margin-left: 4%;">
                 <input type="input" ng-model="s"
@@ -301,10 +302,10 @@
                                             <label class="etiqueta-facebook izq" data-ng-if="twit.tipo == 'facebook_inbox'" style="width: 20px; margin-left: 5px;"><i class="fa fa-lock" style="font-size: 10px !important;"></i></label>
                                             <!--si es un inbox-->
                                             <!--etiquetas dependiendo del buzón-->
-<div class="grupo-etiquetas-hora" data-ng-bind-html="twit.created_time | etiquetasFecha"></div>
-											<label class="etiqueta-{{twit.tipoMensaje}} izq"  style="margin-left: 5px;text-transform:lowercase;text-transform: capitalize;">{{twit.tipoMensaje}}</label>
-										    <label data-ng-show="twit.descartado" class="etiqueta-{{twit.descartado.motivo}} izq" style="margin-top:0px; float: right; margin-left: 5px; border-radius: 3px; font-size: 9px;font-weight: 300;text-transform: capitalize;">{{twit.descartado.motivo | translate}}</label>
-                                           	<!--etiquetas dependiendo del buzón-->
+					    <div class="grupo-etiquetas-hora" data-ng-bind-html="twit.created_time | etiquetasFecha"></div>
+					    <label class="etiqueta-{{twit.tipoMensaje}} izq"  style="margin-left: 5px; text-transform:lowercase; text-transform: capitalize;">{{twit.tipoMensaje}}</label>
+					    <label data-ng-show="twit.descartado" class="etiqueta-{{twit.descartado.motivo}} izq" style="margin-top:0px; float: right; margin-left: 5px; border-radius: 3px; font-size: 9px;font-weight: 300;text-transform: capitalize;">{{twit.descartado.motivo | translate}}</label>
+					    <!--etiquetas dependiendo del buzón-->
                                         </p>    
                                     </div>
                                     <div class="izq" style="clear: both;">
@@ -491,9 +492,9 @@
                                                 </label>                                                               
 <div class="grupo-etiquetas-hora" data-ng-bind-html="items[0].created_time | etiquetasFecha"></div>
                                             <!--etiquetas dependiendo del buzón-->
-											<label class="etiqueta-{{items[0].tipoMensaje}} izq"  style="margin-left: 5px;text-transform: capitalize;">{{items[0].tipoMensaje}}</label>
-										    <label data-ng-show="items[0].descartado" class="etiqueta-{{items[0].descartado.motivo}} izq" style="margin-top:0px; float: right; margin-left: 5px; border-radius: 3px; font-size: 9px;font-weight: 300;text-transform: capitalize;">{{items[0].descartado.motivo | translate}}</label>
-                                           	<!--etiquetas dependiendo del buzón-->
+					    <label class="etiqueta-{{items[0].tipoMensaje}} izq"  style="margin-left: 5px; margin-top: 14px; text-transform: capitalize;">{{items[0].tipoMensaje}}</label>
+					    <label data-ng-show="items[0].descartado" class="etiqueta-{{items[0].descartado.motivo}} izq" style="margin-top:14px; float: right; margin-left: 5px; border-radius: 3px; font-size: 9px;font-weight: 300;text-transform: capitalize;">{{items[0].descartado.motivo | translate}}</label>
+                                            <!--etiquetas dependiendo del buzón-->
                                             </p>    
                                         </div>
                                         <div class="pure-u-md-1-1">
@@ -561,9 +562,9 @@
                                                     {{respuesta.timestamp | date:'h:mm a'}}
                                                 </label>
                                             <!--etiquetas dependiendo del buzón-->
-											<label class="etiqueta-{{respuesta.tipoMensaje}} izq"  style="margin-left: 5px;text-transform: capitalize;">{{respuesta.tipoMensaje}}</label>
-										    <label data-ng-show="respuesta.descartado" class="etiqueta-{{respuesta.descartado.motivo}} izq" style="margin-top:0px; float: right; margin-left: 5px; border-radius: 3px; font-size: 9px;font-weight: 300;text-transform: capitalize;">{{respuesta.descartado.motivo | translate}}</label>
-                                           	<!--etiquetas dependiendo del buzón-->                                                
+					    <label class="etiqueta-{{respuesta.tipoMensaje}} izq"  style="margin-left: 5px; margin-top:14px;text-transform: capitalize;">{{respuesta.tipoMensaje}}</label>
+					    <label data-ng-show="respuesta.descartado" class="etiqueta-{{respuesta.descartado.motivo}} izq" style="margin-top:14px; float: right; margin-left: 5px; border-radius: 3px; font-size: 9px;font-weight: 300;text-transform: capitalize;">{{respuesta.descartado.motivo | translate}}</label>
+                                            <!--etiquetas dependiendo del buzón-->                                                
                                             </p>
                                         </div>
                                         <div class="pure-u-md-1-1">
@@ -604,9 +605,9 @@
                                             </a>
 <div class="grupo-etiquetas-hora" data-ng-bind-html="conversacion.created_time | etiquetasFecha"></div>
                                             <!--etiquetas dependiendo del buzón-->
-											<label class="etiqueta-{{conversacion.tipoMensaje}} izq"  style="margin-left: 5px;text-transform: capitalize;">{{conversacion.tipoMensaje}}</label>
-										    <label data-ng-show="conversacion.descartado" class="etiqueta-{{conversacion.descartado.motivo}} izq" style="margin-top:0px; float: right; margin-left: 5px; border-radius: 3px; font-size: 9px;font-weight: 300;text-transform: capitalize;">{{conversacion.descartado.motivo | translate}}</label>
-                                           	<!--etiquetas dependiendo del buzón-->                                            
+					    <label class="etiqueta-{{conversacion.tipoMensaje}} izq"  style="margin-left: 5px; margin-top: 14px;text-transform: capitalize;">{{conversacion.tipoMensaje}}</label>
+					    <label data-ng-show="conversacion.descartado" class="etiqueta-{{conversacion.descartado.motivo}} izq" style="margin-top:14px; float: right; margin-left: 5px; border-radius: 3px; font-size: 9px;font-weight: 300;text-transform: capitalize;">{{conversacion.descartado.motivo | translate}}</label>
+                                            <!--etiquetas dependiendo del buzón-->                                            
                                         </p>    
                                     </div>
                                     <div class="pure-u-md-1-1" >
@@ -653,9 +654,9 @@
                                                 </label>
 <div class="grupo-etiquetas-hora" data-ng-bind-html="respuesta.timestamp | etiquetasFecha"></div>
                                             <!--etiquetas dependiendo del buzón-->
-											<label data-ng-show="respuesta.tipoMensaje" class="etiqueta-{{respuesta.tipoMensaje}} izq"  style="margin-left: 5px;text-transform: capitalize;">{{respuesta.tipoMensaje}}</label>
-										    <label data-ng-show="respuesta.descartado" class="etiqueta-{{respuesta.descartado.motivo}} izq" style="margin-top:0px; float: right; margin-left: 5px; border-radius: 3px; font-size: 9px;font-weight: 300;text-transform: capitalize;">{{respuesta.descartado.motivo | translate}}</label>
-                                           	<!--etiquetas dependiendo del buzón-->                                                
+					    <label data-ng-show="respuesta.tipoMensaje" class="etiqueta-{{respuesta.tipoMensaje}} izq"  style="margin-left: 5px;margin-top: 14px;text-transform: capitalize;">{{respuesta.tipoMensaje}}</label>
+					    <label data-ng-show="respuesta.descartado" class="etiqueta-{{respuesta.descartado.motivo}} izq" style="margin-top:14px; float: right; margin-left: 5px; border-radius: 3px; font-size: 9px;font-weight: 300;text-transform: capitalize;">{{respuesta.descartado.motivo | translate}}</label>
+                                            <!--etiquetas dependiendo del buzón-->                                                
                                             </p>
                                         </div>
                                         <div class="pure-u-md-1-1">
@@ -717,11 +718,11 @@
                                             	<!--icono si es un tracker-->
                                             	<label class="etiqueta-twitter izq" style="margin-left: 5px;width: 20px; margin-left: 5px;" data-ng-if="items[0].tipo == 'tracker'" title="Tracker"><i class="fa fa-bullseye" style="font: normal normal normal 12px/1 FontAwesome !important;"></i></label>
                                            		<!--icono si es un tracker-->                                                 
-<div class="grupo-etiquetas-hora" data-ng-bind-html="items[0].created_time | etiquetasFecha"></div>
- 												<!--etiquetas dependiendo del buzón-->
-												<label class="etiqueta-{{items[0].tipoMensaje}} izq"  style="margin-left: 5px;text-transform: capitalize;">{{items[0].tipoMensaje}}</label>
-												<label data-ng-show="items[0].descartado" class="etiqueta-{{items[0].descartado.motivo}} izq" style="margin-top:0px; float: right; margin-left: 5px; border-radius: 3px; font-size: 9px;font-weight: 300;text-transform: capitalize;">{{items[0].descartado.motivo | translate}}</label>
-												<!--etiquetas dependiendo del buzón-->                                                
+							<div class="grupo-etiquetas-hora" data-ng-bind-html="items[0].created_time | etiquetasFecha"></div>
+							<!--etiquetas dependiendo del buzón-->
+							<label class="etiqueta-{{items[0].tipoMensaje}} izq"  style="margin-left: 5px;margin-top: 14px;text-transform: capitalize;">{{items[0].tipoMensaje}}</label>
+							<label data-ng-show="items[0].descartado" class="etiqueta-{{items[0].descartado.motivo}} izq" style="margin-top:14px; float: right; margin-left: 5px; border-radius: 3px; font-size: 9px;font-weight: 300;text-transform: capitalize;">{{items[0].descartado.motivo | translate}}</label>
+							<!--etiquetas dependiendo del buzón-->                                                
                                             </p>    
                                         </div>
                                         <div class="pure-u-md-1-1">
@@ -766,10 +767,10 @@
                                                 <label class="etiqueta-gris izq"  style="margin-left: 5px;" data-ng-if="respuesta.timestamp != null">
                                                     {{respuesta.timestamp | date:'h:mm a'}}
                                                 </label>
-												<!--etiquetas dependiendo del buzón-->
-												<label class="etiqueta-{{respuesta.tipoMensaje}} izq"  style="margin-left: 5px;text-transform: capitalize;">{{respuesta.tipoMensaje}}</label>
-												<label data-ng-show="respuesta.descartado" class="etiqueta-{{respuesta.descartado.motivo}} izq" style="margin-top:0px; float: right; margin-left: 5px; border-radius: 3px; font-size: 9px;font-weight: 300;text-transform: capitalize;">{{respuesta.descartado.motivo | translate}}</label>
-												<!--etiquetas dependiendo del buzón-->                                                
+						<!--etiquetas dependiendo del buzón-->
+						<label class="etiqueta-{{respuesta.tipoMensaje}} izq"  style="margin-left: 5px;margin-top: 14px;text-transform: capitalize;">{{respuesta.tipoMensaje}}</label>
+						<label data-ng-show="respuesta.descartado" class="etiqueta-{{respuesta.descartado.motivo}} izq" style="margin-top:14px; float: right; margin-left: 5px; border-radius: 3px; font-size: 9px;font-weight: 300;text-transform: capitalize;">{{respuesta.descartado.motivo | translate}}</label>
+						<!--etiquetas dependiendo del buzón-->                                                
                                             </p>
                                         </div>
                                         <div class="pure-u-md-1-1">
@@ -815,10 +816,10 @@
                                                 <label class="etiqueta-gris izq"  style="margin-left: 5px;">
                                                     {{conversacion.created_time | date:'h:mm a'}}
                                                 </label>
-												<!--etiquetas dependiendo del buzón-->
-												<label class="etiqueta-{{conversacion.tipoMensaje}} izq"  style="margin-left: 5px;text-transform: capitalize;">{{conversacion.tipoMensaje}}</label>
-												<label data-ng-show="conversacion.descartado" class="etiqueta-{{conversacion.descartado.motivo}} izq" style="margin-top:0px; float: right; margin-left: 5px; border-radius: 3px; font-size: 9px;font-weight: 300;text-transform: capitalize;">{{conversacion.descartado.motivo | translate}}</label>
-												<!--etiquetas dependiendo del buzón-->                                                
+						<!--etiquetas dependiendo del buzón-->
+						<label class="etiqueta-{{conversacion.tipoMensaje}} izq"  style="margin-left: 5px;margin-top: 14px;text-transform: capitalize;">{{conversacion.tipoMensaje}}</label>
+						<label data-ng-show="conversacion.descartado" class="etiqueta-{{conversacion.descartado.motivo}} izq" style="margin-top:14px; float: right; margin-left: 5px; border-radius: 3px; font-size: 9px;font-weight: 300;text-transform: capitalize;">{{conversacion.descartado.motivo | translate}}</label>
+						<!--etiquetas dependiendo del buzón-->                                                
                                             </p>    
                                         </div>
                                         <div class="pure-u-md-1-1">
@@ -864,11 +865,11 @@
                                                 <label class="etiqueta-twitter izq" style="margin-left: 10px;width: 20px; margin-left: 5px;" title="{{ 'Direct Message' | translate }}">
                                                     <i class="fa fa-lock" style="font-size: 10px !important;"></i>
                                                 </label>
-<div class="grupo-etiquetas-hora" data-ng-bind-html="items[0].created_time | etiquetasFecha"></div>
- 												<!--etiquetas dependiendo del buzón-->
-												<label class="etiqueta-{{items[0].tipoMensaje}} izq"  style="margin-left: 5px;text-transform: capitalize;">{{items[0].tipoMensaje}}</label>
-												<label data-ng-show="items[0].descartado" class="etiqueta-{{items[0].descartado.motivo}} izq" style="margin-top:0px; float: right; margin-left: 5px; border-radius: 3px; font-size: 9px;font-weight: 300;text-transform: capitalize;">{{items[0].descartado.motivo | translate}}</label>
-												<!--etiquetas dependiendo del buzón-->                                                
+						<div class="grupo-etiquetas-hora" data-ng-bind-html="items[0].created_time | etiquetasFecha"></div>
+						<!--etiquetas dependiendo del buzón-->
+						<label class="etiqueta-{{items[0].tipoMensaje}} izq"  style="margin-left: margin-top. 14px;5px;text-transform: capitalize;">{{items[0].tipoMensaje}}</label>
+						<label data-ng-show="items[0].descartado" class="etiqueta-{{items[0].descartado.motivo}} izq" style="margin-top:14px; float: right; margin-left: 5px; border-radius: 3px; font-size: 9px;font-weight: 300;text-transform: capitalize;">{{items[0].descartado.motivo | translate}}</label>
+						<!--etiquetas dependiendo del buzón-->                                                
                                             </p>    
                                         </div>
                                         <div class="pure-u-md-1-1">
@@ -902,10 +903,10 @@
                                                 <label class="etiqueta-gris izq"  style="margin-left: 5px;">
                                                     {{respuesta.timestamp | date:'h:mm a'}}
                                                 </label>
-												<!--etiquetas dependiendo del buzón-->
-												<label class="etiqueta-{{respuesta.tipoMensaje}} izq"  style="margin-left: 5px;text-transform: capitalize;">{{respuesta.tipoMensaje}}</label>
-												<label data-ng-show="respuesta.descartado" class="etiqueta-{{respuesta.descartado.motivo}} izq" style="margin-top:0px; float: right; margin-left: 5px; border-radius: 3px; font-size: 9px;font-weight: 300;text-transform: capitalize;">{{respuesta.descartado.motivo | translate}}</label>
-												<!--etiquetas dependiendo del buzón-->                                                
+						<!--etiquetas dependiendo del buzón-->
+						<label class="etiqueta-{{respuesta.tipoMensaje}} izq"  style="margin-left: 5px;margin-top: 14px;text-transform: capitalize;">{{respuesta.tipoMensaje}}</label>
+						<label data-ng-show="respuesta.descartado" class="etiqueta-{{respuesta.descartado.motivo}} izq" style="margin-top:14px; float: right; margin-left: 5px; border-radius: 3px; font-size: 9px;font-weight: 300;text-transform: capitalize;">{{respuesta.descartado.motivo | translate}}</label>
+						<!--etiquetas dependiendo del buzón-->                                                
                                             </p>
                                         </div>
                                         <div class="pure-u-md-1-1">
@@ -927,11 +928,11 @@
                                             <a class="etiqueta-twitter izq" style="margin-left: 5px;" href="{{items[0].tw_url}}" target="_blank">
                                                 Twitter
                                             </a>
-<div class="grupo-etiquetas-hora" data-ng-bind-html="conversacion.created_time | etiquetasFecha"></div>
-											<!--etiquetas dependiendo del buzón-->
-											<label class="etiqueta-{{conversacion.tipoMensaje}} izq"  style="margin-left: 5px;text-transform:lowercase;">{{conversacion.tipoMensaje}}</label>
-											<label data-ng-show="conversacion.descartado" class="etiqueta-{{conversacion.descartado.motivo}} izq" style="margin-top:0px; float: right; margin-left: 5px; border-radius: 3px; font-size: 9px;font-weight: 300;">{{conversacion.descartado.motivo | translate}}</label>
-											<!--etiquetas dependiendo del buzón-->                                            
+					    <div class="grupo-etiquetas-hora" data-ng-bind-html="conversacion.created_time | etiquetasFecha"></div>
+					    <!--etiquetas dependiendo del buzón-->
+					    <label class="etiqueta-{{conversacion.tipoMensaje}} izq"  style="margin-left: margin-top: 14px; 5px;text-transform:lowercase;">{{conversacion.tipoMensaje}}</label>
+					    <label data-ng-show="conversacion.descartado" class="etiqueta-{{conversacion.descartado.motivo}} izq" style="margin-top:14px; float: right; margin-left: 5px; border-radius: 3px; font-size: 9px;font-weight: 300;">{{conversacion.descartado.motivo | translate}}</label>
+					    <!--etiquetas dependiendo del buzón-->                                            
                                         </p>    
                                     </div>
                                     <div class="pure-u-md-1-1">
@@ -1178,7 +1179,27 @@
             <div class="pure-u-md-1-1"> 
                 <div align="center" style="color: red; font-size:14px; padding-top:2%; margin:0 auto;">{{mensajeDescartado}}</div>
                 <div class="pure-u-md-1-1">
-                    <table cellpadding="15" style="width: 60%; margin: 0px auto;">
+                    <table cellpadding="15" style="width: 70%; margin: 0px auto; float:none;">
+                        <tr>
+                            <td>
+                                <input type="radio" id="c7" name="cc" class="oculto" name="descarte" ng-model="descarte" value="campaign" ng-click="cambiaMotivo('campaign')">
+                                <label for="c7" class="checkbox checkbox-naranja"><span></span> {{'Campaña'}}</label>
+                            </td>
+                            <td>
+                                <input type="radio" id="c2" name="cc" class="oculto" name="descarte" ng-model="descarte" value="insult" ng-click="cambiaMotivo('insult')">
+                                <label for="c2" class="checkbox checkbox-azul"><span></span> {{ 'Insult' | translate }}</label>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <input type="radio" id="c8" name="cc" class="oculto" name="descarte" ng-model="descarte" value="other_comments" ng-click="cambiaMotivo('other_comments')">
+                                <label for="c8" class="checkbox checkbox-verde"><span></span> {{'Mediático'}}</label>
+                            </td>
+                            <td>
+                                <input type="radio" id="c3" name="cc" class="oculto"name="descarte" ng-model="descarte" value="not-related" ng-click="cambiaMotivo('not-related')">
+                                <label for="c3" class="checkbox checkbox-amarillo"><span></span> {{ 'Not Related' | translate }}</label>
+                            </td>
+                        </tr>
                         <tr>
                             <td>
                                 <input type="radio" id="c1" name="cc" class="oculto" name="descarte" ng-model="descarte" value="answered" ng-click="cambiaMotivo('answered')">
@@ -1191,25 +1212,15 @@
                         </tr>
                         <tr>
                             <td>
-                                <input type="radio" id="c2" name="cc" class="oculto" name="descarte" ng-model="descarte" value="insult" ng-click="cambiaMotivo('insult')">
-                                <label for="c2" class="checkbox checkbox-azul"><span></span> {{ 'Insult' | translate }}</label>
-                            </td>
-                            <td>
                                 <input type="radio" id="c5" name="cc" class="oculto" name="descarte" ng-model="descarte" value="troll" ng-click="cambiaMotivo('troll')">
                                 <label for="c5" class="checkbox checkbox-azul2"><span></span> {{ 'Troll' | translate }}</label>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>
-                                <input type="radio" id="c3" name="cc" class="oculto"name="descarte" ng-model="descarte" value="not-related" ng-click="cambiaMotivo('not-related')">
-                                <label for="c3" class="checkbox checkbox-amarillo"><span></span> {{ 'Not Related' | translate }}</label>
                             </td>
                             <td>
                                 <input type="radio" id="c4" name="cc" class="oculto" name="descarte" ng-model="descarte" value="otro" ng-click="cambiaMotivo('otro')">
                                 <label for="c4" class="checkbox checkbox-rosa"><span></span> {{ 'Other' | translate }}</label>
                             </td>
                         </tr>
-                    </table>          
+                    </table>         
                     <div style="text-align:center;">
                         <label ng-show="(items[0].obj==='facebook' && items[0].tipo !== 'facebook_inbox')">¿Deseas eliminar el post?   
                         <input type="checkbox" name="elimina_post" ng-model="elimina_post" ng-click="deletePost()" ng-show="(items[0].obj==='facebook' && items[0].tipo !== 'facebook_inbox')"><br>

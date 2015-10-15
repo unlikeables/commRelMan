@@ -134,7 +134,7 @@ exports.generaCsv = function(req, res){
 		    {'tipo':{$exists:true}}
 		]
 	    };
-	    classdb.buscarToArray(col,criterio,{},'generaCSV/buscar', function(items){
+	    classdb.buscarToArray(col, criterio, {}, 'generaCSV/buscar', function(items){
 		if(items === 'error'){
 		    res.jsonp('error');
 		}else{

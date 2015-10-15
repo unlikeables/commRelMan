@@ -478,6 +478,31 @@ angular.module('feeds')
 			    $scope.showNotificacion(notificacion);
 		  	}
 		};
+		
+		$scope.filtroAccount = function(){
+			var obj = {};
+			obj = {
+					first: $location.$$search.first,
+					second: $location.$$search.second,
+					total: $location.$$search.total,
+					cuenta: $location.$$search.cuenta+'_consolidada'
+				};
+			if($location.$$search.descartado){
+				obj.descartado = $location.$$search.descartado;
+			}else if($location.$$search.tema){
+				obj.tema = $location.$$search.tema;
+			}else if($location.$$search.subtema){
+				obj.subtema = $location.$$search.subtema;
+			}
+			console.log('El objeto es ');
+			console.log(obj);
+			$http.post('/obtienePorClick',obj).success(function(data){
+				console.log('DESCARTADOS!');
+				console.log(data);
+				$scope.numeroResultadosBusqueda = data.length;
+				$scope.posts = data;
+			});
+		}
 		//comparamos objeto por objeto para saber si es influencer
 	    $scope.isInfluencer = function (index) {
 		    	$http.post('/isInfluencer',{screen_name:$scope.posts[index].user.screen_name, coleccion: 'influencers_'+Authentication.user.cuenta.marca}).success(function(result){
@@ -4918,8 +4943,8 @@ FUNCIONES DE LA LIBRERÍA DE TWITTER
 		$http.post('/respondeMailbox', criterio).success(function(data){
 			if(!data.error && !data.errorface){
 				if($scope.items[0].tipoMensaje === 'nuevo'){
-					console.log('Finalizará el nuevo');
 				//if(metodo === '2'){
+					$scope.items[0].imagenUsuario = Authentication.user.imagen_src;
 					$rootScope.$broadcast('finalizarCtrl',$scope.items[0]);
 				}
 				if($scope.items[0].influencers || $scope.items[0].asignado){

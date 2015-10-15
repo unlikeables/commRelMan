@@ -44,8 +44,7 @@ exports.getUserData = function(req, res){
 	    var userId = new ObjectID(req.query.userId);
 	    var criterio = {'_id':userId};
 	    var fields = {'imagen_src':1};
-
-    	classdb.buscarToArrayFields('users', criterio, fields, {}, 'feeds/getUserData', function(items){
+    	    classdb.buscarToArrayFields('users', criterio, fields, {}, 'feeds/getUserData', function(items){
 		res.jsonp(items);
     	});
     }
@@ -2787,13 +2786,13 @@ exports.obtieneBuzon = function(req, res) {
 		var criteriof = {
 			$and : [
 				{'from_user_id':fu_id}, 
-				{'atendido': {$exists: false}}, 
-				{'descartado': {$exists: false}}, 
-				{'eliminado': {$exists: false}},
+				//{'atendido': {$exists: false}}, 
+			//	{'descartado': {$exists: false}}, 
+			//	{'eliminado': {$exists: false}},
 				{'id': {$ne : m_id}}, 
-				{'tipo':mtp}, 
-				parent_post,
-				{'created_time':{$lte: ctime}}
+		//		{'tipo':mtp}, 
+		//		parent_post,
+		//		{'created_time':{$lte: ctime}}
             ]
         };
 		var sortf = {'created_time': 1};
@@ -2809,7 +2808,7 @@ exports.obtieneBuzon = function(req, res) {
 				{'id': {$ne : m_id}}, 
 				//{'tipo':mtp}, 
 				//parent_post,
-				{'created_time':{$lte: new Date(ctime)}}
+				//{'created_time':{$lte: new Date(ctime)}}
             ]
         };
 		
@@ -4021,7 +4020,8 @@ exports.compruebaDescartado = function(id, coleccion){
 	});
 };
 
-exports.finalizar = function(req, res){	
+exports.finalizar = function(req, res){
+	var imagenUsuario = req.body.twit.imagenUsuario;
     function procesaConversaciones(coleccion, contenido, user_id, user_name, objectId, contenidos, index, contenidosprocesados, callback){
 	var more = index+1;
 	var cuantos = contenidos.length;
@@ -4055,6 +4055,7 @@ exports.finalizar = function(req, res){
 	if (!conversacion.clasificacion) {
 	    conversacion.clasificacion = clasificacion;
 	}
+	conversacion.clasificacion.imagen_usuario = imagenUsuario;
 	var criterious = {_id : id};
 	var setus = {
 	    atendido : {
@@ -4823,12 +4824,10 @@ exports.nuevosPosts = function(req, res){
     });
 
 	function querybuzon (cole, fecha, page_id, tipo,callback) {
-    	var criterio_tipo;
-		var criteriored = {'obj': {$exists : true}};
+    	    var criterio_tipo = {created_time: {$exists : true}};
+	    var criteriored = {'obj': {$exists : true}};
 		if(tipo && tipo !== 'todos'){
-			criterio_tipo = {'tipo':{$eq:tipo}};
-		}else{
-			criterio_tipo = {};
+		    criterio_tipo = {'tipo':{$eq:tipo}};
 		}	
 		if (page_id) {
 		    criteriored = {'from_user_id' : {$ne: page_id}};
@@ -4881,47 +4880,40 @@ exports.nuevosPostsFiltered = function(req, res){
 
     function querybuzon (cole, fecha, page_id, tipo,callback) {
     	
-    	var criterio_tipo;
-    	var criteriored_page;
-
-    	var criteriored = {'_id' : {$exists : true}};
+    	var criterio_tipo = { created_time: {$exists : true} };
+    	var criteriored_page = { id : {$exists : true} };
+    	var criteriored = { _id : {$exists : true} };
 
     	if(obj !== 'todos'){
     		criteriored = {'obj':{$eq:obj}};
     	}
-		
-		
-		if(tipo && tipo !== 'todos'){
-			criterio_tipo = {'tipo':{$eq:tipo}};
-		}else{
-			criterio_tipo = {'_id' : {$exists : true}};
-		}	
-		if (page_id) {
-		    criteriored_page = {'from_user_id' : {$ne: page_id}};
-		}
-
-
-		var newDate = new Date(fecha);
-		var criterio = {$and:
-				[ 
-				    {'descartado':{$exists: false}}, 
-				    {'atendido':{$exists: false}}, 
-				    {'eliminado':{$exists:false}},
-				    {'clasificacion.tema':{$exists:false}}, 
-				    {'sentiment':{$exists:false}},
-				    {'respuestas':{$exists:false}}, 
-				    {'created_time': {$gt: newDate}},
-				    {'retweeted_status':{$exists:false}},
-				    criteriored,
-				    criterio_tipo,
-				    criteriored_page
-				]
-			       };
-	 	classdb.buscarToArray(cole, criterio,{}, 'feeds/getCuentaNuevos/querybuzon', function(cuenta){
-	 		console.log('cuenta !');
-	 		console.log(cuenta.length);
-		    return callback(cuenta);
-		});
+	if(tipo && tipo !== 'todos'){
+	    criterio_tipo = {'tipo':{$eq:tipo}};
+	}	
+	if (page_id) {
+	    criteriored_page = {'from_user_id' : {$ne: page_id}};
+	}
+	var newDate = new Date(fecha);
+	var criterio = {
+	    $and:[ 
+		{'descartado':{$exists: false}}, 
+		{'atendido':{$exists: false}}, 
+		{'eliminado':{$exists:false}},
+		{'clasificacion.tema':{$exists:false}}, 
+		{'sentiment':{$exists:false}},
+		{'respuestas':{$exists:false}}, 
+		{'created_time': {$gt: newDate}},
+		{'retweeted_status':{$exists:false}},
+		criteriored,
+		criterio_tipo,
+		criteriored_page
+	    ]
+	};
+	classdb.buscarToArray(cole, criterio,{}, 'feeds/getCuentaNuevos/querybuzon', function(cuenta){
+	    console.log('cuenta !');
+	    console.log(cuenta.length);
+	    return callback(cuenta);
+	});
     }
 
     function getdatoscuenta(id, callback) {
@@ -4964,5 +4956,35 @@ exports.nuevosPostsFiltered = function(req, res){
 			    }
 			}
 		}
+    });
+};
+exports.obtienePorClick = function(req, res){
+	console.log('CLICK !!');
+	console.log(req.body);
+	var cuenta = req.body.cuenta;
+	var criterio_busqueda;
+	var criterio_exists;
+	if(req.body.descartado){
+		criterio_exists = {descartado:{$exists:true}};
+		criterio_busqueda = {'descartado.motivo':req.body.descartado};
+	}else if(req.body.tema){
+		criterio_exists = {clasificacion:{$exists:true}};
+		criterio_busqueda = {'clasificacion.tema':req.body.tema};	
+	}else if(req.body.subtema){
+		criterio_exists = {clasificacion:{$exists:true}};
+		criterio_busqueda = {'clasificacion.subtema':req.body.subtema};
+	}
+
+	
+	var criterio =  {$and : [
+		criterio_exists, 
+		criterio_busqueda,
+		{created_time : {$lte: new Date(req.body.second)}}, 
+		{created_time: {$gte: new Date(req.body.first)}}
+	]};
+
+	classdb.buscarToArrayFields(cuenta, criterio, {}, {}, 'feeds/getUserData', function(items){
+
+		res.jsonp(items);
     });
 };

@@ -20,6 +20,9 @@ module.exports = function(app) {
 /*
     app.param('feedId', feeds.feedByID);
  */  
+    app.route('/obtienePorClick')
+    .post(feeds.obtienePorClick);
+    
     app.route('/respFb')
 	.post(feeds.respondePostFb);
 
