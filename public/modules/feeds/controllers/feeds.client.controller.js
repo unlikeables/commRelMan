@@ -614,7 +614,11 @@ angular.module('feeds')
 		 if (Notification.permission !== "granted")
 		   Notification.requestPermission();
 		});
-		
+		Socket.on('auxiliarNotificacion', function(data){
+			if(data.cuenta === Authentication.user.cuenta.marca){
+				Socket.emit('eliminaNotificacion',data._id);
+			}
+		});
 		Socket.on('notify', function(datos){
 			for(var j = 0; j < $scope.notificaciones.length; j++){
 			    if(datos[0]._id === $scope.notificaciones[j]._id){
@@ -660,7 +664,7 @@ angular.module('feeds')
 	    
 	    /*+-+-+-+-+-+-++-+-+-+-+-+-+-+-+-+-+-+ SOCEKTS TIEMPO REAL +-+-+-+-+-+-+-+++-+---+-+-+-+-+-+-*/
 	    Socket.on('tiempoRealFront', function(obj_actualizar){
-	    	if(_.size($scope.posts) < 5){
+	    	if(_.size($scope.posts) < 3){
 				console.log('Pediremos mas de este buzon !!!');
 				console.log($scope.tipoBuzon);
 	    		$scope.loadMoreUnificado();
@@ -1335,14 +1339,31 @@ angular.module('feeds')
 		});
 		/* Socket que actualiza el front en tiempo real para mostrar mensajes asignados*/
 		Socket.on('socketAsignaFront', function(data){
+			var mensajes_asignados = new Array();
 			if($scope.authentication.user.cuenta.marca === data.cuenta){
 				for(var i in $scope.posts){
-					if($scope.posts[i]._id === data._id){
-						$scope.posts[i].asignado = data.asignado;
+					for(var j in data.mensajes){
+						if($scope.posts[i]._id === data.mensajes[j]){
+							$scope.posts[i].asignado = data.asignado;
+							mensajes_asignados.push($scope.posts[i]);
+						}	
 					}
 				}
 				$scope.posts = $scope.posts.filter(function(){return true;});
-				data.mensaje.asignado = data.asignado;
+				if($scope.tipoBuzon === 'asignados'){
+					if(Authentication.user._id === data.asignado.usuario_asignado_id){	
+						for(var i in mensajes_asignados){
+							if($scope.nuevos && $scope.nuevos > 0){
+								$scope.nuevos++;
+								$scope.mensajeAsignado.push(mensajes_asignados[i]);
+							}else{
+								$scope.mensajeAsignado.push(mensajes_asignados[i]);
+								$scope.nuevos = 1;
+							}
+						}
+					}
+				}
+				/*data.mensaje.asignado = data.asignado;
 				if($scope.tipoBuzon === 'asignados'){
 					if(Authentication.user._id === data.asignado.usuario_asignado_id){
 						if($scope.nuevos && $scope.nuevos > 0){
@@ -1353,7 +1374,7 @@ angular.module('feeds')
 							$scope.nuevos = 1;
 						}
 					}
-				}	
+				}	*/
 
 			}
 		});
@@ -1510,42 +1531,24 @@ angular.module('feeds')
 	    			coleccion:Authentication.user.cuenta.marca+'_consolidada'
 	    		}).success(function(data){
 	    			//Borramos o actualizamos en tiempo real los posts
-					twit.conversacion = data;
-					for(var k in $scope.posts){
-						if($scope.posts[k]){
-							if($scope.posts[k]._id){
-								if($scope.posts[k]._id === twit._id){
-									//decidimos si se borra o se actualiza 
-									//$scope.tipoBuzon general
-									//$scope.items[0].tipoMensaje
-									/*console.log('Buzon del mensaje');
-									console.log($scope.posts[k].tipoMensaje);
-									console.log('Tipo buzon');
-									console.log($scope.tipoBuzon);
-									if($scope.posts[k].tipoMensaje !== $scope.tipoBuzon){
-										delete $scope.posts[k];
-										$scope.posts = $scope.posts.filter(function(){return true;}); 
-									}else{
-										$scope.posts[k].tipoMensaje = 'atendido';
-										$scope.posts = $scope.posts.filter(function(){return true;}); 
-									}	*/
-								}
-							}
-						}
-					}
-					for(var i in twit.conversacion){
-						for(var z in $scope.posts){
-							if($scope.posts[z]){
-								if($scope.posts[z]._id){
-									if($scope.posts[z]._id === twit.conversacion[i]){
-										Socket.emit('postFinalizado',twit.conversacion[i]);
-										delete $scope.posts[z];
-										$scope.posts = $scope.posts.filter(function(){return true;}); 
-									}
-								}
-							}
-						}
-					}
+					twit.conversacion = data;	
+					var obj_actualizar = {
+						tema: auxiliar_twit.clasificacion.tema,
+						subtema: auxiliar_twit.clasificacion.subtema,
+	    				user:$scope.authentication.user._id,
+	    				username:$scope.authentication.user.username,
+						user_image: Authentication.user.imagen_src,
+	    				cuenta:Authentication.user.cuenta.marca
+					};
+					
+					console.log('Actualizando los finalizados !!!+++');
+					console.log(data);
+					
+					for(var i = 0; i < data.length; i++){
+	  					obj_actualizar._id = data[i];
+		  				Socket.emit('tiempoRealServer', obj_actualizar);
+	  				}
+					
 	
 					NotificacionService.getDesempenio().success(function(data){
 						$scope.totalDesempenioDiario = data;
@@ -5888,6 +5891,10 @@ $scope.respondePostFb = function(param){
 		if($scope.asigna_usuario){
 			var obj = {
 				id:$scope.mensaje._id,
+				tipo: $scope.mensaje.tipo,
+				obj: $scope.mensaje.obj,
+				from_id: $scope.mensaje.from_user_id,
+				created_time: $scope.mensaje.created_time,
 				usuario_asignador_foto: Authentication.user.imagen_src,
 				coleccion: Authentication.user.cuenta.marca,
 				asignado:{
@@ -5900,9 +5907,15 @@ $scope.respondePostFb = function(param){
 				}
 			};
 			$http.post('/asignaMensaje',obj).success(function(data){
+				console.log('Respuesta de asgina mensajes !');
+				console.log(data);
 				if(!data.code){
+					console.log('Mensajes asignados !!! ');
+					console.log(data);
 					Socket.emit('liberaOcupado',{cuenta:$scope.authentication.user.cuenta.marca,_id:$scope.mensaje._id});
-					var obj_atendido = {_id:$scope.mensaje._id, cuenta: Authentication.user.cuenta.marca,asignado:obj.asignado,mensaje:$scope.mensaje};
+					//var obj_atendido = {_id:$scope.mensaje._id, cuenta: Authentication.user.cuenta.marca,asignado:obj.asignado,mensaje:$scope.mensaje};
+					data.push($scope.mensaje._id);
+					var obj_atendido = {mensajes: data,cuenta: Authentication.user.cuenta.marca,asignado:obj.asignado};
 					Socket.emit('socketAsignaServer',obj_atendido);
 					console.log($scope.mensaje);
 					if($scope.mensaje.influencers){

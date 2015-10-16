@@ -4075,6 +4075,10 @@ exports.finalizar = function(req, res){
 	    if(updated === 'error'){
 	    	return cback('error');
 	    }else if(updated === 1){
+			var cuenta = coleccion.split('_');
+			console.log(cuenta);
+			var socketio = req.app.get('socketio'); // take out socket instance from the app container
+			socketio.sockets.emit('auxiliarNotificacion',{_id:id,cuenta:cuenta[0]});
 	    	return cback(conversacion._id);
 	    }else{
 	    	return cback('error');
@@ -4482,6 +4486,111 @@ exports.changeString = function(req,res){
 };
 
 exports.asignaMensaje = function(req, res){
+	
+	
+    function procesaConversaciones(coleccion, asignado, contenidos, index, contenidosprocesados, callback){
+	var more = index+1;
+	var cuantos = contenidos.length;
+	if (more > cuantos) {
+	    return callback(contenidosprocesados);
+	}
+	else {
+		setImmediate(function(){
+		    finalizaConversacion(coleccion, contenidos[index], asignado, function(conv){
+			if (conv === 'error'){
+			    return procesaConversaciones(coleccion, asignado, contenidos, more, contenidosprocesados, callback);
+			}
+			else{
+			    contenidosprocesados.push(conv);
+			    return procesaConversaciones(coleccion,asignado, contenidos, more, contenidosprocesados, callback);
+			}
+		    });
+		});
+	}	
+    }
+
+    function finalizaConversacion(coleccion, mensaje,asignado, cback){
+	var id = new ObjectID(mensaje._id);
+	var criterious = {_id : id};
+	var setus = {
+	    asignado:asignado
+	    };
+	classdb.actualizacresult(coleccion, criterious, setus, 'feeds/finalizar/finalizaConversacion', function(updated){
+	    console.log('IMPRIMIENDO EL ACTUALIZA !!!!');
+	    console.log(updated);
+	    if(updated === 'error'){
+	    	return cback('error');
+	    }else if(updated === 1){
+	    	return cback(mensaje._id);
+	    }else{
+	    	return cback('error');
+	    }
+	});
+    }	
+	function asignaConversacion(obj,cback){
+		var tipo;
+		if(obj.obj === 'facebook'){
+			console.log('Es tipo facebook !!!');
+			if(obj.tipo !== 'facebook_inbox'){
+				tipo = { $or: [ { tipo:'comment' }, { tipo:'post' } ] };
+			}else{
+				tipo = {tipo:'facebook_inbox'};
+			}
+		}else{
+			console.log('Es tipo twitter');
+			if(obj.tipo === 'direct_message'){
+				tipo = {tipo: 'direct_message'};
+			}else{
+				tipo = {tipo: 'twit'};
+			}
+		}
+		console.log('Se asigno un tipo y es !! ');
+		console.log(tipo);
+
+
+	    var criteriof = {
+		$and : [
+		    {'from_user_id':obj.from_user_id}, 
+		    {'atendido': {$exists: false}}, 
+		    {'descartado': {$exists: false}}, 
+		    //{'id': {$ne : twit.id}}, 
+		    {'eliminado':{$exists:false}},
+		    //{'type':twit.type},
+		    {'created_time':{$lt: new Date(obj.created_time)}},
+			 tipo
+		]
+	    };
+		console.log('STRINGIFU !!!!');
+		console.log(JSON.stringify(criteriof));
+		console.log(coleccion);
+		console.log(obj);
+	    classdb.buscarToArray(coleccion, criteriof, {}, 'feeds/finalizar', function(items){
+		if(items === 'error'){
+		    obj = {'error': 'se actualizó correctamente pero no el historial'};
+		    res.jsonp(obj);
+		}
+		else {
+		    if (items.length > 0) {
+		    	console.log('++++++++++++   Items a resolver !!!!!!');
+		    	console.log(items);
+		    	console.log('NUMERO !!!');
+		    	console.log(items.length);
+			procesaConversaciones(coleccion,obj.asignado,items, 0, [], function(resp_pc){
+			    console.log('Imprimiendo el resultado de finalizaConversacion !!!! +++++++++++');
+			    console.log(resp_pc);
+			    res.jsonp(resp_pc);
+			});
+		    }
+		    else {
+			obj = {'ok': 'se actualizó contenido, y no tenía historial'};
+			res.jsonp(obj);
+		    }
+		}
+	    });
+	};
+	
+	
+
   console.log('Asignando mensaje ++++++++++++');
   var id = new ObjectID(req.body.id);
   var coleccion = req.body.coleccion+'_consolidada';
@@ -4489,7 +4598,7 @@ exports.asignaMensaje = function(req, res){
   var criterio = {_id:id};
   var socketio = req.app.get('socketio'); // take out socket instance from the app container
   var error = {};
-
+  var obj_asigna = {coleccion:coleccion, asignado:asignado,_id:id,tipo:req.body.tipo,obj:req.body.obj,from_user_id:req.body.from_id,created_time:req.body.created_time};
   classdb.actualiza(coleccion, criterio,{asignado : asignado}, 'Asignando el mensaje en base', function(respuesta){
     if (respuesta === 'error') {
       //Regresamos error
@@ -4562,7 +4671,11 @@ exports.asignaMensaje = function(req, res){
 			console.log('Notificacion insertada correctamente');
 			console.log(data);
 			socketio.sockets.emit('notify', data); // emit an event for all connected client
-			res.jsonp(data);
+			asignaConversacion(obj_asigna, function(items){
+				console.log('Se asignaran estos elementos');
+				res.jsonp(items);
+			});
+			
 		      }
 		    });
 		  }
@@ -4582,7 +4695,11 @@ exports.asignaMensaje = function(req, res){
 		    console.log('Notificacion insertada correctamente');
 		    console.log(data);
 		    socketio.sockets.emit('notify', data); // emit an event for all connected client
-		    res.jsonp(data);
+		    //res.jsonp(data);
+			asignaConversacion(obj_asigna, function(items){
+				console.log('Se asignaran estos elementos')
+				res.jsonp(items);
+			});
 		  }
 		});
 	      }
