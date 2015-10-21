@@ -4212,6 +4212,46 @@ exports.totalPendientes = function(req,res){
 	var criteriopage = { id : { $exists : true }};
 	var criteriotipo = { _id : {$exists : true }};
 	var criterioobj = { _id : {$exists : true }};
+	var tipo = req.body.filtro;
+	var criterio_filtro = {};
+	console.log('Pidiendo mas pendientes !!!!!!');
+	console.log(req.body.filtro);
+	console.log(req.body);
+
+
+
+	switch(tipo){
+		case 'facebook':
+			criterio_filtro = {obj:{$eq:'facebook'}};
+		break;
+		case 'facebook_public':
+			criterio_filtro = {
+				$or: [ 
+					{'tipo':{$eq: 'comment'}}, 
+					{'tipo':{$eq:'post'}}
+				]
+			};
+		break;
+		case 'facebook_inbox':
+			criterio_filtro = {tipo:{$eq:'facebook_inbox'}};
+		break;	
+		case 'twitter':
+			criterio_filtro = {obj:{$eq:'twitter'}};
+		break;
+		case 'twitter_public':
+			criterio_filtro = {tipo:{$eq:'twit'}};
+		break;
+		case 'direct_message':
+			criterio_filtro = {tipo:{$eq:'direct_message'}};
+		break;
+		case 'tracker':
+			criterio_filtro = {tipo:{$eq:'tracker'}};
+		break;			
+																												
+	}
+
+
+
 
 	function getdatoscuenta(id, callback) {
 		var mid = new ObjectID(id);
@@ -4233,7 +4273,8 @@ exports.totalPendientes = function(req,res){
 			{sentiment:{$exists:false}},
 			criteriopage, 
 			criterioobj, 
-			criteriotipo 
+			criteriotipo,
+			criterio_filtro
 		    ]
 		};
 
@@ -4250,7 +4291,8 @@ exports.totalPendientes = function(req,res){
 				   {'respuestas':{$exists: false}},
 				   criteriopage, 
 				   criterioobj, 
-				   criteriotipo ]};
+				   criteriotipo,
+				   criterio_filtro ]};
 		}else if(datosCuenta[0] && datosCuenta[0].datosMonitoreo){
 			criterio = {
 				$and : [
@@ -4258,6 +4300,7 @@ exports.totalPendientes = function(req,res){
 				    {'atendido': {$exists: false}}, 
 				    {'descartado': {$exists: false}}, 
 				    {'sentiment': {$exists : false}}, 
+					criterio_filtro,
 				  //  {'clasificacion.tema':{$exists: false}},
 				    {'respuestas':{$exists: false}}
 				],
@@ -4274,6 +4317,7 @@ exports.totalPendientes = function(req,res){
 				{'eliminado':{$exists: false}},
 				{'sentiment':{$exists:false}},
 				{'clasificacion':{$exists:false}},
+				criterio_filtro,
 				criteriopage, 
 				criterioobj, 
 				criteriotipo ]};
@@ -4284,15 +4328,19 @@ exports.totalPendientes = function(req,res){
 				    {'descartado': {$exists: false}}, 
 				    {'sentiment': {$exists : false}}, 
 				    {'clasificacion':{$exists: false}},
-				    {'respuestas':{$exists: false}}
+				    {'respuestas':{$exists: false}},
+					criterio_filtro
 				]
 			    };
 			//criterio = {$and : [{{'from_user_id' : {$ne : datosCuenta[0].datosPage.id}},'descartado':{$exists: false}}, {'atendido':{$exists: false}}, {'eliminado':{$exists: false}},{'clasificacion.tema':{$exists:false}},{'clasificacion.tema':{$ne:'Tema'}},{sentiment:{$exists:false}},criteriopage, criterioobj, criteriotipo ]};
 		}
 	    // console.log('Imprimiento query');
+		console.log('Criterio de busqueda');
+		//console.log();
+		 console.log(JSON.stringify(criterio));
 	    classdb.count(coleccion,criterio,{},function(count){
-		// console.log('count !!!!!!!!!');
-		// console.log(count);
+		 console.log('count !!!!!!!!!');
+		 console.log(count);
 		if(count === 'error'){
 		    console.log('error');
 		}else{
@@ -5078,30 +5126,85 @@ exports.nuevosPostsFiltered = function(req, res){
 exports.obtienePorClick = function(req, res){
 	console.log('CLICK !!');
 	console.log(req.body);
+	var tipoMensaje;
+	var criterio_busqueda = {};
+	var opcion = req.body.opcion;
+	var criterio_obj = {};
+	var criterio_exists = {};
+	var criterio_usuario = {};
 	var cuenta = req.body.cuenta;
-	var criterio_busqueda;
-	var criterio_exists;
-	if(req.body.descartado){
+	var criterio_palabra = {};
+	var criterio_sentiment = {};
+	if(opcion !== 'general'){
+		criterio_obj = {obj:opcion};
+	}
+	//si es de nube de terminos
+	if(req.body.palabra){
+		console.log('PALABRA !!!!!!');
+		console.log(req.body.palabra);
+	criterio_palabra = 
+	{$or: 
+	     		[
+		 		{'message' : new RegExp(req.body.palabra,'i')}, 
+		 		{'text' : new RegExp(req.body.palabra,'i')}
+	     		]
+	};
+	}
+	//si es de sentimiento
+	if(req.body.sentiment){
+		criterio_busqueda = {sentiment:{$exists:true}};
+		criterio_sentiment = {sentiment:{$eq:req.body.sentiment}};
+		tipoMensaje = 'atendido';
+	}
+	//si es desempeño de usuario
+	else if (req.body.usuario){
+		var usuario = req.body.usuario;
+		var tipo = req.body.tipo;
+		switch(tipo){
+			case 'descartado':
+				criterio_busqueda = {descartado:{$exists:true}};
+				criterio_usuario = {'descartado.idUsuario':usuario};
+				tipoMensaje = 'descartado';
+				
+			break;
+			case 'atendido':
+				criterio_busqueda = {atendido:{$exists:true}};
+				criterio_usuario = {'atendido.usuario_id':usuario};
+				tipoMensaje = 'atendido';
+			break;
+		}
+	}
+	//si no es desemepeño buscamos tipo de datos
+	else if(req.body.descartado){
+		tipoMensaje = 'descartado';
 		criterio_exists = {descartado:{$exists:true}};
 		criterio_busqueda = {'descartado.motivo':req.body.descartado};
 	}else if(req.body.tema){
+		tipoMensaje = 'atendido';
 		criterio_exists = {clasificacion:{$exists:true}};
 		criterio_busqueda = {'clasificacion.tema':req.body.tema};	
 	}else if(req.body.subtema){
+		tipoMensaje = 'atendido';
 		criterio_exists = {clasificacion:{$exists:true}};
 		criterio_busqueda = {'clasificacion.subtema':req.body.subtema};
 	}
 
-	
 	var criterio =  {$and : [
+		criterio_sentiment,
+		criterio_obj,
 		criterio_exists, 
+		criterio_usuario,
 		criterio_busqueda,
+		criterio_palabra,
 		{created_time : {$lte: new Date(req.body.second)}}, 
 		{created_time: {$gte: new Date(req.body.first)}}
 	]};
-
+	console.log('CRITERIO !');
+	console.log(JSON.stringify(criterio));
 	classdb.buscarToArrayFields(cuenta, criterio, {}, {}, 'feeds/getUserData', function(items){
-
+		for(var i in items){
+			items[i].tipoMensaje = tipoMensaje;
+		}
 		res.jsonp(items);
     });
 };

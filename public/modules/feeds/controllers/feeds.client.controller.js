@@ -261,8 +261,10 @@ angular.module('feeds')
 		NotificacionService.getDesempenio().success(function(data){
 			$scope.totalDesempenioDiario = data;
 		});
-		$http.post('/totalPendientes',{coleccion: Authentication.user.cuenta.marca+'_consolidada',id_cuenta: Authentication.user.cuenta._id}).success(function(data){
+		$scope.tipo = 'todos';
+		$http.post('/totalPendientes',{coleccion: Authentication.user.cuenta.marca+'_consolidada',id_cuenta: Authentication.user.cuenta._id,filtro:$scope.tipo}).success(function(data){
 			$scope.pendientes = parseInt(data);
+			$scope.textoSelectorBandeja = "Nuevos ("+$scope.pendientes+")";
 		});
 		$scope.filter_show = true;
 		$scope.paginacion_a = false;
@@ -480,13 +482,33 @@ angular.module('feeds')
 		};
 		
 		$scope.filtroAccount = function(){
+			var muestraLoadingPrimario = true;
 			var obj = {};
+			
+			//Parametros generales para todos las gráficas
 			obj = {
 					first: $location.$$search.first,
 					second: $location.$$search.second,
-					total: $location.$$search.total,
-					cuenta: $location.$$search.cuenta+'_consolidada'
+					cuenta: $location.$$search.cuenta+'_consolidada',
+					opcion: $location.$$search.opcion
 				};
+			if($location.$$search.total){
+				obj.total = $location.$$search.total;
+			}
+			//La gráfica es de nube de términos
+			if($location.$$search.palabra){
+				obj.palabra = $location.$$search.palabra;
+			}
+			//La gráfica es de sentimiento
+			else if($location.$$search.sentiment){
+				obj.sentiment = $location.$$search.sentiment;
+			}
+			//La gráfica es de tipo desempeño por usuario
+			if($location.$$search.usuario){
+				obj.usuario = $location.$$search.usuario;
+				obj.tipo = $location.$$search.tipo;
+			}
+			//Determinar tipo de grafica
 			if($location.$$search.descartado){
 				obj.descartado = $location.$$search.descartado;
 			}else if($location.$$search.tema){
@@ -494,13 +516,16 @@ angular.module('feeds')
 			}else if($location.$$search.subtema){
 				obj.subtema = $location.$$search.subtema;
 			}
+			
 			console.log('El objeto es ');
 			console.log(obj);
+			
 			$http.post('/obtienePorClick',obj).success(function(data){
-				console.log('DESCARTADOS!');
+				console.log('Datos para mostrar click!');
 				console.log(data);
 				$scope.numeroResultadosBusqueda = data.length;
 				$scope.posts = data;
+			muestraLoadingPrimario = false;
 			});
 		}
 		//comparamos objeto por objeto para saber si es influencer
@@ -670,11 +695,12 @@ angular.module('feeds')
 	    		$scope.loadMoreUnificado();
 	    	}
 	    	if(obj_actualizar.cuenta === Authentication.user.cuenta.marca){
-				$http.post('/totalPendientes',{coleccion: Authentication.user.cuenta.marca+'_consolidada',id_cuenta: Authentication.user.cuenta._id}).success(function(data){
+				$http.post('/totalPendientes',{coleccion: Authentication.user.cuenta.marca+'_consolidada',id_cuenta: Authentication.user.cuenta._id,filtro:$scope.tipo}).success(function(data){
 					$scope.pendientes = parseInt(data);
-					if($scope.tipoBuzon === 'nuevos'){
-						$scope.textoSelectorBandeja = "Nuevos ("+$scope.pendientes+")"
-					}
+					$scope.textoSelectorBandeja = "Nuevos ("+$scope.pendientes+")";
+					/*if($scope.tipoBuzon === 'nuevos'){
+						$scope.textoSelectorBandeja = "Nuevos ("+$scope.pendientes+")";
+					}*/
 				});
 		    	switch($scope.tipoBuzon){
 		    		case 'nuevos':	
@@ -1386,7 +1412,7 @@ angular.module('feeds')
 				});
 			}
 			if(clasificacion.cuenta === $scope.authentication.user.cuenta.marca){
-				$http.post('/totalPendientes',{coleccion: Authentication.user.cuenta.marca+'_consolidada',id_cuenta: Authentication.user.cuenta._id}).success(function(data){
+				$http.post('/totalPendientes',{coleccion: Authentication.user.cuenta.marca+'_consolidada',id_cuenta: Authentication.user.cuenta._id,filtro:$scope.tipo}).success(function(data){
 					$scope.pendientes = parseInt(data);
 				});
 			}
@@ -1838,6 +1864,12 @@ angular.module('feeds')
         $scope.cambioTipoCuenta = function(tipo){
         	$scope.tipo = tipo;
 			$scope.mostrarSelectorRed = false;
+			console.log('Pendientes');
+			console.log($scope.tipo);
+			$http.post('/totalPendientes',{coleccion: Authentication.user.cuenta.marca+'_consolidada',id_cuenta: Authentication.user.cuenta._id,filtro:$scope.tipo}).success(function(data){
+				$scope.pendientes = parseInt(data);
+				$scope.textoSelectorBandeja = "Nuevos ("+$scope.pendientes+")";
+			});
 			switch($scope.tipo){
 				
 				case 'facebook':

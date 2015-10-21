@@ -1717,6 +1717,37 @@ router.post('/', function(req, res){
 	});
     }
 
+    function procesaRating (ratingdata, callback) {
+	var nombrecta = ratingdata.cuenta;
+	var page_id = ratingdata.page_id;
+	var rating = {
+	    id : ratingdata.open_graph_story_id,
+	    rating : ratingdata.rating,
+	    from : {
+		id: ratingdata.reviewer_id,
+		name: ratingdata.reviewer_name
+	    },
+	    created_time: ratingdata.created_time,
+	    page_id : page_id,
+	    cuenta: nombrecta,
+	    rating_link: 'https://www.facebook.com/'+ratingdata.reviewer_id+'/activity/'+ratingdata.open_graph_story_id,
+	    message: ''
+	};
+	if (ratingdata.review_text) {
+	    rating.message = ratingdata.review_text;
+	}
+	guardaBaseMensaje(nombrecta, rating, page_id, ratingdata.acc_ctime, function(resp){
+	    if (resp === 'error' || resp === 'existe') {
+		console.log('rtus/index/procesaRating - '+ratingdata.open_graph_story_id+' '+resp);
+		return callback('rtus/index/procesaRating - '+resp);
+	    }
+	    else {
+		return callback('rtus/index/procesaRating - '+resp);
+	    }
+	}); 
+	
+    }
+
     function procesaConversacion (convdata, callback) {
 	var conversation = {};
 	var nombrecta = convdata.cuenta;
@@ -1816,6 +1847,13 @@ router.post('/', function(req, res){
 			console.log(cambios[index]);
 			procesaPost(token, cambios[index], function(resultado_post) {
 			    console.log(resultado_post);
+			    return asignaCambios(token, cambios, more, callbac);
+			});
+		    }
+		    else if (tipo === 'rating') {
+			console.log(cambios[index]);
+			procesaRating(cambios[index], function(resultado_review) {
+			    console.log(resultado_review);
 			    return asignaCambios(token, cambios, more, callbac);
 			});
 		    }

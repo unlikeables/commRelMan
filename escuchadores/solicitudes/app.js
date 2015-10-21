@@ -5,6 +5,7 @@ var favicon = require('serve-favicon');
 var logger = require('morgan');
 var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
+var engines = require('consolidate');
 
 var getdm = require('./routes/getdm');
 var getpb = require('./routes/getpb');
@@ -21,12 +22,17 @@ var getautofi = require('./routes/getautofi');
 var getautocp = require('./routes/getautocp');
 var getautopp = require('./routes/getautopp');
 var getdesempenio = require('./routes/getdesempenio');
+var getestadisticas = require('./routes/getestadisticas');
 var app = express();
 
 // view engine setup
-app.set('views', path.join(__dirname, 'views'));
-app.set('view engine', 'jade');
+app.set('views', __dirname + '/views');
+app.engine('html', require('ejs').renderFile);
+app.set('view engine', 'html');
 
+/*app.set('views', path.join(__dirname, 'views'));
+app.set('view engine', 'jade');
+*/
 // uncomment after placing your favicon in /public
 //app.use(favicon(__dirname + '/public/favicon.ico'));
 app.use(logger('dev'));
@@ -50,6 +56,8 @@ app.use('/getautofi', getautofi);
 app.use('/getautocp', getautocp);
 app.use('/getautopp', getautopp);
 app.use('/getdesempenio', getdesempenio);
+app.use('/getestadisticas', getestadisticas);
+
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {

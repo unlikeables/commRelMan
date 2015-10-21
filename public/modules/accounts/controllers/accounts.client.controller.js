@@ -37,7 +37,7 @@ Highcharts.setOptions({
     }
 });	
 /*opciones para idioma general de highcharts*/
-	
+
 		    /*si no esta logueado en face*/
 	    $scope.statusLoginFacebook = false;  
 	    if(typeof $scope.authentication.user.additionalProvidersData !== 'undefined'){
@@ -48,7 +48,12 @@ Highcharts.setOptions({
 	$scope.esquemaColores = ['#465769','#005b8a','#aea9fd','#ffc65b','#31d6c5','#fe8081','#dee2eb','#a8d6e3','#f37c00'];
 	$scope.constant = CONSTANT;
     $scope.creaArchivo = function(nombreSistema, opcion){
-
+/* Click en sentimiento para mostrar los mensajes en ventana aparte*/
+$scope.clickSentiment = function (key,value){	
+	if(value === 0)
+		return;
+	window.open($scope.constant.host+'/#!/filtroAccount?first='+fecha_inicial+'&second='+fecha_final+'&sentiment='+key+'&cuenta='+nombreSistema+'&opcion='+opcion);	
+};
 		function obtenPorcentajes(obj, total){
 			var obj_perce = {};
 			for(var i in obj){
@@ -213,9 +218,8 @@ Highcharts.setOptions({
 			    	series.push({
 			        	id:i,
 			        	events:{
-				    		click: function (e,i) {
-								
-								window.open('https://alberto.likeable.mx/#!/filtroAccount?first='+fecha_inicial+'&second='+fecha_final+'&tema='+e.point.name+'&total='+e.point.y+'&cuenta='+nombreSistema);
+				    		click: function (e,i) {	
+								//window.open('https://alberto.likeable.mx/#!/filtroAccount?first='+fecha_inicial+'&second='+fecha_final+'&tema='+e.point.name+'&total='+e.point.y+'&cuenta='+nombreSistema+'&opcion='+opcion);
 				    		}
 						},
 			        	data:[]
@@ -448,7 +452,7 @@ Highcharts.setOptions({
 	    		objTemas.push({name:topTemasDrill[i].name, y:topTemasDrill[i].y,
 				events : {
 					click : function(e,i){
-						window.open('https://alberto.likeable.mx/#!/filtroAccount?first='+fecha_inicial+'&second='+fecha_final+'&tema='+e.point.name+'&total='+e.point.y+'&cuenta='+nombreSistema);	
+						window.open($scope.constant.host+'/#!/filtroAccount?first='+fecha_inicial+'&second='+fecha_final+'&tema='+e.point.name+'&total='+e.point.y+'&cuenta='+nombreSistema+'&opcion='+opcion);	
 					}
 				}
 				});
@@ -621,7 +625,7 @@ Highcharts.setOptions({
 				objSubTemasC.push({name:i,y:graf_subtemas[i],
 				events : {
 					click : function(e,i){
-						window.open('https://alberto.likeable.mx/#!/filtroAccount?first='+fecha_inicial+'&second='+fecha_final+'&subtema='+e.point.name+'&total='+e.point.y+'&cuenta='+nombreSistema);	
+						window.open($scope.constant.host+'/#!/filtroAccount?first='+fecha_inicial+'&second='+fecha_final+'&subtema='+e.point.name+'&total='+e.point.y+'&cuenta='+nombreSistema+'&opcion='+opcion);	
 					}
 				}
 				});
@@ -822,14 +826,13 @@ Highcharts.setOptions({
 */
 
 $http.post('/chartPromedioCasos',{nombreSistema:nombreSistema,fecha_inicial:$scope.dt,fecha_final:$scope.dt2, tipo: opcion}).success(function(data){
-	var total = data.Completos + data.Descartados + data.Entrada + data.Proceso;
-	//var total = data.Atendidos + data.Descartados + data.Nuevos;	
-	console.log('Regresando TOTALES !!!');
-	console.log(data);
+	//var total = data.Completos + data.Descartados + data.Entrada + data.Proceso;
+
+	//data.Completos = data.Completos - data.facebook;
+	var total = data.Completos + data.Descartados + data.Entrada;
 	$scope.totalCasos = total;
 
 	var vistos = total - data.Entrada;
-	//var vistos = total - data.Nuevos;
 
 	var obj = new Array();
 
@@ -860,16 +863,15 @@ $http.post('/chartPromedioCasos',{nombreSistema:nombreSistema,fecha_inicial:$sco
 		
 		if($scope.porcentajeTotalCasos <= 0){
 		$scope.loadingTotalCasos = false;	
-		}
-		
-
-		
+		}	
 		
 /*dona*/		
 		var casos = {};
-		casos.crm = data.Completos + data.Descartados + data.Proceso;
+//		casos.crm = data.Completos + data.Descartados + data.Proceso;
+		casos.crm = data.Completos + data.Descartados;
 		casos.facebook = data.facebook;
-		casos.total = data.Completos + data.Descartados + data.Entrada + data.Proceso + data.facebook;
+//		casos.total = data.Completos + data.Descartados + data.Entrada + data.Proceso + data.facebook;
+		casos.total = data.Completos + data.Descartados + data.Entrada + data.facebook;
 		casos.resto = casos.total - (casos.crm+casos.facebook);
 		console.log(casos);
 		
@@ -1495,7 +1497,7 @@ for(var o in obj){
 						//alert(e.point.name);
 						
 						//window.open($scope.constant.host+'/#!/filtroAccount?first='+fecha_inicial+'&second='+fecha_final+'&descartado='+e.point.name+'&total='+e.point.y);
-						window.open('https://alberto.likeable.mx/#!/filtroAccount?first='+fecha_inicial+'&second='+fecha_final+'&descartado='+e.point.op+'&total='+e.point.y+'&cuenta='+nombreSistema);
+						window.open($scope.constant.host+'/#!/filtroAccount?first='+fecha_inicial+'&second='+fecha_final+'&descartado='+e.point.op+'&total='+e.point.y+'&cuenta='+nombreSistema+'&opcion='+opcion);
 						
 						//document.location = 'google.com?first='+fecha_inicial+'&second='+fecha_final+'&descartado='+e.point.name+'&total='+e.point.y;
 						console.log(e.point);
@@ -1632,6 +1634,8 @@ for(var o in obj){
                                                            |_|                       
 */
 	$http.post('/chartDesempenio',{nombreSistema:nombreSistema,fecha_inicial:$scope.dt,fecha_final:$scope.dt2, tipo: opcion}).success(function(data_desem){
+		console.log('LA DATA Desempeño');
+		console.log(data_desem);
 		var existe_data = 0;
 		if(data_desem !== 'No hubo resultados'){
 			var obj_desem = new Array();
@@ -1652,30 +1656,56 @@ for(var o in obj){
 					}								
 					var totalPorcentaje = (data_desem[i].total / $scope.totalCasos)*100;
 					totalPorcentaje = totalPorcentaje.toFixed(2);
-					arr_names.push('<div class="datos-desempeno"><a title="'+data_desem[i].nombre+': '+totalPorcentaje +'% \nAtendidos: '+data_desem[i].respuestas+'\nResueltos: '+data_desem[i].atendidos+'\nDescartados: '+data_desem[i].descartado+'\nTotal: '+data_desem[i].total+'"><img src="'+miniatura+'" class="circular-ligero" style="width:30px; cursor:pointer; height:30px;border-radius:50%; max-width:100px;"></a></div>');	
-					//arr_names.push('<div class="datos-desempeno"><a title="'+data_desem[i].nombre+': '+totalPorcentaje +'% \nAtendidos: '+data_desem[i].atendidos+'\nDescartados: '+data_desem[i].descartado+'\nTotal: '+data_desem[i].total+'"><img src="'+miniatura+'" class="circular-ligero" style="width:30px; cursor:pointer; height:30px;border-radius:50%; max-width:100px;"></a></div>');	
-					aux_respuestas.push(data_desem[i].respuestas);
+					arr_names.push('<div class="datos-desempeno"><a title="'+data_desem[i].nombre+': '+totalPorcentaje +'% \nAtendidos: '+data_desem[i].atendidos+'\nDescartados: '+data_desem[i].descartado+'\nTotal: '+data_desem[i].total+'"><img src="'+miniatura+'" class="circular-ligero" style="width:30px; cursor:pointer; height:30px;border-radius:50%; max-width:100px;"></a></div>');	
 					aux_atendidos.push(data_desem[i].atendidos);
 					aux_descartado.push(data_desem[i].descartado);
 				}
 			}
+			
+			console.log('auxiliares !!!');
+			console.log(aux_atendidos);
+			console.log(aux_descartado);
+			console.log(aux_respuestas);
+			
 			obj_desem.push({
 				name: 'Descartados',
 				data: aux_descartado,
-				color:'#8ed996'
+				color:'#8ed996',
+				events:{
+				    click: function (e,i) {	
+						console.log(e.point);
+						window.open($scope.constant.host+'/#!/filtroAccount?first='+fecha_inicial+'&second='+fecha_final+'&usuario='+e.point.op+'&tipo='+e.point.tipo+'&cuenta='+nombreSistema+'&opcion='+opcion);
+						//window.open('https://alberto.likeable.mx/#!/filtroAccount?first='+fecha_inicial+'&second='+fecha_final+'&tema='+e.point.name+'&total='+e.point.y+'&cuenta='+nombreSistema);
+					}
+				}
 			});
 			obj_desem.push({
 				name: 'Resueltos',
 				data: aux_atendidos,
 				//data: aux_respuestas,
-				color:'#f67c01'
+				color:'#f67c01',
+				events:{
+				    click: function (e,i) {	
+					//	alert(opcion);
+						console.log(e.point);
+						window.open($scope.constant.host+'/#!/filtroAccount?first='+fecha_inicial+'&second='+fecha_final+'&usuario='+e.point.op+'&tipo='+e.point.tipo+'&cuenta='+nombreSistema+'&opcion='+opcion);
+						//window.open('https://alberto.likeable.mx/#!/filtroAccount?first='+fecha_inicial+'&second='+fecha_final+'&tema='+e.point.name+'&total='+e.point.y+'&cuenta='+nombreSistema);
+					}
+				}
 			});
-			obj_desem.push({
+	
+	/*		obj_desem.push({
 				name: 'Atendidos',
 				//data: aux_atendidos,
 				data: aux_respuestas,
-				color:'#32b9d9'
-			});
+				color:'#32b9d9',
+				events:{
+				    click: function (e,i) {	
+						console.log(e.point);
+						window.open($scope.constant.host+'/#!/filtroAccount?first='+fecha_inicial+'&second='+fecha_final+'&usuario='+e.point.op+'&tipo='+e.point.tipo+'&cuenta='+nombreSistema+'&opcion='+opcion);
+					}
+				}
+			});*/
 			//obj_desem.push({
 				//	name: 'Clasificados',
 				//	data: aux_clasificados,
@@ -2768,9 +2798,36 @@ for(var o in obj){
 				var hashtags = datosRemotos[1].hashtags.splice(0,NumeroMaximoElementosMostrar);	
 				var mentions = datosRemotos[2].menciones.splice(0,NumeroMaximoElementosMostrar);
 				palabras = hashtags.concat(mentions,keywords);
+				console.log('PALABRAS !!!');
+				var list = new Array();
+				/*for(var i in palabras){
+					
+					var aux = palabras[i].text;
+					console.log(palabras[i]);
+					/*palabras[i].handlers = {
+						click:function() {
+							console.log(aux);
+							return function() {
+								window.open($scope.constant.host+'/#!/filtroAccount?first='+fecha_inicio+'&second='+fecha_fin+'&palabra='+aux+'&cuenta='+nombreSistema+'&opcion=general');
+							}
+						}()
+					};
+					palabras[i].link = $scope.constant.host+'/#!/filtroAccount?first='+fecha_inicio+'&second='+fecha_fin+'&palabra='+palabras[i].text+'&cuenta='+nombreSistema+'&opcion=general';
+					palabras[i].link = encodeURI(palabras[i].link);				
+				}*/
 				if(action == 'create'){
 					//console.log('create');
 					$scope.palabras = hashtags.concat(mentions,keywords);
+					/*for(var i in $scope.palabras){
+						console.log($scope.palabras[i]);
+						/*palabras[i].handlers = {
+						click: function() {
+							window.open($scope.constant.host+'/#!/filtroAccount?first='+fecha_inicio+'&second='+fecha_fin+'&palabra='+$scope.palabras[i].text+'&cuenta='+nombreSistema+'&opcion=general');
+						}
+					};
+						palabras[i].link = $scope.constant.host+'/#!/filtroAccount?first='+fecha_inicio+'&second='+fecha_fin+'&palabra='+$scope.palabras[i].text+'&cuenta='+nombreSistema+'&opcion=general';
+						palabras[i].link = encodeURI(palabras[i].link);
+					}*/
 					$(elemento).jQCloud($scope.palabras, { autoResize: true,  height: 350,  shape: 'circle'});
 					$scope.mostrarNubeTerminos = true;
 					$(elemento).jQCloud('update',$scope.palabras);	
@@ -2778,6 +2835,16 @@ for(var o in obj){
 				if(action == 'update'){
 					//console.log('update');
 					palabras =hashtags.concat(mentions,keywords);
+					/*for(var i in palabras){
+						console.log(palabras[i]);
+						/*palabras[i].handlers = {
+							click: function() {
+								window.open($scope.constant.host+'/#!/filtroAccount?first='+fecha_inicio+'&second='+fecha_fin+'&palabra='+palabras[i].text+'&cuenta='+nombreSistema+'&opcion=general');
+								}
+							};
+						palabras[i].link = $scope.constant.host+'/#!/filtroAccount?first='+fecha_inicio+'&second='+fecha_fin+'&palabra='+palabras[i].text+'&cuenta='+nombreSistema+'&opcion=general';
+						palabras[i].link = encodeURI(palabras[i].link);
+					}*/
 					//$(elemento).html(''); 		
 					$(elemento).html('').jQCloud('update',$scope.palabras);
 								
