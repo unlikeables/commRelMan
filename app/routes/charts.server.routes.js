@@ -22,6 +22,9 @@ module.exports = function(app) {
 	app.route('/chartPromedioTiempo')
 		.post(charts.chartPromedioTiempo);
 
+	app.route('/chartDesempenioHora')
+		.post(charts.chartDesempenioHora);
+
 	app.route('/chartNivelServicio')
 		.post(charts.chartNivelServicio);
 

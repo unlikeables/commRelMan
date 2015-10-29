@@ -1143,6 +1143,9 @@ for(var o in obj){
 	}	
 }
 
+console.log('EL OBJ');
+console.log(obj);
+
 /*ajusto nombres de elementos de las graficas*/
 		
 		$scope.chartPromedioCasos = {
@@ -1680,7 +1683,7 @@ for(var o in obj){
 				}
 			});
 			obj_desem.push({
-				name: 'Resueltos',
+				name: 'Atendidos',
 				data: aux_atendidos,
 				//data: aux_respuestas,
 				color:'#f67c01',
@@ -1947,14 +1950,176 @@ for(var o in obj){
 	});
 
 	
-	
-
+$http.post('/chartDesempenioHora',{nombreSistema : nombreSistema, fecha_inicial : $scope.dt, fecha_final : $scope.dt2, tipo: opcion}).success(function(desempenioHora){
+		console.log('LA DATA DE DESEMPENIO HORA');
+		console.log(desempenioHora);
+		$scope.graficaDesempenioHora = {
+			loading : true,
+			options : {
+				chart : {
+					//zoomType: 'x'
+					events : {
+						redraw : function() {
+							$scope.graficaDesempenioHora.loading = false;
+						}
+					}
+				},
+				exporting : {
+					width : 1000,
+					buttons : {
+						contextButton : {
+							menuItems : [{
+								textKey : 'downloadPNG',
+								text : 'Exportar a PNG',
+								onclick : function() {
+									var nombreCorto = 'crecimiento';
+									var nombreCompleto = 'Crecimiento';
+									var nombreMeses = ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"];
+									var fecha1 = new Date($scope.dt);
+									var fecha2 = new Date($scope.dt2);
+									var fechaFinal = fecha1.getDate() + "_" + (nombreMeses[fecha1.getMonth() + 1]) + "_" + fecha1.getFullYear() + '__' + fecha2.getDate() + "_" + (nombreMeses[fecha2.getMonth() + 1]) + "_" + fecha2.getFullYear();
+									this.exportChart({
+										filename : $scope.account + '_' + nombreCorto + '_' + fechaFinal
+									}, {
+										title : {
+											//text:nombreCompleto
+										}
+									});
+								}
+							}]
+						}
+					}
+				}
+			},
+			credits : {
+				enabled : false
+			},
+		    xAxis: {
+		    	title : {
+		    		text : 'Horas'
+		    	},
+		        categories: ['00', '01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12', '13', '14', '15', '16', '17', '18', '19', '20', '21', '22', '23', '24']
+		    },
+	 		yAxis: {
+	 			min : 0,
+	 			allowDecimals : false,
+	            title: {
+	                text: 'Casos'
+	            },
+	            plotLines: [{
+	                value: 0,
+	                width: 1,
+	                color: '#808080'
+	            }]
+	        },
+			series : [
+				{
+					color : '#0DBEC8',
+					name : 'Total de Casos ('+desempenioHora.totalCasos+')',
+					data : [
+						desempenioHora.atendidos.cero + desempenioHora.descartados.cero + desempenioHora.nuevos.cero + desempenioHora.facebook.cero, 
+						desempenioHora.atendidos.una + desempenioHora.descartados.una + desempenioHora.nuevos.una + desempenioHora.facebook.una, 
+						desempenioHora.atendidos.dos + desempenioHora.descartados.dos + desempenioHora.nuevos.dos + desempenioHora.facebook.dos, 
+						desempenioHora.atendidos.tres + desempenioHora.descartados.tres + desempenioHora.nuevos.tres + desempenioHora.facebook.tres, 
+						desempenioHora.atendidos.cuatro + desempenioHora.descartados.cuatro + desempenioHora.nuevos.cuatro + desempenioHora.facebook.cuatro, 
+						desempenioHora.atendidos.cinco + desempenioHora.descartados.cinco + desempenioHora.nuevos.cinco + desempenioHora.facebook.cinco, 
+						desempenioHora.atendidos.seis + desempenioHora.descartados.seis + desempenioHora.nuevos.seis + desempenioHora.facebook.seis, 
+						desempenioHora.atendidos.siete + desempenioHora.descartados.siete + desempenioHora.nuevos.siete + desempenioHora.facebook.siete, 
+						desempenioHora.atendidos.ocho + desempenioHora.descartados.ocho + desempenioHora.nuevos.ocho + desempenioHora.facebook.ocho, 
+						desempenioHora.atendidos.nueve + desempenioHora.descartados.nueve + desempenioHora.nuevos.nueve + desempenioHora.facebook.nueve, 
+						desempenioHora.atendidos.diez + desempenioHora.descartados.diez + desempenioHora.nuevos.diez + desempenioHora.facebook.diez, 
+						desempenioHora.atendidos.once + desempenioHora.descartados.once + desempenioHora.nuevos.once + desempenioHora.facebook.once, 
+						desempenioHora.atendidos.doce + desempenioHora.descartados.doce + desempenioHora.nuevos.doce + desempenioHora.facebook.doce, 
+						desempenioHora.atendidos.trece + desempenioHora.descartados.trece + desempenioHora.nuevos.trece + desempenioHora.facebook.trece,
+						desempenioHora.atendidos.catorce + desempenioHora.descartados.catorce + desempenioHora.nuevos.catorce + desempenioHora.facebook.catorce,
+						desempenioHora.atendidos.quince + desempenioHora.descartados.quince + desempenioHora.nuevos.quince + desempenioHora.facebook.quince, 
+						desempenioHora.atendidos.dieciseis + desempenioHora.descartados.dieciseis + desempenioHora.nuevos.dieciseis + desempenioHora.facebook.dieciseis,
+						desempenioHora.atendidos.diecisiete + desempenioHora.descartados.diecisiete + desempenioHora.nuevos.diecisiete + desempenioHora.facebook.diecisiete,
+						desempenioHora.atendidos.dieciocho + desempenioHora.descartados.dieciocho + desempenioHora.nuevos.dieciocho + desempenioHora.facebook.dieciocho, 
+						desempenioHora.atendidos.diecinueve + desempenioHora.descartados.diecinueve + desempenioHora.nuevos.diecinueve + desempenioHora.facebook.diecinueve, 
+						desempenioHora.atendidos.veinte + desempenioHora.descartados.veinte + desempenioHora.nuevos.veinte + desempenioHora.facebook.veinte, 
+						desempenioHora.atendidos.veintiuno + desempenioHora.descartados.veintiuno + desempenioHora.nuevos.veintiuno + desempenioHora.facebook.veintiuno, 
+						desempenioHora.atendidos.veintidos + desempenioHora.descartados.veintidos + desempenioHora.nuevos.veintidos + desempenioHora.facebook.veintidos, 
+						desempenioHora.atendidos.veintitres + desempenioHora.descartados.veintitres + desempenioHora.nuevos.veintitres + desempenioHora.facebook.veintitres
+					]				
+				},{
+					color:'#f67c01',
+					name : 'Atendidos ('+desempenioHora.totalAtendidos+')',
+					y : 1500,
+					data : [
+						desempenioHora.atendidos.cero, desempenioHora.atendidos.una, 
+						desempenioHora.atendidos.dos, desempenioHora.atendidos.tres, 
+						desempenioHora.atendidos.cuatro, desempenioHora.atendidos.cinco, 
+						desempenioHora.atendidos.seis, desempenioHora.atendidos.siete, 
+						desempenioHora.atendidos.ocho, desempenioHora.atendidos.nueve, 
+						desempenioHora.atendidos.diez, desempenioHora.atendidos.once, 
+						desempenioHora.atendidos.doce, desempenioHora.atendidos.trece, 
+						desempenioHora.atendidos.catorce, desempenioHora.atendidos.quince, 
+						desempenioHora.atendidos.dieciseis, desempenioHora.atendidos.diecisiete, 
+						desempenioHora.atendidos.dieciocho, desempenioHora.atendidos.diecinueve, 
+						desempenioHora.atendidos.veinte, desempenioHora.atendidos.veintiuno, 
+						desempenioHora.atendidos.veintidos, desempenioHora.atendidos.veintitres
+					]
+				},{
+					color:'#8ed996',
+					name : 'Descartados ('+desempenioHora.totalDescartados+')',
+					data : [
+						desempenioHora.descartados.cero, desempenioHora.descartados.una, 
+						desempenioHora.descartados.dos, desempenioHora.descartados.tres, 
+						desempenioHora.descartados.cuatro, desempenioHora.descartados.cinco, 
+						desempenioHora.descartados.seis, desempenioHora.descartados.siete, 
+						desempenioHora.descartados.ocho, desempenioHora.descartados.nueve, 
+						desempenioHora.descartados.diez, desempenioHora.descartados.once, 
+						desempenioHora.descartados.doce, desempenioHora.descartados.trece, 
+						desempenioHora.descartados.catorce, desempenioHora.descartados.quince, 
+						desempenioHora.descartados.dieciseis, desempenioHora.descartados.diecisiete, 
+						desempenioHora.descartados.dieciocho, desempenioHora.descartados.diecinueve, 
+						desempenioHora.descartados.veinte, desempenioHora.descartados.veintiuno, 
+						desempenioHora.descartados.veintidos, desempenioHora.descartados.veintitres
+					]
+				},{
+					color : '#E3684D',
+					name : 'Sin Atender ('+desempenioHora.totalNuevos+')',
+					data : [
+						desempenioHora.nuevos.cero, desempenioHora.nuevos.una, 
+						desempenioHora.nuevos.dos, desempenioHora.nuevos.tres, 
+						desempenioHora.nuevos.cuatro, desempenioHora.nuevos.cinco, 
+						desempenioHora.nuevos.seis, desempenioHora.nuevos.siete, 
+						desempenioHora.nuevos.ocho, desempenioHora.nuevos.nueve, 
+						desempenioHora.nuevos.diez, desempenioHora.nuevos.once, 
+						desempenioHora.nuevos.doce, desempenioHora.nuevos.trece, 
+						desempenioHora.nuevos.catorce, desempenioHora.nuevos.quince, 
+						desempenioHora.nuevos.dieciseis, desempenioHora.nuevos.diecisiete, 
+						desempenioHora.nuevos.dieciocho, desempenioHora.nuevos.diecinueve, 
+						desempenioHora.nuevos.veinte, desempenioHora.nuevos.veintiuno, 
+						desempenioHora.nuevos.veintidos, desempenioHora.nuevos.veintitres
+					]				
+				},{
+					color : '#465769',
+					name : 'Facebook ('+desempenioHora.totalFacebook+')',
+					data : [
+						desempenioHora.facebook.cero, desempenioHora.facebook.una, 
+						desempenioHora.facebook.dos, desempenioHora.facebook.tres, 
+						desempenioHora.facebook.cuatro, desempenioHora.facebook.cinco, 
+						desempenioHora.facebook.seis, desempenioHora.facebook.siete, 
+						desempenioHora.facebook.ocho, desempenioHora.facebook.nueve, 
+						desempenioHora.facebook.diez, desempenioHora.facebook.once, 
+						desempenioHora.facebook.doce, desempenioHora.facebook.trece, 
+						desempenioHora.facebook.catorce, desempenioHora.facebook.quince, 
+						desempenioHora.facebook.dieciseis, desempenioHora.facebook.diecisiete, 
+						desempenioHora.facebook.dieciocho, desempenioHora.facebook.diecinueve, 
+						desempenioHora.facebook.veinte, desempenioHora.facebook.veintiuno, 
+						desempenioHora.facebook.veintidos, desempenioHora.facebook.veintitres
+					]				
+				}
+			],
+			title : {
+				text : ' '
+			},
+			//useHighStocks : true
+		};
+	});   	
 };
-
-
-
-
-
         
 /*grafica crecimiento*/
 	$scope.graficaCrecimiento = {
@@ -2064,6 +2229,13 @@ for(var o in obj){
 /*estas series son para alimentar la gráfica de crecimiento*/
     
 /*grafica crecimiento*/      
+
+
+/*Grafica desempenio Hora*/
+
+/*grafica crecimiento*/
+
+
 
 
 	$scope.getDashboard = function(){

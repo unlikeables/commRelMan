@@ -11,8 +11,9 @@
 <div class="pure-u-md-1-1" id="contenedor-completo" style="height: 100vh !important;">    
   <!--Llamada del side-->
 
-    <div class="pure-u-md-20-24" data-ng-controller="FeedsController" data-ng-init="filtroAccount()" id="contenedor-feed" style="width:100%; margin-top:20px; height:100vh;">
-        <div class="pure-u-md-1-1 twitsBuzon" >
+    <div class="pure-u-md-20-24" data-ng-controller="FeedsController" data-ng-init="filtroAccount()" id="contenedor-feed" style="width:100%; margin-top:20px; height:100vh;"  when-scrolled="loadMoreFiltroAccount()">
+  
+        <div class="pure-u-md-1-1 twitsBuzon" when-scrolled="loadMoreFiltroAccount()">
             <a ng-click="refreshUnificado()" style="position:fixed; z-index: 999; cursor:pointer;left:50%;top:120px;border-radius: 5px; padding: 7px 40px;display:block; opacity: .8" ng-show="nuevos && nuevos != 0" class="bg-naranja txt-blanco"> {{nuevos}} {{ 'New Messages' | translate }}</a>
             <a style="position:fixed; z-index: 999; cursor:pointer;left:50%;top:70px;border-radius: 5px; padding: 7px 40px;display:block; opacity: .8" ng-show="flash" class="bg-naranja txt-blanco">{{flash_text}}</a>
             <div class="pure-u-md-1-1"> 

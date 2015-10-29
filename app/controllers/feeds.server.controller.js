@@ -537,6 +537,7 @@ exports.respondeMailbox = function(req, res){
 		}else{
 			parent = ((mensaje.parent_comment)?mensaje.parent_comment:mensaje.id);
 		}
+		var resp_sin_encode = respuesta;
 		respuesta = encodeURIComponent(respuesta);
 		var options = {
 			'hostname' : 'graph.facebook.com',
@@ -566,7 +567,7 @@ exports.respondeMailbox = function(req, res){
 						respuestas: {
 							'user_name' : nombreUsuario,
 							'user_id' : idUsuario,
-							'texto' : respuesta,
+							'texto' : resp_sin_encode,
 							'timestamp' : new Date(),
 							'id_respuesta' :id_respuesta_facebook.id,
 							'imagen_usuario' : imagenUsuario
@@ -2332,7 +2333,9 @@ exports.obtieneBuzon = function(req, res) {
     if (typeof req.query.organizacion !== 'undefined') {organizacion = req.query.organizacion;}
     if (typeof req.query.tipoBuzon !== 'undefined') {tipoBuzon = req.query.tipoBuzon;}
 
-
+	console.log('Obteniendo el BUZON +++++++++++++++++++++-------------------------');
+	console.log(req.query.tipoBuzon);
+	
 	function regex(string) {
 	    var charac = string;
 	    var accents=  [];
@@ -2405,6 +2408,10 @@ exports.obtieneBuzon = function(req, res) {
 				criteriotipo = {$and: [{ tipo : {$ne : 'direct_message'}},{ tipo : {$ne : 'tracker'}}]};
 			}
 			else if(eltipo === 'facebook_inbox'){
+				criterioobj = { obj : 'facebook' };
+				criteriotipo = { tipo : eltipo};
+			}
+			else if(eltipo === 'rating'){
 				criterioobj = { obj : 'facebook' };
 				criteriotipo = { tipo : eltipo};
 			}
@@ -2557,6 +2564,7 @@ exports.obtieneBuzon = function(req, res) {
 						{'eliminado': {$exists: false}}, 
 						{'sentiment' : {$exists : false}},
 						{'clasificacion' : {$exists : false}},
+						{'respuestas':{$exists:false}},
 						elCreated,
 						criteriopage, 
 						criterioobj, 
@@ -2662,6 +2670,8 @@ exports.obtieneBuzon = function(req, res) {
 				};              
 			}
 		} 
+		console.log('CRITERIO BUSQUEDA BUZON !!!');
+		console.log(JSON.stringify(elcriterio));
 		classdb.buscarToStreamLimit(cole, elcriterio, elsort, ellimit, 'feeds/getMailbox/querybuzon', function(lositems){
 			for(var i=0;i<lositems.length;i++){
 				if(lositems[i].descartado){    
@@ -2730,13 +2740,15 @@ exports.obtieneBuzon = function(req, res) {
 							    }
 							}
 						}
-    				} else if (lositems[i].tipo == 'facebook_inbox') {
-						lositems[i].urlEnlace = lositems[i].conversation_link;
-					}else{
-						//si es un post
-						var id = lositems[i].id.split('_');
-						lositems[i].urlEnlace = 'https://www.facebook.com/'+page_id+'/posts/'+id[1];
-					}        
+    				        } else if (lositems[i].tipo == 'facebook_inbox') {
+					  lositems[i].urlEnlace = lositems[i].conversation_link;
+                                        } else if (lositems[i].tipo == 'post') {
+                                          //si es un post
+                                          var id = lositems[i].id.split('_');
+                                          lositems[i].urlEnlace = 'https://www.facebook.com/'+page_id+'/posts/'+id[1]; 
+				        }else{
+                                          lositems[i].urlEnlace = lositems[i].rating_link;
+				        }        
                 }                               
             }
 			return callback(lositems);
@@ -5135,6 +5147,7 @@ exports.obtienePorClick = function(req, res){
 	var cuenta = req.body.cuenta;
 	var criterio_palabra = {};
 	var criterio_sentiment = {};
+	var skip = req.body.skip;
 	if(opcion !== 'general'){
 		criterio_obj = {obj:opcion};
 	}
@@ -5201,7 +5214,9 @@ exports.obtienePorClick = function(req, res){
 	]};
 	console.log('CRITERIO !');
 	console.log(JSON.stringify(criterio));
-	classdb.buscarToArrayFields(cuenta, criterio, {}, {}, 'feeds/getUserData', function(items){
+	
+	classdb.buscarToStreamLimitSkip(cuenta, criterio,{created_time:1},15, skip,'feeds/getUserData', function(items){
+	//classdb.buscarToArrayFields(cuenta, criterio, {}, {}, 'feeds/getUserData', function(items){
 		for(var i in items){
 			items[i].tipoMensaje = tipoMensaje;
 		}

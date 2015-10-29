@@ -264,7 +264,10 @@ angular.module('feeds')
 		$scope.tipo = 'todos';
 		$http.post('/totalPendientes',{coleccion: Authentication.user.cuenta.marca+'_consolidada',id_cuenta: Authentication.user.cuenta._id,filtro:$scope.tipo}).success(function(data){
 			$scope.pendientes = parseInt(data);
-			$scope.textoSelectorBandeja = "Nuevos ("+$scope.pendientes+")";
+			if($scope.tipoBuzon === 'nuevos'){
+				$scope.textoSelectorBandeja = "Nuevos ("+$scope.pendientes+")";
+			}
+			//$scope.textoSelectorBandeja = "Nuevos ("+$scope.pendientes+")";
 		});
 		$scope.filter_show = true;
 		$scope.paginacion_a = false;
@@ -516,18 +519,35 @@ angular.module('feeds')
 			}else if($location.$$search.subtema){
 				obj.subtema = $location.$$search.subtema;
 			}
-			
+			obj.skip = 0;
 			console.log('El objeto es ');
 			console.log(obj);
-			
+			$scope.obj_filtro_account = obj;
 			$http.post('/obtienePorClick',obj).success(function(data){
 				console.log('Datos para mostrar click!');
 				console.log(data);
 				$scope.numeroResultadosBusqueda = data.length;
 				$scope.posts = data;
-			muestraLoadingPrimario = false;
+				$scope.muestraLoadingPrimario = false;
 			});
 		}
+		
+		$scope.loadMoreFiltroAccount = function(){
+			var obj = $scope.obj_filtro_account;
+			obj.skip += 15;
+			$http.post('/obtienePorClick',obj).success(function(data){
+				console.log('Datos para mostrar click!');
+				console.log(data);
+				for(var i in data){
+					$scope.posts.push(data[i]);
+				}
+				$scope.posts = $scope.posts.filter(function(){return true;}); 
+				$scope.numeroResultadosBusqueda += data.length;
+				$scope.muestraLoadingPrimario = false;
+			});
+		};
+		
+		
 		//comparamos objeto por objeto para saber si es influencer
 	    $scope.isInfluencer = function (index) {
 		    	$http.post('/isInfluencer',{screen_name:$scope.posts[index].user.screen_name, coleccion: 'influencers_'+Authentication.user.cuenta.marca}).success(function(result){
@@ -697,7 +717,10 @@ angular.module('feeds')
 	    	if(obj_actualizar.cuenta === Authentication.user.cuenta.marca){
 				$http.post('/totalPendientes',{coleccion: Authentication.user.cuenta.marca+'_consolidada',id_cuenta: Authentication.user.cuenta._id,filtro:$scope.tipo}).success(function(data){
 					$scope.pendientes = parseInt(data);
-					$scope.textoSelectorBandeja = "Nuevos ("+$scope.pendientes+")";
+					if($scope.tipoBuzon === 'nuevos'){
+						$scope.textoSelectorBandeja = "Nuevos ("+$scope.pendientes+")";
+					}
+					//$scope.textoSelectorBandeja = "Nuevos ("+$scope.pendientes+")";
 					/*if($scope.tipoBuzon === 'nuevos'){
 						$scope.textoSelectorBandeja = "Nuevos ("+$scope.pendientes+")";
 					}*/
@@ -1276,7 +1299,13 @@ angular.module('feeds')
 		Socket.on('mensajeNuevo', function(mensaje){
 
 			if(mensaje.cuenta === Authentication.user.cuenta.marca){
-
+				$http.post('/totalPendientes',{coleccion: Authentication.user.cuenta.marca+'_consolidada',id_cuenta: Authentication.user.cuenta._id,filtro:$scope.tipo}).success(function(data){
+					$scope.pendientes = parseInt(data);
+					if($scope.tipoBuzon === 'nuevos'){
+						$scope.textoSelectorBandeja = "Nuevos ("+$scope.pendientes+")";
+					}
+					//$scope.textoSelectorBandeja = "Nuevos ("+$scope.pendientes+")";
+				});
 				switch($scope.tipo){
 				
 					case 'facebook':
@@ -1779,9 +1808,8 @@ angular.module('feeds')
 
         // Funcion  que sirve para cambiar el filtrado de cada buzon
         $scope.cambioBuzon = function(tipo){
-
+			
         	$scope.tipoBuzon = tipo;
-        	
 			$scope.mostrarSelectorBandeja = false;
 			
 			switch($scope.tipoBuzon){
@@ -1868,7 +1896,10 @@ angular.module('feeds')
 			console.log($scope.tipo);
 			$http.post('/totalPendientes',{coleccion: Authentication.user.cuenta.marca+'_consolidada',id_cuenta: Authentication.user.cuenta._id,filtro:$scope.tipo}).success(function(data){
 				$scope.pendientes = parseInt(data);
-				$scope.textoSelectorBandeja = "Nuevos ("+$scope.pendientes+")";
+				if($scope.tipoBuzon === 'nuevos'){
+						$scope.textoSelectorBandeja = "Nuevos ("+$scope.pendientes+")";
+					}
+				//$scope.textoSelectorBandeja = "Nuevos ("+$scope.pendientes+")";
 			});
 			switch($scope.tipo){
 				

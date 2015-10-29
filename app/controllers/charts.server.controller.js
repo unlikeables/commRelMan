@@ -247,6 +247,11 @@ exports.chartPromedioCasos = function(req, res){
     }
 
     function obtieneNuevos(coleccion, debut, finale, idFb, tipent, callback) {
+		console.log('FECHAS EN ppromedio GRAFICA');
+    	console.log(debut);
+    	console.log(finale);
+    	console.log(idFb);
+		console.log(tipent);
 		var criterioN ={};
 		if(tipoEntrada==='general'){
 			criterioN = { $and: 
@@ -1641,3 +1646,437 @@ exports.getDescartados = function(req, res){
 		});
     });
 };
+/*
+       _                _   _____                                            _       _    _                 
+      | |              | | |  __ \                                          (_)     | |  | |                
+   ___| |__   __ _ _ __| |_| |  | | ___  ___  ___ _ __ ___  _ __   ___ _ __  _  ___ | |__| | ___  _ __ __ _ 
+  / __| '_ \ / _` | '__| __| |  | |/ _ \/ __|/ _ \ '_ ` _ \| '_ \ / _ \ '_ \| |/ _ \|  __  |/ _ \| '__/ _` |
+ | (__| | | | (_| | |  | |_| |__| |  __/\__ \  __/ | | | | | |_) |  __/ | | | | (_) | |  | | (_) | | | (_| |
+  \___|_| |_|\__,_|_|   \__|_____/ \___||___/\___|_| |_| |_| .__/ \___|_| |_|_|\___/|_|  |_|\___/|_|  \__,_|
+                                                           | |                                              
+                                                           |_|                                              
+*/
+exports.chartDesempenioHora = function(req, res){
+    //función opara obtener la cuenta
+    function obtieneCuenta(nomSis, callback){
+		var coleccion = 'accounts';
+		var sort = {};
+		classdb.buscarToArray(coleccion, {'nombreSistema':nomSis}, sort, 'charts/chartDesempenio/obtieneCuenta', function(cuenta){
+	    	return callback(cuenta);
+		});		
+    }
+
+    function obtieneTodos(tipo, nombreSistema, fecha_inicial, fecha_final, idCuenta, callback){
+		var criterio = {};
+		if(tipo === 'general'){
+	    	criterio = { $and:
+				[
+					{'created_time' : {$gte : fecha_inicial }},
+			    	{'created_time' : {$lte : fecha_final }},
+				    {'from_user_id' : {$ne: idCuenta}},
+					{'retweeted_status': {$exists : false}},
+					{'eliminado' : {$exists : false}}
+				]
+			 };
+		}else{
+	    	criterio = { $and:
+				[
+					{'created_time' : {$gte : fecha_inicial }},
+			    	{'created_time' : {$lte : fecha_final }},
+				    {'from_user_id' : {$ne: idCuenta}},
+					{'retweeted_status': {$exists : false}},
+					{'eliminado' : {$exists : false}},
+					{'obj' : tipo}
+			 	]
+			 };
+		} 
+		//classdb.count(nombreSistema+'_consolidada', criterio, 'charts/chartDesempenio/ConsigueDescartado', function(mensajes){	    	
+		classdb.buscarToArray(nombreSistema+'_consolidada', criterio, {}, 'charts/chartDesempenioHora/obtieneTodos', function(mensajes){		    	
+	    	if(mensajes === 'error'){
+				return callback('error');
+	    	}else{
+				return callback(mensajes);
+	    	}
+		});
+    }
+    
+    function obtieneAtendidos(tipo, nombreSistema, fecha_inicial, fecha_final, idCuenta, callback) {
+		var criterio ={};
+		if(tipo ==='general'){
+
+			criterio = { $and: 
+				[
+					{'retweeted_status': {$exists: false}},
+			    	{'created_time' : {$gte : fecha_inicial }},
+			    	{'created_time' : {$lte : fecha_final }},
+				    {'from_user_id' : {$ne: idCuenta}},
+					{'descartado':{$exists: false}}, 
+					{'eliminado':{$exists: false}}, 
+					{'atendido':{$exists: true}}
+				]
+		    };
+		}
+		else{
+
+			criterio = { $and: 
+				[
+					{'retweeted_status': {$exists: false}},
+			    	{'created_time' : {$gte : fecha_inicial }},
+			        {'obj' : tipo},
+			    	{'created_time' : {$lte : fecha_final }},
+				    {'from_user_id' : {$ne: idCuenta}},
+					{'descartado':{$exists: false}}, 
+					{'eliminado':{$exists: false}}, 
+					{'atendido':{$exists: true}}, 
+				]
+		    };
+		}
+		classdb.buscarToArray(nombreSistema+'_consolidada', criterio, {}, 'charts/chartDesempenioHora/obtieneAtendidos', function(mensajesAtendidos){		    	
+	    	if(mensajesAtendidos === 'error'){
+				return callback('error');
+	    	}else{
+				return callback(mensajesAtendidos);
+	    	}
+		});
+    }
+    
+	function obtieneDescartados(tipo, nombreSistema, fecha_inicial, fecha_final, idCuenta, callback) {
+		var criterio ={};
+		if(tipo === 'general'){
+	    	criterio = { $and: 
+				[
+			    	{'descartado' : {$exists : true}},
+					{'created_time' : {$gte : fecha_inicial}},
+					{'created_time' : {$lte : fecha_final}},
+			    	{'from_user_id' : {$ne: idCuenta}},
+			      	{'retweeted_status' : {$exists:false}},
+					{'eliminado' : {$exists : false}}
+			  	]
+			};
+		}
+		else{
+	    	criterio = { $and: 
+				[
+			    	{'descartado' : {$exists : true}},
+					{'created_time' : {$gte : fecha_inicial}},
+					{'created_time' : {$lte : fecha_final}},
+			    	{'from_user_id' : {$ne: idCuenta}},
+					{'obj' : tipo},
+			      	{'retweeted_status' : {$exists:false}},
+					{'eliminado' : {$exists : false}}
+			  	]
+			};
+		}
+
+		classdb.buscarToArray(nombreSistema+'_consolidada', criterio, {}, 'charts/chartDesempenioHora/obtieneAtendidos', function(mensajesDescartados){		    	
+	    	if(mensajesDescartados === 'error'){
+				return callback('error');
+	    	}else{
+				return callback(mensajesDescartados);
+	    	}
+		});
+    }
+
+    function obtieneNuevos(tipo, nombreSistema, fecha_inicial, fecha_final, idCuenta, callback) {
+		var criterio ={};
+		if(tipo === 'general'){
+			criterio = { $and: 
+				[
+					{'created_time' : {$gte : fecha_inicial}},
+					{'created_time' : {$lte : fecha_final}},
+			    	{'from_user_id' : {$ne: idCuenta}},
+			      	{'descartado' : {$exists : false}},
+			      	{'atendido' : {$exists : false}},
+			      	{'sentiment' : {$exists : false}},
+			      	{'clasificacion' : {$exists:false}},
+			      	{'respuestas' : {$exists:false}},
+			      	{'retweeted_status' : {$exists:false}},
+					{'eliminado' : {$exists : false}}
+			  	]
+			};
+		}
+		else{
+			criterio = { $and: 
+				[
+					{'created_time' : {$gte : fecha_inicial}},
+					{'created_time' : {$lte : fecha_final}},
+			    	{'from_user_id' : {$ne: idCuenta}},
+			      	{'obj' : tipo},
+			      	{'descartado' : {$exists : false}},
+			      	{'atendido' : {$exists : false}},
+			      	{'sentiment' : {$exists : false}},
+			      	{'clasificacion' : {$exists:false}},
+			      	{'respuestas' : {$exists:false}},
+			      	{'retweeted_status' : {$exists:false}},
+					{'eliminado' : {$exists : false}}
+			  	]
+			};
+		}
+		classdb.buscarToArray(nombreSistema+'_consolidada', criterio, {}, 'charts/chartDesempenioHora/obtieneNuevos', function(mensajesNuevos){		    	
+	    	if(mensajesNuevos === 'error'){
+				return callback('error');
+	    	}else{
+				return callback(mensajesNuevos);
+	    	}
+		});
+    }
+
+    function obtieneFacebook(tipo, nombreSistema, fecha_inicial, fecha_final, idCuenta, callback) {
+		var criterio = { $and: 
+			 [
+			    {'created_time' : {$gte : fecha_inicial}},
+			    {'created_time' : {$lte : fecha_final}},
+			    {'from_user_id' : {$ne: idCuenta}},
+			    {'retweeted_status' : {$exists:false}},
+			    {'respuestas.user_id':{$eq : 'direct-facebook'}},			
+			    {'eliminado':{$exists: false}}
+			 ]
+		};	
+		classdb.buscarToArray(nombreSistema+'_consolidada', criterio, {}, 'charts/chartDesempenioHora/obtieneFacebook', function(mensajesFacebook){		    	
+	    	if(mensajesFacebook === 'error'){
+				return callback('error');
+	    	}else{
+				return callback(mensajesFacebook);
+	    	}
+		});
+	}
+    
+    function desglosaMensajes(tipo, fecha_inicial, fecha_final, todos, nombreSistema, idCuenta, index, objTodos, callback){
+		var cuantos = todos.length;
+		var more = index+1;
+		if (more > cuantos) {
+	    	return callback (objTodos);
+		}
+		else {
+			setImmediate(function(){
+				var fechaCreated=new Date(todos[index].created_time);
+				var horasCreated=fechaCreated.getHours();
+				var minutosCreated=fechaCreated.getMinutes();
+				var segundosCreated=fechaCreated.getSeconds();
+
+				var horasCreatedConvertidas=horasCreated*3600;
+				var minutosCreatedConvertidos=minutosCreated*60;
+				var totalSegundosCreated=horasCreatedConvertidas+minutosCreatedConvertidos+segundosCreated;
+				
+				if(totalSegundosCreated <= 3600){
+					//Las cero horas
+					objTodos.cero = objTodos.cero + 1;
+					desglosaMensajes(tipo, fecha_inicial, fecha_final, todos, nombreSistema, idCuenta, more, objTodos, callback);
+				}else if(totalSegundosCreated > 3600 && totalSegundosCreated <= 7200){
+					//La una de la mañana
+					objTodos.una = objTodos.una + 1;
+					desglosaMensajes(tipo, fecha_inicial, fecha_final, todos, nombreSistema, idCuenta, more, objTodos, callback);
+				}else if(totalSegundosCreated > 7200 && totalSegundosCreated <= 10800){
+					//Las dos de la mañana
+					objTodos.dos = objTodos.dos + 1;
+					desglosaMensajes(tipo, fecha_inicial, fecha_final, todos, nombreSistema, idCuenta, more, objTodos, callback);
+				}else if(totalSegundosCreated > 10800 && totalSegundosCreated <= 14400){
+					//Las tres de la mañana
+					objTodos.tres = objTodos.tres + 1;
+					desglosaMensajes(tipo, fecha_inicial, fecha_final, todos, nombreSistema, idCuenta, more, objTodos, callback);
+				}else if(totalSegundosCreated > 14400 && totalSegundosCreated <= 18000){
+					//Las cuatro de la mañana
+					objTodos.cuatro = objTodos.cuatro + 1;
+					desglosaMensajes(tipo, fecha_inicial, fecha_final, todos, nombreSistema, idCuenta, more, objTodos, callback);
+				}else if(totalSegundosCreated > 18000 && totalSegundosCreated <= 21600){
+					//Las cinco de la mañana
+					objTodos.cinco = objTodos.cinco + 1;
+					desglosaMensajes(tipo, fecha_inicial, fecha_final, todos, nombreSistema, idCuenta, more, objTodos, callback);
+				}else if(totalSegundosCreated > 21600 && totalSegundosCreated <= 25200){
+					//Las seis de la mañana
+					objTodos.seis = objTodos.seis + 1;
+					desglosaMensajes(tipo, fecha_inicial, fecha_final, todos, nombreSistema, idCuenta, more, objTodos, callback);
+				}else if(totalSegundosCreated > 25200 && totalSegundosCreated <= 28800){
+					//Las siete de la mañana
+					objTodos.siete = objTodos.siete + 1;
+					desglosaMensajes(tipo, fecha_inicial, fecha_final, todos, nombreSistema, idCuenta, more, objTodos, callback);
+				}else if(totalSegundosCreated > 28800 && totalSegundosCreated <= 32400){
+					//Las ocho de la mañana
+					objTodos.ocho = objTodos.ocho + 1;
+					desglosaMensajes(tipo, fecha_inicial, fecha_final, todos, nombreSistema, idCuenta, more, objTodos, callback);
+				}else if(totalSegundosCreated > 32400 && totalSegundosCreated <= 36000){
+					//Las nueve de la mañana
+					objTodos.nueve = objTodos.nueve + 1;
+					desglosaMensajes(tipo, fecha_inicial, fecha_final, todos, nombreSistema, idCuenta, more, objTodos, callback);
+				}else if(totalSegundosCreated > 36000 && totalSegundosCreated <= 39600){
+					//Las diez de la mañana
+					objTodos.diez = objTodos.diez + 1;
+					desglosaMensajes(tipo, fecha_inicial, fecha_final, todos, nombreSistema, idCuenta, more, objTodos, callback);
+				}else if(totalSegundosCreated > 39600 && totalSegundosCreated <= 43200){
+					//Las once de la mañana
+					objTodos.once = objTodos.once + 1;
+					desglosaMensajes(tipo, fecha_inicial, fecha_final, todos, nombreSistema, idCuenta, more, objTodos, callback);
+				}else if(totalSegundosCreated > 43200 && totalSegundosCreated <= 46800){
+					//Las doce de la mañana
+					objTodos.doce = objTodos.doce + 1;
+					desglosaMensajes(tipo, fecha_inicial, fecha_final, todos, nombreSistema, idCuenta, more, objTodos, callback)
+				}else if(totalSegundosCreated > 46800 && totalSegundosCreated <= 50400){
+					//La una de la tarde
+					objTodos.trece = objTodos.trece + 1;
+					desglosaMensajes(tipo, fecha_inicial, fecha_final, todos, nombreSistema, idCuenta, more, objTodos, callback);		
+				}else if(totalSegundosCreated > 50400 && totalSegundosCreated <= 54000){
+					//Las dos de la tarde
+					objTodos.catorce = objTodos.catorce + 1;
+					desglosaMensajes(tipo, fecha_inicial, fecha_final, todos, nombreSistema, idCuenta, more, objTodos, callback);
+				}else if(totalSegundosCreated > 54000 && totalSegundosCreated <= 57600){
+					//Las tres de la tarde
+					objTodos.quince = objTodos.quince + 1;
+					desglosaMensajes(tipo, fecha_inicial, fecha_final, todos, nombreSistema, idCuenta, more, objTodos, callback);
+				}else if(totalSegundosCreated > 57600 && totalSegundosCreated <= 61200){
+					//Las cuatro de la tarde
+					objTodos.dieciseis = objTodos.dieciseis + 1;
+					desglosaMensajes(tipo, fecha_inicial, fecha_final, todos, nombreSistema, idCuenta, more, objTodos, callback);
+				}else if(totalSegundosCreated > 61200 && totalSegundosCreated <= 64800){
+					//Las cinco de la tarde
+					objTodos.diecisiete = objTodos.diecisiete + 1;
+					desglosaMensajes(tipo, fecha_inicial, fecha_final, todos, nombreSistema, idCuenta, more, objTodos, callback);
+				}else if(totalSegundosCreated > 64800 && totalSegundosCreated <= 68400){
+					//Las seis de la tarde
+					objTodos.dieciocho = objTodos.dieciocho + 1;
+					desglosaMensajes(tipo, fecha_inicial, fecha_final, todos, nombreSistema, idCuenta, more, objTodos, callback);
+				}else if(totalSegundosCreated > 68400 && totalSegundosCreated <= 72000){
+					//Las siete de la noche
+					objTodos.diecinueve = objTodos.diecinueve + 1;
+					desglosaMensajes(tipo, fecha_inicial, fecha_final, todos, nombreSistema, idCuenta, more, objTodos, callback);
+				}else if(totalSegundosCreated > 72000 && totalSegundosCreated <= 75600){
+					//Las ocho de la noche
+					objTodos.veinte = objTodos.veinte + 1;
+					desglosaMensajes(tipo, fecha_inicial, fecha_final, todos, nombreSistema, idCuenta, more, objTodos, callback);
+				}else if(totalSegundosCreated > 75600 && totalSegundosCreated <= 79200){
+					//Las nueve de la noche
+					objTodos.veintiuno = objTodos.veintiuno + 1;
+					desglosaMensajes(tipo, fecha_inicial, fecha_final, todos, nombreSistema, idCuenta, more, objTodos, callback);
+				}else if(totalSegundosCreated > 79200 && totalSegundosCreated <= 82800){
+					//Las diez de la noche
+					objTodos.veintidos = objTodos.veintidos + 1;
+					desglosaMensajes(tipo, fecha_inicial, fecha_final, todos, nombreSistema, idCuenta, more, objTodos, callback);
+				}else if(totalSegundosCreated > 82800 && totalSegundosCreated <= 86400){
+					//Las once de la noche
+					objTodos.veintitres = objTodos.veintitres + 1;
+					desglosaMensajes(tipo, fecha_inicial, fecha_final, todos, nombreSistema, idCuenta, more, objTodos, callback);
+				}
+			});
+		}
+    }
+
+    var nombreSistema=req.body.nombreSistema;
+    var fecha_inicial = new Date(req.body.fecha_inicial);
+    var fecha_final = new Date(req.body.fecha_final);
+    var tipoEntrada=req.body.tipo;
+    var arreglo = [];
+    var objeto = {};
+    //Obtenemos la cuenta
+    obtieneCuenta(nombreSistema, function(account){
+		var idCuenta = '';
+		if(typeof account[0] !== 'undefined' && typeof account[0].datosPage !== 'undefined' && account[0].datosPage !== ''){
+	    	idCuenta = account[0].datosPage.id;
+		}
+		else if(typeof account[0] !== 'undefined' && typeof account[0].datosMonitoreo !== 'undefined'){
+	    	idCuenta = account[0].datosMonitoreo.id;
+		}
+		var objetoAtendidos = {
+			'cero' : 0, 'una' : 0, 'dos' : 0, 'tres' : 0,
+			'cuatro' : 0, 'cinco' : 0, 'seis' : 0, 'siete' : 0,
+			'ocho' : 0, 'nueve' : 0, 'diez' : 0, 'once' : 0,
+			'doce' : 0, 'trece' : 0, 'catorce' : 0, 'quince' : 0,
+			'dieciseis' : 0, 'diecisiete' : 0, 'dieciocho' : 0, 'diecinueve' : 0,
+			'veinte' : 0, 'veintiuno' : 0, 'veintidos' : 0, 'veintitres' : 0
+		};
+		
+		var objetoDescartados = {
+			'cero' : 0, 'una' : 0, 'dos' : 0, 'tres' : 0,
+			'cuatro' : 0, 'cinco' : 0, 'seis' : 0, 'siete' : 0,
+			'ocho' : 0, 'nueve' : 0, 'diez' : 0, 'once' : 0,
+			'doce' : 0, 'trece' : 0, 'catorce' : 0, 'quince' : 0,
+			'dieciseis' : 0, 'diecisiete' : 0, 'dieciocho' : 0, 'diecinueve' : 0,
+			'veinte' : 0, 'veintiuno' : 0, 'veintidos' : 0, 'veintitres' : 0
+		};
+		
+		var objetoNuevos = {
+			'cero' : 0, 'una' : 0, 'dos' : 0, 'tres' : 0,
+			'cuatro' : 0, 'cinco' : 0, 'seis' : 0, 'siete' : 0,
+			'ocho' : 0, 'nueve' : 0, 'diez' : 0, 'once' : 0,
+			'doce' : 0, 'trece' : 0, 'catorce' : 0, 'quince' : 0,
+			'dieciseis' : 0, 'diecisiete' : 0, 'dieciocho' : 0, 'diecinueve' : 0,
+			'veinte' : 0, 'veintiuno' : 0, 'veintidos' : 0, 'veintitres' : 0
+		};
+
+		var objetoFacebook = {
+			'cero' : 0, 'una' : 0, 'dos' : 0, 'tres' : 0,
+			'cuatro' : 0, 'cinco' : 0, 'seis' : 0, 'siete' : 0,
+			'ocho' : 0, 'nueve' : 0, 'diez' : 0, 'once' : 0,
+			'doce' : 0, 'trece' : 0, 'catorce' : 0, 'quince' : 0,
+			'dieciseis' : 0, 'diecisiete' : 0, 'dieciocho' : 0, 'diecinueve' : 0,
+			'veinte' : 0, 'veintiuno' : 0, 'veintidos' : 0, 'veintitres' : 0
+		};
+				
+		obtieneAtendidos(tipoEntrada, nombreSistema, fecha_inicial, fecha_final, idCuenta, function(mensajesAtendidos){
+			if(mensajesAtendidos === 'error'){
+				res.jsonp(mensajesAtendidos);
+			}else{
+				objeto.totalAtendidos = mensajesAtendidos.length;
+		    	desglosaMensajes(tipoEntrada, fecha_inicial, fecha_final, mensajesAtendidos, nombreSistema, idCuenta, 0, objetoAtendidos, function(atendidosActualizados){
+		    		if(atendidosActualizados === 'error'){
+		    			res.jsonp(atendidosActualizados);
+		    		}else{
+		    			objeto.atendidos = atendidosActualizados;
+						obtieneDescartados(tipoEntrada, nombreSistema, fecha_inicial, fecha_final, idCuenta, function(mensajesDescartados){
+							if(mensajesDescartados === 'error'){
+								res.jsonp(mensajesDescartados);
+							}else{
+								objeto.totalDescartados = mensajesDescartados.length;
+								desglosaMensajes(tipoEntrada, fecha_inicial, fecha_final, mensajesDescartados, nombreSistema, idCuenta, 0, objetoDescartados, function(descartadosActualizados){
+		    						if(descartadosActualizados === 'error'){
+		    							res.jsonp(descartadosActualizados);
+		    						}else{
+		    							objeto.descartados = descartadosActualizados;
+										obtieneNuevos(tipoEntrada, nombreSistema, fecha_inicial, fecha_final, idCuenta, function(mensajesNuevos){
+											if(mensajesNuevos === 'error'){
+												res.jsonp(mensajesNuevos);
+											}else{
+												objeto.totalNuevos = mensajesNuevos.length;
+												desglosaMensajes(tipoEntrada, fecha_inicial, fecha_final, mensajesNuevos, nombreSistema, idCuenta, 0, objetoNuevos, function(nuevosActualizados){
+						    						if(nuevosActualizados === 'error'){
+						    							res.jsonp(nuevosActualizados);
+						    						}else{
+						 								objeto.nuevos = nuevosActualizados;
+														obtieneFacebook(tipoEntrada, nombreSistema, fecha_inicial, fecha_final, idCuenta, function(mensajesFacebook){
+															if(mensajesFacebook === 'error'){
+																res.jsonp(mensajesFacebook);
+															}else{
+																objeto.totalFacebook = mensajesFacebook.length;
+																desglosaMensajes(tipoEntrada, fecha_inicial, fecha_final, mensajesFacebook, nombreSistema, idCuenta, 0, objetoFacebook, function(facebookActualizados){
+										    						if(facebookActualizados === 'error'){
+										    							res.jsonp(facebookActualizados);
+										    						}else{
+										 								objeto.facebook = facebookActualizados;
+								    									objeto.totalCasos = objeto.totalAtendidos + objeto.totalDescartados + objeto.totalNuevos + objeto.totalFacebook;
+																		res.jsonp(objeto);
+																	}
+																});
+															}
+														});
+													}
+												});
+											}
+										});
+									}
+								});
+		    				}
+				    	});
+					}
+				});	
+		    }
+		});
+    });
+};
+/*
+                 _        _                _   _____                                            _       _    _                 
+                | |      | |              | | |  __ \                                          (_)     | |  | |                
+   ___ _ __   __| |   ___| |__   __ _ _ __| |_| |  | | ___  ___  ___ _ __ ___  _ __   ___ _ __  _  ___ | |__| | ___  _ __ __ _ 
+  / _ \ '_ \ / _` |  / __| '_ \ / _` | '__| __| |  | |/ _ \/ __|/ _ \ '_ ` _ \| '_ \ / _ \ '_ \| |/ _ \|  __  |/ _ \| '__/ _` |
+ |  __/ | | | (_| | | (__| | | | (_| | |  | |_| |__| |  __/\__ \  __/ | | | | | |_) |  __/ | | | | (_) | |  | | (_) | | | (_| |
+  \___|_| |_|\__,_|  \___|_| |_|\__,_|_|   \__|_____/ \___||___/\___|_| |_| |_| .__/ \___|_| |_|_|\___/|_|  |_|\___/|_|  \__,_|
+                                                                              | |                                              
+                                                                              |_|                                              
+*/
