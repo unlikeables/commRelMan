@@ -26,7 +26,7 @@ angular.module('accounts').filter('linksTwitter',['$filter', function($filter) {
     }
 ]).controller('AccountsController', ['$scope', '$http', '$resource', '$stateParams', '$location', 'Authentication', 'Accounts','CONSTANT', function($scope, $http, $resource ,$stateParams, $location, Authentication, Accounts,CONSTANT) {
 	$scope.authentication = Authentication;
-	console.log($scope.authentication);
+//	console.log($scope.authentication);
 	
 /*opciones para idioma general de highcharts*/	
 Highcharts.setOptions({
@@ -118,9 +118,6 @@ $scope.clickSentiment = function (key,value){
 			$scope.numeroSentiment = sentiment;
 		    var total = 0;
 		    for(var x in sentiment){
-		    	//console.log(i);
-		    	//console.log(sentiment);
-		    	//console.log(sentiment[i])
 		    	total += sentiment[x];
 		    }
 		    $scope.sentiment_perce = obtenPorcentajes(sentiment,total);	
@@ -132,13 +129,6 @@ $scope.clickSentiment = function (key,value){
 		   		$scope.mostrarSentiment = true;
 		   	}
 
-
-
-
-
-
-			//console.log('************** objeto temas y subtemas ***************');
-			
 			var temasTemas = [];
 			var subtemasTemas = [];
 			var objTemp = {};
@@ -191,21 +181,6 @@ $scope.clickSentiment = function (key,value){
 				}				
 				
 			}//for 2
-
-
-
-
-			
-			//console.log('objeto temastemas');
-			//console.log(temasTemas);
-			//console.log(subtemasTemas);
-			//console.log('************** objeto temas y subtemas ***************');
-			
-			
-			
-			
-			
-			
 
 		    $scope.sentiment = sentiment;
 		    for(var i  in data){
@@ -327,12 +302,7 @@ $scope.clickSentiment = function (key,value){
 				$scope.mostrarTemasDrill = true;
 			}else{
 				$scope.mostrarTemasDrill = false;
-			}
-			
-			
-			
-			
-						
+			}			
 
 			$scope.config = {
 				loading:true,
@@ -346,23 +316,17 @@ $scope.clickSentiment = function (key,value){
 							}
 						}
 					},
-
-
-				drilldown : {
-
-					drillUpButton : {
-						relativeTo : 'spacingBox',
-						position : {
-							y : 0,
-							x : -40
-						}
-
+					drilldown : {
+						drillUpButton : {
+							relativeTo : 'spacingBox',
+							position : {
+								y : 0,
+								x : -40
+							}
+						},
+						 allowPointDrilldown: false,
+						 series : subtemasTemas
 					},
-					 allowPointDrilldown: false,
-					 series : subtemasTemas
-				},
-
-					
 					legend : {
 						align : 'right',
 						verticalAlign : 'middle',
@@ -462,17 +426,6 @@ $scope.clickSentiment = function (key,value){
 			}else{
 				$scope.mostrarTemas = false;
  			}
-			/*for(var i in array){
-	    		objTemas.push({name:array[i].name, y:array[i].y});
-	    		//objTemas.push({name:array[i].name, y:array[i].y,color:$scope.esquemaColores[i]});
-
-			}
-			if(objTemas.length > 0){
-				$scope.mostrarTemas = true;
-			}else{
-				$scope.mostrarTemas = false;
-			}*/
-			
 			
 			for(var t in objTemas){
 				objTemas[t].color = $scope.esquemaColores[t];
@@ -845,7 +798,6 @@ $http.post('/chartPromedioCasos',{nombreSistema:nombreSistema,fecha_inicial:$sco
 	obj.sort(function (a, b){
 		return (b.y - a.y);
 	});
-
 	if(total === 0){
 		$scope.mostrarPromedioCasos = false;
 	}else{
@@ -865,16 +817,69 @@ $http.post('/chartPromedioCasos',{nombreSistema:nombreSistema,fecha_inicial:$sco
 		$scope.loadingTotalCasos = false;	
 		}	
 		
-/*dona*/		
 		var casos = {};
 //		casos.crm = data.Completos + data.Descartados + data.Proceso;
 		casos.crm = data.Completos + data.Descartados;
 		casos.facebook = data.facebook;
 //		casos.total = data.Completos + data.Descartados + data.Entrada + data.Proceso + data.facebook;
-		casos.total = data.Completos + data.Descartados + data.Entrada + data.facebook;
-		casos.resto = casos.total - (casos.crm+casos.facebook);
-		console.log(casos);
-		
+		var arregloDona = [];
+		if(opcion === 'twitter'){
+			casos.total = data.Completos + data.Descartados + data.Entrada;
+			casos.resto = casos.total - casos.crm;
+			arregloDona = [{
+					type : 'pie',
+					name : 'Número de Casos',
+					innerSize : '50%',
+					data : [
+					{
+						index:0,
+						name: 'Atendidos en CRM',
+						color: '#0DBEC8',
+						y: casos.crm					
+					},
+					{
+						index:1,
+						name: 'No Atendidos',
+						color: '#EBEEF3',
+						y: casos.resto
+					}
+					],
+				dataLabels: {
+					enabled:false
+				}					
+				}];		
+		}else{
+			casos.total = data.Completos + data.Descartados + data.Entrada + data.facebook;
+			casos.resto = casos.total - (casos.crm+casos.facebook);
+			arregloDona = [{
+					type : 'pie',
+					name : 'Número de Casos',
+					innerSize : '50%',
+					data : [
+					{
+						index:0,
+						name: 'Atendidos en CRM',
+						color: '#0DBEC8',
+						y: casos.crm					
+					},
+					{	
+						index:1,
+						name: 'Atendidos en Facebook',
+						color: '#4A669F',
+						y: casos.facebook
+					},
+					{
+						index:2,
+						name: 'No Atendidos',
+						color: '#EBEEF3',
+						y: casos.resto
+					}
+					],
+				dataLabels: {
+					enabled:false
+				}					
+				}];		
+		}		
 			$scope.chartDona = {
 				loading : true,
 				options : {
@@ -969,167 +974,11 @@ $http.post('/chartPromedioCasos',{nombreSistema:nombreSistema,fecha_inicial:$sco
 					
 				},
 
-				series : [{
-					type : 'pie',
-					name : 'Número de Casos',
-					innerSize : '50%',
-					data : [
-					{
-						index:0,
-						name: 'Atendidos en CRM',
-						color: '#0DBEC8',
-						y: casos.crm					
-					},
-					{	
-						index:1,
-						name: 'Atendidos en Facebook',
-						color: '#4A669F',
-						y: casos.facebook
-					},
-					{
-						index:2,
-						name: 'No Atendidos',
-						color: '#EBEEF3',
-						y: casos.resto
-					}
-					],
-				dataLabels: {
-					enabled:false
-				}					
-				}],
+				series : arregloDona,
 
 			}
 /*dona*/
-		
-		
-		/*$scope.chartTotalCasos = {
-			loading : true,
-			options: {
-				tooltip:{
-					enabled:false
-				},
-				chart: {
-					events:{
-						redraw:function(){
-							//setTimeout(function(){$scope.loadingTotalCasos = false;},100);
-							$scope.chartTotalCasos.loading = false;
-						}
-					},
-					type: 'solidgauge',
-					//height:300
-				},
-				//tooltip: { borderColor:'#465769', backgroundColor:'#465769',color:'#ffffff' },
-				//height:200,
-				credits:{
-					enabled:false
-				},
-				pane: {
-					center: ['50%', '50%'],
-					size: '100%',
-					startAngle: -90,
-					endAngle: 90,
-					background: {
-						backgroundColor:'#EEE',
-						innerRadius: '60%',
-						outerRadius: '100%',
-						shape: 'arc'
-					}
-				},
-
-				
-				exporting: { 
-					//width: 1000,
-					chartOptions:{
-						width: 2000,
-						margin:[100,100,100,100]
-					},
-					buttons: { 
-						contextButton: {
-							//text: 'Exportar', 
-							menuItems:[{
-								textKey : 'downloadPNG',
-								text: 'Exportar a PNG',
-								onclick : function() {		
-									var nombreCorto = 'total_de_casos';
-									var nombreCompleto = 'Total de Casos';
-									var nombreMeses = ["Ene", "Feb", "Mar", "Abr", "May", "Jun","Jul", "Ago", "Sep", "Oct", "Nov", "Dic"];
-									var fecha1 = new Date($scope.dt); 
-									var fecha2 = new Date($scope.dt2);
-									var fechaFinal = fecha1.getDate()+"_"+(nombreMeses[fecha1.getMonth()+1])+"_"+fecha1.getFullYear()+'__'+fecha2.getDate()+"_"+(nombreMeses[fecha2.getMonth()+1])+"_"+fecha2.getFullYear();	 
-									this.exportChart({
-										filename : $scope.account+'_'+nombreCorto+'_'+fechaFinal
-									},{
-										title:{
-											//text:nombreCompleto
-										}
-									});
-								}
-							}]
-						}
-					}
-				}
-			},
-			series: [{
-				data: [vistos],
-				dataLabels: {
-					enabled:true,
-                    backgroundColor: '#fff',
-                    borderWidth: 0,
-                    style:{
-                    	fontWeight: 400
-                    },
-					format: '<div style="text-align:center; border:0px !important;"><span style="font-size:14px;color:black;">{y} de '+total+' Casos</span><br/>'
-				}
-			}],
-			title: {
-				text: $scope.porcentajeTotalCasos+'%',
-				//text:' ',
-				//y: 0,
-				style:{
-					fontWeight: 'bold',
-					fontSize:'30px'
-				}
-			},
-			xAxis: {
-				tickInterval: 500
-			},			        
-			yAxis: {
-				currentMin: 0,
-				currentMax: total,
-				title: {
-					y: 140
-				},      
-				stops: [
-					[0.1, '#DF5353'], // red
-					[0.5, '#DDDF0D'], // yellow
-					[0.9, '#55BF3B'] // green
-				],
-				lineWidth: 0,
-				tickInterval: 1000,
-				minorTickInterval: null,
-				tickPixelInterval: 400,
-				tickWidth: 0,
-				labels: {
-					y: 16
-				}   
-			},
-			plotOptions: {
-				solidgauge: {
-					dataLabels: {
-						enabled:false,
-						y: 5,
-						borderWidth: 0,
-						useHTML: true
-					}
-            }            
-        	},	
-		
-
-
-		}*/
-		
-		
-		
+	
 		//$scope.loadingTotalCasos = false;
 		$scope.loadingPromedioCasos = true;
 		$scope.tipoPromedioCasos = 'pie';
@@ -1139,13 +988,12 @@ for(var o in obj){
 		obj[o].name = 'Atendidos';
 	}
 	if(obj[o].name == 'Completos'){
-		obj[o].name = 'Resueltos';
+		obj[o].name = 'Atendidos';
+	}	
+	if(obj[o].name == 'facebook'){
+		obj[o].name = 'Atendidos en FB';
 	}	
 }
-
-console.log('EL OBJ');
-console.log(obj);
-
 /*ajusto nombres de elementos de las graficas*/
 		
 		$scope.chartPromedioCasos = {
@@ -1637,8 +1485,6 @@ console.log(obj);
                                                            |_|                       
 */
 	$http.post('/chartDesempenio',{nombreSistema:nombreSistema,fecha_inicial:$scope.dt,fecha_final:$scope.dt2, tipo: opcion}).success(function(data_desem){
-		console.log('LA DATA Desempeño');
-		console.log(data_desem);
 		var existe_data = 0;
 		if(data_desem !== 'No hubo resultados'){
 			var obj_desem = new Array();
@@ -1768,7 +1614,7 @@ console.log(obj);
 						reversed: true
 					},
 					scrollbar: {
-            			enabled:true,
+            			enabled:false,
 					},		
 					plotOptions: {
 			
@@ -1945,14 +1791,63 @@ console.log(obj);
                                                                                               | |          
                                                                                               |_|          
 */
+	$http.post('/chartRating',{nombreSistema : nombreSistema, fecha_inicial : $scope.dt, fecha_final : $scope.dt2, tipo: opcion}).success(function(dataRating){
+		console.log('LA RESPUESTA DE CHART RATING');
+		console.log(dataRating);
+		if(dataRating === 0){
+			$scope.mostrarRating = false;
+		}else{
+			$scope.mostrarRating = true;
+		}
+		$scope.rating = dataRating;
+
+
+	});
+
+
 	$http.post('/chartPromedioTiempo',{nombreSistema:nombreSistema,fecha_inicial:$scope.dt,fecha_final:$scope.dt2, tipo: opcion}).success(function(data_promedio_tiempo){
 		$scope.chartPromedioTiempo = data_promedio_tiempo;
 	});
 
 	
 $http.post('/chartDesempenioHora',{nombreSistema : nombreSistema, fecha_inicial : $scope.dt, fecha_final : $scope.dt2, tipo: opcion}).success(function(desempenioHora){
-		console.log('LA DATA DE DESEMPENIO HORA');
-		console.log(desempenioHora);
+		var totalAT = 0;
+		var arregloAT = [];
+		if(opcion === 'twitter'){
+			totalAT = desempenioHora.totalAtendidos - desempenioHora.totalFacebook;
+			arregloAT = [
+				desempenioHora.atendidos.cero, desempenioHora.atendidos.una, 
+				desempenioHora.atendidos.dos, desempenioHora.atendidos.tres, 
+				desempenioHora.atendidos.cuatro, desempenioHora.atendidos.cinco, 
+				desempenioHora.atendidos.seis, desempenioHora.atendidos.siete, 
+				desempenioHora.atendidos.ocho, desempenioHora.atendidos.nueve, 
+				desempenioHora.atendidos.diez, desempenioHora.atendidos.once, 
+				desempenioHora.atendidos.doce, desempenioHora.atendidos.trece, 
+				desempenioHora.atendidos.catorce, desempenioHora.atendidos.quince, 
+				desempenioHora.atendidos.dieciseis, desempenioHora.atendidos.diecisiete, 
+				desempenioHora.atendidos.dieciocho, desempenioHora.atendidos.diecinueve, 
+				desempenioHora.atendidos.veinte, desempenioHora.atendidos.veintiuno, 
+				desempenioHora.atendidos.veintidos, desempenioHora.atendidos.veintitres
+			];
+		}else{
+			totalAT = desempenioHora.totalAtendidos;
+			arregloAT = [		
+				desempenioHora.atendidos.cero + desempenioHora.facebook.cero, desempenioHora.atendidos.una + + desempenioHora.facebook.una, 
+				desempenioHora.atendidos.dos + desempenioHora.facebook.dos, desempenioHora.atendidos.tres + desempenioHora.facebook.tres, 
+				desempenioHora.atendidos.cuatro + desempenioHora.facebook.cuatro, desempenioHora.atendidos.cinco + desempenioHora.facebook.cinco, 
+				desempenioHora.atendidos.seis + desempenioHora.facebook.seis, desempenioHora.atendidos.siete + desempenioHora.facebook.siete, 
+				desempenioHora.atendidos.ocho + desempenioHora.facebook.ocho, desempenioHora.atendidos.nueve + desempenioHora.facebook.nueve, 
+				desempenioHora.atendidos.diez + desempenioHora.facebook.diez, desempenioHora.atendidos.once + desempenioHora.facebook.once, 
+				desempenioHora.atendidos.doce + desempenioHora.facebook.doce, desempenioHora.atendidos.trece + desempenioHora.facebook.trece, 
+				desempenioHora.atendidos.catorce + desempenioHora.facebook.catorce, desempenioHora.atendidos.quince + desempenioHora.facebook.quince, 
+				desempenioHora.atendidos.dieciseis + desempenioHora.facebook.dieciseis, desempenioHora.atendidos.diecisiete + desempenioHora.facebook.diecisiete, 
+				desempenioHora.atendidos.dieciocho + desempenioHora.facebook.dieciocho, desempenioHora.atendidos.diecinueve + desempenioHora.facebook.diecinueve, 
+				desempenioHora.atendidos.veinte + desempenioHora.facebook.veinte, desempenioHora.atendidos.veintiuno + desempenioHora.facebook.veintiuno, 
+				desempenioHora.atendidos.veintidos + desempenioHora.facebook.veintidos, desempenioHora.atendidos.veintitres + desempenioHora.facebook.veintitres
+			];
+		} 
+
+
 		$scope.graficaDesempenioHora = {
 			loading : true,
 			options : {
@@ -2043,25 +1938,12 @@ $http.post('/chartDesempenioHora',{nombreSistema : nombreSistema, fecha_inicial 
 						desempenioHora.atendidos.veintitres + desempenioHora.descartados.veintitres + desempenioHora.nuevos.veintitres + desempenioHora.facebook.veintitres
 					]				
 				},{
-					color:'#f67c01',
+					color:'#32d285',
 					name : 'Atendidos ('+desempenioHora.totalAtendidos+')',
 					y : 1500,
-					data : [
-						desempenioHora.atendidos.cero, desempenioHora.atendidos.una, 
-						desempenioHora.atendidos.dos, desempenioHora.atendidos.tres, 
-						desempenioHora.atendidos.cuatro, desempenioHora.atendidos.cinco, 
-						desempenioHora.atendidos.seis, desempenioHora.atendidos.siete, 
-						desempenioHora.atendidos.ocho, desempenioHora.atendidos.nueve, 
-						desempenioHora.atendidos.diez, desempenioHora.atendidos.once, 
-						desempenioHora.atendidos.doce, desempenioHora.atendidos.trece, 
-						desempenioHora.atendidos.catorce, desempenioHora.atendidos.quince, 
-						desempenioHora.atendidos.dieciseis, desempenioHora.atendidos.diecisiete, 
-						desempenioHora.atendidos.dieciocho, desempenioHora.atendidos.diecinueve, 
-						desempenioHora.atendidos.veinte, desempenioHora.atendidos.veintiuno, 
-						desempenioHora.atendidos.veintidos, desempenioHora.atendidos.veintitres
-					]
+					data : arregloAT
 				},{
-					color:'#8ed996',
+					color:'#95A4C2',
 					name : 'Descartados ('+desempenioHora.totalDescartados+')',
 					data : [
 						desempenioHora.descartados.cero, desempenioHora.descartados.una, 
@@ -2094,7 +1976,8 @@ $http.post('/chartDesempenioHora',{nombreSistema : nombreSistema, fecha_inicial 
 						desempenioHora.nuevos.veinte, desempenioHora.nuevos.veintiuno, 
 						desempenioHora.nuevos.veintidos, desempenioHora.nuevos.veintitres
 					]				
-				},{
+				}
+				/*,{
 					color : '#465769',
 					name : 'Facebook ('+desempenioHora.totalFacebook+')',
 					data : [
@@ -2111,7 +1994,7 @@ $http.post('/chartDesempenioHora',{nombreSistema : nombreSistema, fecha_inicial 
 						desempenioHora.facebook.veinte, desempenioHora.facebook.veintiuno, 
 						desempenioHora.facebook.veintidos, desempenioHora.facebook.veintitres
 					]				
-				}
+				}*/
 			],
 			title : {
 				text : ' '
@@ -2223,6 +2106,8 @@ $http.post('/chartDesempenioHora',{nombreSistema : nombreSistema, fecha_inicial 
         ]
 
     }
+
+
 
     );
     
@@ -2970,7 +2855,6 @@ $http.post('/chartDesempenioHora',{nombreSistema : nombreSistema, fecha_inicial 
 				var hashtags = datosRemotos[1].hashtags.splice(0,NumeroMaximoElementosMostrar);	
 				var mentions = datosRemotos[2].menciones.splice(0,NumeroMaximoElementosMostrar);
 				palabras = hashtags.concat(mentions,keywords);
-				console.log('PALABRAS !!!');
 				var list = new Array();
 				/*for(var i in palabras){
 					

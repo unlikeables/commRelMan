@@ -1731,7 +1731,9 @@ router.post('/', function(req, res){
 	    page_id : page_id,
 	    cuenta: nombrecta,
 	    rating_link: 'https://www.facebook.com/'+ratingdata.reviewer_id+'/activity/'+ratingdata.open_graph_story_id,
-	    message: ''
+	    message: '',
+            obj: 'facebook',
+            tipo: 'rating'
 	};
 	if (ratingdata.review_text) {
 	    rating.message = ratingdata.review_text;

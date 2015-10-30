@@ -306,9 +306,6 @@ angular.module('feeds')
 		    	$http.get('getOneContent?colec='+notificacion.coleccion+'&mo_id='+notificacion.mongo_id).then(function(data){
 				    var obj = data.data;
 				    obj.mongo_id = notificacion._id;
-				    console.log('Imprimiendo ids ');
-				    console.log(obj.mongo_id);
-				    console.log(obj._id);
 				    delete obj.conversacion;
 				    obj.conversacion = new Array();
 				    obj.conv_cuenta=obj.conv_cuenta+1;
@@ -1237,8 +1234,9 @@ angular.module('feeds')
 		        		}
 		        		var tam = _.size($scope.posts);
 		        		//tam = tam -1;
-
-		        		$scope.posts = $scope.posts.filter(function(){return true;}); 
+		        		if($scope.posts){
+			        		$scope.posts = $scope.posts.filter(function(){return true;}); 
+		        		}
 		        		var contador = 0;
 		        		for(var s in $scope.posts){
 						
@@ -1912,6 +1910,10 @@ angular.module('feeds')
 				case 'facebook_inbox':
 				$scope.textoSelectorRed = "<i class='fa fa-facebook' style='color:#375697;'></i>&nbsp;Privado";
 				break;
+
+				case 'rating':
+				$scope.textoSelectorRed = "<i class='fa fa-facebook' style='color:#375697;'></i>&nbsp;Rating";
+				break;
 				
 				case 'twitter':
 				$scope.textoSelectorRed = "<i class='fa fa-twitter' style='color:#375697;'></i>&nbsp;General";
@@ -2286,7 +2288,6 @@ angular.module('feeds')
 			}else{
 			    (function(w) {
 				$scope.getUserPhoto($scope.posts[w].atendido.usuario_id, function(conv) {
-					console.log(conv);
 				    if(conv[0]){
 						if(conv[0].hasOwnProperty('imagen_src') === true){
 							 $scope.posts[w].atendido.usuario_foto = conv[0].imagen_src;

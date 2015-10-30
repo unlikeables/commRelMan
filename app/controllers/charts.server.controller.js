@@ -352,7 +352,9 @@ exports.chartPromedioCasos = function(req, res){
 												obj.Completos = atendidos;
 												//obj.Proceso = enproceso;
 												obj.Descartados = descartados;
-												obj.facebook = facebook;
+												if(tipoEntrada !== 'twitter'){
+													obj.facebook = facebook;
+												}
 												console.log('Finalizo chartPromedioCasos');
 												console.log(obj);
 												res.jsonp(obj);
@@ -2050,7 +2052,12 @@ exports.chartDesempenioHora = function(req, res){
 										    							res.jsonp(facebookActualizados);
 										    						}else{
 										 								objeto.facebook = facebookActualizados;
-								    									objeto.totalCasos = objeto.totalAtendidos + objeto.totalDescartados + objeto.totalNuevos + objeto.totalFacebook;
+										 								if(tipoEntrada !== 'twitter'){
+									    									objeto.totalAtendidos = objeto.totalAtendidos + objeto.totalFacebook;
+																		}
+								    									objeto.totalCasos = objeto.totalAtendidos + objeto.totalDescartados + objeto.totalNuevos;
+																		
+								    								//	objeto.totalCasos = objeto.totalAtendidos + objeto.totalDescartados + objeto.totalNuevos + objeto.totalFacebook;
 																		res.jsonp(objeto);
 																	}
 																});
@@ -2080,3 +2087,126 @@ exports.chartDesempenioHora = function(req, res){
                                                                               | |                                              
                                                                               |_|                                              
 */
+
+exports.chartRating = function(req,res){
+	console.log('LA INFO');
+	console.log(req.body);
+	
+	function obtieneCuenta(nombreSistema, callback){
+		var coleccion = 'accounts';
+		var sort = {};
+		classdb.buscarToArray(coleccion, {'nombreSistema' : nombreSistema}, sort, 'charts/chartDesempenio/obtieneCuenta', function(cuenta){
+	    	return callback(cuenta);
+		});		
+    }
+
+    function obtieneTodos(tipo, nombreSistema, fecha_inicial, fecha_final, idCuenta, callback){
+		var criterio = {};
+		if(tipo === 'general'){
+	    	criterio = { $and:
+				[
+					{'created_time' : {$gte : fecha_inicial }},
+			    	{'created_time' : {$lte : fecha_final }},
+				    {'from_user_id' : {$ne: idCuenta}},
+					{'retweeted_status': {$exists : false}},
+					{'eliminado' : {$exists : false}},
+					{'obj' : 'facebook'},
+					{'tipo' : 'rating'}
+				]
+			 };
+		}else{
+	    	criterio = { $and:
+				[
+					{'created_time' : {$gte : fecha_inicial }},
+			    	{'created_time' : {$lte : fecha_final }},
+				    {'from_user_id' : {$ne: idCuenta}},
+					{'retweeted_status': {$exists : false}},
+					{'eliminado' : {$exists : false}},
+					{'obj' : 'facebook'},
+					{'tipo' : 'rating'}
+			 	]
+			 };
+		} 
+		//classdb.count(nombreSistema+'_consolidada', criterio, 'charts/chartDesempenio/ConsigueDescartado', function(mensajes){	    	
+		classdb.buscarToArray(nombreSistema+'_consolidada', criterio, {}, 'charts/chartRating/obtieneTodos', function(mensajes){		    	
+	    	if(mensajes === 'error'){
+				return callback('error');
+	    	}else{
+				return callback(mensajes);
+	    	}
+		});
+    }
+
+	function desglosaRating(rating, index, objetoRating, callback){
+		setImmediate(function(){
+			for(var i = 0 ; i < rating.length; i++){
+				switch(rating[i].rating){
+					case 0 :
+						objetoRating.ceroEstrellas = objetoRating.ceroEstrellas + 1;
+					break;
+
+					case 1:
+						objetoRating.unaEstrella = objetoRating.unaEstrella + 1;
+					break;
+
+					case 2:
+						objetoRating.dosEstrellas = objetoRating.dosEstrellas + 1;
+					break;
+
+					case 3:
+						objetoRating.tresEstrellas = objetoRating.tresEstrellas + 1;
+					break;
+
+					case 4:
+						objetoRating.cuatroEstrellas = objetoRating.cuatroEstrellas + 1;
+					break;
+
+					case 5:
+						objetoRating.cincoEstrellas = objetoRating.cincoEstrellas + 1;
+					break;
+					default:
+						console.log('ESTRELLAS NO VALIDAS');
+
+				}
+			}
+			return callback(objetoRating);
+		});
+	}
+    
+    var nombreSistema=req.body.nombreSistema;
+    var fecha_inicial = new Date(req.body.fecha_inicial);
+    var fecha_final = new Date(req.body.fecha_final);
+    var tipoEntrada=req.body.tipo;
+    //Obtenemos la cuenta
+    obtieneCuenta(nombreSistema, function(account){
+		var idCuenta = '';
+		if(typeof account[0] !== 'undefined' && typeof account[0].datosPage !== 'undefined' && account[0].datosPage !== ''){
+	    	idCuenta = account[0].datosPage.id;
+		}
+		else if(typeof account[0] !== 'undefined' && typeof account[0].datosMonitoreo !== 'undefined'){
+	    	idCuenta = account[0].datosMonitoreo.id;
+		}
+
+		obtieneTodos(tipoEntrada, nombreSistema, fecha_inicial, fecha_final, idCuenta, function(mensajesRating){
+			if(mensajesRating === 'error'){
+				res.jsonp(mensajesRating);
+			}else{
+				if(mensajesRating.length>0){
+					var objetoRating = {};
+					objetoRating.cincoEstrellas = 0;
+					objetoRating.cuatroEstrellas = 0;
+					objetoRating.tresEstrellas = 0;
+					objetoRating.dosEstrellas = 0;
+					objetoRating.unaEstrella = 0;
+					objetoRating.ceroEstrellas = 0; 
+					desglosaRating(mensajesRating, 0, objetoRating, function(resRating){
+						res.jsonp(resRating);
+					});
+				}else{
+					res.jsonp(0);
+				}
+			}
+		});
+	});
+
+};

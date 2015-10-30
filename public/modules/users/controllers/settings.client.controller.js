@@ -221,6 +221,7 @@ angular
 			}else if(data===1){
 				$scope.mensajeActualizacion='Usuario Actualizado';
 				$scope.listadoEquipo();
+				$scope.usuariosTeam($scope.idCuentaSelect,$scope.nombreCuentadefault);
 				$scope.idEdicion='';
 			}
 		});

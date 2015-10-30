@@ -78,6 +78,13 @@
                                                 <a href="{{twit.conversation_link}}" target="_blank" class="etiqueta-facebook izq" data-ng-if="twit.tipo == 'facebook_inbox'" style="margin-left: 10px;" title="{{ 'Direct Message' | translate }}">Facebook</a>
                                                 <label class="etiqueta-facebook izq" data-ng-if="twit.tipo == 'facebook_inbox'" style="width: 20px; margin-left: 5px;"><i class="fa fa-lock" style="font-size: 10px !important;"></i></label>
                                                 <!--si es un inbox-->
+
+                                                <!--Rating-->
+                                                <a href="{{twit.rating_link}}" target="_blank" class="etiqueta-facebook izq" data-ng-if="twit.tipo == 'rating'" style="margin-left: 10px;" title="{{ 'Rating' | translate }}">Facebook</a>
+                                                <label class="etiqueta-facebook izq" data-ng-if="twit.tipo == 'rating'" style="width: 30px; margin-left: 5px;"><i class="fa fa-star" style="font-size: 10px !important;">{{twit.rating}}</i></label>
+                                                <!--Rating-->
+
+                                            
                                                 <label class="etiqueta-gris izq"  style="margin-left: 5px;">{{twit.created_time | date:'d MMM yy'}}</label>
                                                 <label class="etiqueta-gris izq"  style="margin-left: 5px;text-transform:lowercase;">{{twit.created_time | date:'h:mm a'}}</label>
                                             </p>    
@@ -195,6 +202,28 @@
                 ng-model-options='{ debounce: 2000 }' ng-change="busqueda()" style="float:left; height:33px; border: 1px solid #ccc; background: url('/modules/core/img/search.png') no-repeat right;background-size: 20px 20px; padding-left:40px; background-position: 3% 50%; width: calc(100% - 40px) !important;" placeholder="Filtrar por Nombre">
             </div>
 
+            <div style="float:left; display: block; margin-right: 4%; width: 20%;">
+          
+                
+                <div class="combo-mamon"  >
+                	<label data-ng-click="seleccionarRed()" data-ng-bind-html="textoSelectorRed"></label>
+                	<ul data-ng-show="mostrarSelectorRed">
+                		<li data-ng-click="cambioTipoCuenta('todos')">Todos</li>
+                		<li class="titulo facebook" id="comboRedes"><i class="fa fa-facebook"></i> Facebook</li>
+                		<li data-ng-click="cambioTipoCuenta('facebook')">&nbsp;General</li>
+                		<li data-ng-click="cambioTipoCuenta('facebook_public')">&nbsp;Público</li>
+                		<li data-ng-click="cambioTipoCuenta('facebook_inbox')">&nbsp;Privado</li>
+                		<li data-ng-click="cambioTipoCuenta('rating')">&nbsp;Rating</li>
+                		<li class="titulo twitter"><i class="fa fa-twitter"></i> Twitter</li>
+                		<li data-ng-click="cambioTipoCuenta('twitter')">&nbsp;General</li>
+                		<li data-ng-click="cambioTipoCuenta('twitter_public')">&nbsp;Público</li>
+                		<li data-ng-click="cambioTipoCuenta('direct_message')">&nbsp;Privado</li>                		
+                        <li data-ng-click="cambioTipoCuenta('tracker')">&nbsp;Trackers</li>                       
+                	</ul>
+                </div>
+                
+            </div>
+
             <div style="float:left; display: block; margin-right: 4%; width: 20%;">      
                 <div class="combo-mamon" >
                     <label data-ng-click="seleccionarBandeja()"  id="comboBandeja" data-ng-bind-html="textoSelectorBandeja"></label>
@@ -207,28 +236,6 @@
                     </ul>
                 </div>                          
             </div>
-
-            <div style="float:left; display: block; margin-right: 4%; width: 20%;">
-          
-                
-                <div class="combo-mamon"  >
-                	<label data-ng-click="seleccionarRed()" data-ng-bind-html="textoSelectorRed"></label>
-                	<ul data-ng-show="mostrarSelectorRed">
-                		<li data-ng-click="cambioTipoCuenta('todos')">Todos</li>
-                		<li class="titulo facebook" id="comboRedes"><i class="fa fa-facebook"></i> Facebook</li>
-                		<li data-ng-click="cambioTipoCuenta('facebook')">&nbsp;General</li>
-                		<li data-ng-click="cambioTipoCuenta('facebook_public')">&nbsp;Público</li>
-                		<li data-ng-click="cambioTipoCuenta('facebook_inbox')">&nbsp;Privado</li>
-                		<li class="titulo twitter"><i class="fa fa-twitter"></i> Twitter</li>
-                		<li data-ng-click="cambioTipoCuenta('twitter')">&nbsp;General</li>
-                		<li data-ng-click="cambioTipoCuenta('twitter_public')">&nbsp;Público</li>
-                		<li data-ng-click="cambioTipoCuenta('direct_message')">&nbsp;Privado</li>                		
-                        <li data-ng-click="cambioTipoCuenta('tracker')">&nbsp;Trackers</li>                       
-                	</ul>
-                </div>
-                
-            </div>
-            
 
             <div style="float: left; display: block; width: 20%;">
 
@@ -245,8 +252,17 @@
             
 
 
-        </div>      
-        <div class="pure-u-md-1-1 twitsBuzon" ng-class="{'quita_scroll':quita_scroll,'no-post':!hayPost,'no-result':numeroResultadosBusqueda <= 0 && busquedaActiva}" id="contenedor_feeds" when-scrolled="loadMoreUnificado('getMailbox')">
+        </div>  
+
+        <div class="pure-u-md-1-1 twitsBuzon" ng-show="!hayPost" id="contenedor_feeds" >
+			<div class="no-post" style="width:100%; height : 100%;" ng-show="!palabra"></div>
+			<div class="no-postFiltro" style="width:100%; height : 100%;" ng-show="palabra"></div>
+
+	    </div>
+
+
+
+        <div class="pure-u-md-1-1 twitsBuzon" ng-class="{'quita_scroll':quita_scroll}" id="contenedor_feeds" when-scrolled="loadMoreUnificado('getMailbox')" ng-show="hayPost">
             <a ng-click="refreshUnificado()" style="position:fixed; z-index: 999; cursor:pointer;left:50%;top:120px;border-radius: 5px; padding: 7px 40px;display:block; opacity: .8" ng-show="nuevos && nuevos != 0" class="bg-naranja txt-blanco"> {{nuevos}} {{ 'New Messages' | translate }}</a>
             <a style="position:fixed; z-index: 999; cursor:pointer;left:50%;top:70px;border-radius: 5px; padding: 7px 40px;display:block; opacity: .8" ng-show="flash" class="bg-naranja txt-blanco">{{flash_text}}</a>
             <div class="pure-u-md-1-1">
@@ -301,7 +317,11 @@
                                             <a href="{{twit.conversation_link}}" target="_blank" class="etiqueta-facebook izq" data-ng-if="twit.tipo == 'facebook_inbox'" style="margin-left: 10px;" title="{{ 'Direct Message' | translate }}">Facebook</a>
                                             <label class="etiqueta-facebook izq" data-ng-if="twit.tipo == 'facebook_inbox'" style="width: 20px; margin-left: 5px;"><i class="fa fa-lock" style="font-size: 10px !important;"></i></label>
                                             <!--si es un inbox-->
-                                            <!--etiquetas dependiendo del buzón-->
+                                           
+                                            <!--Rating-->
+                                            <a href="{{twit.rating_link}}" target="_blank" class="etiqueta-facebook izq" data-ng-if="twit.tipo == 'rating'" style="margin-left: 10px;" title="{{ 'Rating' | translate }}">Facebook</a>
+                                            <label class="etiqueta-facebook izq" data-ng-if="twit.tipo == 'rating'" style="width: 30px; margin-left: 5px;"><i class="fa fa-star" style="font-size: 10px !important;">{{twit.rating}}</i></label>
+                                            <!--Rating-->                                            <!--etiquetas dependiendo del buzón-->
 					    <div class="grupo-etiquetas-hora" data-ng-bind-html="twit.created_time | etiquetasFecha"></div>
 					    <label class="etiqueta-{{twit.tipoMensaje}} izq"  style="margin-left: 5px; text-transform:lowercase; text-transform: capitalize;">{{twit.tipoMensaje}}</label>
 					    <label data-ng-show="twit.descartado" class="etiqueta-{{twit.descartado.motivo}} izq" style="margin-top:0px; float: right; margin-left: 5px; border-radius: 3px; font-size: 9px;font-weight: 300;text-transform: capitalize;">{{twit.descartado.motivo | translate}}</label>
@@ -431,7 +451,6 @@
                 </ul>  
                 <!--Imagen de Carga con scroll-->
                 <div ng-show="muestraLoading" id="muestraLoading" align="center">
-                    <link rel="stylesheet" href="http://css-spinners.com/css/spinners.css" type="text/css">
                     <div class="loader" align="center">
                         <div class="signal"></div>
                           
@@ -489,7 +508,13 @@
                                                 </a>
                                                 <label data-ng-if="items[0].tipo == 'facebook_inbox'" class="etiqueta-facebook izq txt-blanco"  style="width: 20px; margin-left: 5px;" title="{{ 'Private Message' | translate }}">
                                                     <i class="fa fa-lock" style="font-size: 10px !important;"></i>
-                                                </label>                                                               
+                                                </label>   
+                                                <!--Rating-->
+                                                <a href="{{items[0].rating_link}}" target="_blank" class="etiqueta-facebook izq" data-ng-if="items[0].tipo == 'rating'" style="margin-left: 10px;" title="{{ 'Rating' | translate }}">Facebook</a>
+                                                <label class="etiqueta-facebook izq" data-ng-if="items[0].tipo == 'rating'" style="width: 30px; margin-left: 5px;"><i class="fa fa-star" style="font-size: 10px !important;">{{items[0].rating}}</i></label>
+                                                <!--Rating-->
+
+
 <div class="grupo-etiquetas-hora" data-ng-bind-html="items[0].created_time | etiquetasFecha"></div>
                                             <!--etiquetas dependiendo del buzón-->
 					    <label class="etiqueta-{{items[0].tipoMensaje}} izq"  style="margin-left: 5px; margin-top: 14px; text-transform: capitalize;">{{items[0].tipoMensaje}}</label>

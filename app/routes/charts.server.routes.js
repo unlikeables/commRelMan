@@ -42,4 +42,7 @@ module.exports = function(app) {
 
 	app.route('/getDescartados')
 		.post(charts.getDescartados);
+
+	app.route('/chartRating')
+		.post(charts.chartRating);
 };

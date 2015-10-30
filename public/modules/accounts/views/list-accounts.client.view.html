@@ -606,11 +606,11 @@
 								<h1>{{ 'Total Cases' | translate }}</h1>
 							</div>
 							
-							<div class="grafica" data-ng-if="porcentajeTotalCasos > 0">
+							<div class="grafica" data-ng-if="mostrarPromedioCasos == true">
 								<highchart config='chartDona'></highchart>
 								<!--<highchart config='chartTotalCasos'></highchart>-->
 							</div>
-							<div class="pure-u-md-1-1 pure-u-sm-1-1"  data-ng-if="porcentajeTotalCasos <= 0">
+							<div class="pure-u-md-1-1 pure-u-sm-1-1"  data-ng-if="mostrarPromedioCasos == false">
 							<img src="/modules/core/img/no-data-no-text.png" style="max-width: 100%; height: auto;"/>
 							<p style="font-size: 22px !important;">No hay casos atendidos<br/>en este periodo</p>								
 							</div>
@@ -673,8 +673,8 @@
 									<!--si hay data-->
 									<!--si no hay data-->
 									<div class="pure-u-md-1-1 pure-u-sm-1-1 izq" data-ng-show="!chartPromedioTiempo.tipo" align="center">
-										<img src="/modules/core/img/no-data-no-text.png" style="max-width: 100%; height: auto;"/>
-										<p style="font-size: 22px !important;">No existe suficiente data<br/>para generar esta gráfica</p>
+										<img src="/modules/core/img/no-data-no-text.png" style="max-width: 42%; height: auto;"/>
+										<p style="font-size: 16px !important;">No existe suficiente data<br/>para generar esta gráfica</p>
 									</div>
 									<!--si no hay data-->
 									
@@ -693,7 +693,7 @@
 								<!--		<h1>{{ 'Sentiment' | translate }}</h1>-->
 								<h1>Sentimientos</h1>
 							</div>
-							<div class="grafica" data-ng-show="mostrarSentiment" data-ng-class="{'alto200':mostrarSentiment}">
+							<div class="grafica" data-ng-show="mostrarSentiment" style="height:220px !important;" data-ng-class="{'alto200':mostrarSentiment}">
 
 								<div class="perce_sentiment" align="center">
 									<table style="width: 150px; margin:auto;">
@@ -715,12 +715,91 @@
 							</div>
 
 							<div class="pure-u-md-1-1 pure-u-sm-1-1 izq" data-ng-show="!mostrarSentiment" align="center">
-								<img src="/modules/core/img/no-data-no-text.png" style="max-width: 100%; height: auto;"/>
-								<p style="font-size: 22px !important;">No existe suficiente data<br/>para generar esta gráfica</p>
+								<img src="/modules/core/img/no-data-no-text.png" style="max-width: 42%; height: auto;"/>
+								<p style="font-size: 16px !important;">No existe suficiente data<br/>para generar esta gráfica</p>
 							</div>
 
 						</div>
-						<!--SENTIMENT-->							
+						<!--SENTIMENT-->	
+
+						<!--RATING-->
+						<div class="contenedor-grafica" style="width: 92%;">
+							<div class="titulo">
+								<h1>Rating</h1>
+							</div>
+							<div class="grafica" data-ng-show="mostrarRating">
+
+								<div class="perce_sentiment" align="center" style="margin-top: 0px !important;">
+								<center>
+									<table border="1" style="border-collapse:collapse;color:#000000;width:90%" cellpadding="3" cellspacing="3" align="center">
+										<tr>
+											<td align="left">
+												<span style="padding-left:8%!important;"></span>
+												<img src="/modules/core/img/star.svg" style="width:10%; height:auto;"/>
+												<img src="/modules/core/img/star.svg" style="width:10%; height:auto;"/>
+												<img src="/modules/core/img/star.svg" style="width:10%; height:auto;"/>
+												<img src="/modules/core/img/star.svg" style="width:10%; height:auto;"/>
+												<img src="/modules/core/img/star.svg" style="width:10%; height:auto;"/>
+											</td>
+											<td align="center" width="20%">
+												{{rating.cincoEstrellas}}
+											</td>
+										</tr>
+										<tr>
+											<td align="left">
+												<span style="padding-left:8%!important;"></span>
+												<img src="/modules/core/img/star.svg" style="width:10%; height:auto;"/>
+												<img src="/modules/core/img/star.svg" style="width:10%; height:auto;"/>
+												<img src="/modules/core/img/star.svg" style="width:10%; height:auto;"/>
+												<img src="/modules/core/img/star.svg" style="width:10%; height:auto;"/>
+											</td>
+											<td align="center" width="20%">
+												{{rating.cuatroEstrellas}}
+											</td>
+										</tr>
+										<tr>
+											<td align="left">
+												<span style="padding-left:8%!important;"></span>
+												<img src="/modules/core/img/star.svg" style="width:10%; height:auto;"/>
+												<img src="/modules/core/img/star.svg" style="width:10%; height:auto;"/>
+												<img src="/modules/core/img/star.svg" style="width:10%; height:auto;"/>
+											</td>
+											<td align="center" width="20%">
+												{{rating.tresEstrellas}}
+											</td>
+										</tr>
+										<tr>
+											<td align="left">
+												<span style="padding-left:8%!important;"></span>
+												<img src="/modules/core/img/star.svg" style="width:10%; height:auto;"/>
+												<img src="/modules/core/img/star.svg" style="width:10%; height:auto;"/>
+											</td>
+											<td align="center" width="20%">
+												{{rating.dosEstrellas}}
+											</td>
+										</tr>
+										<tr>
+											<td align="left">
+												<span style="padding-left:8%!important;"></span>
+												<img src="/modules/core/img/star.svg" style="width:10%; height:auto;"/>
+											</td>
+											<td align="center" width="20%">
+												{{rating.unaEstrella}}
+											</td>
+										</tr>
+									</table>
+									</center>
+								</div>
+
+							</div>
+
+							<div class="pure-u-md-1-1 pure-u-sm-1-1 izq" data-ng-show="!mostrarRating" align="center">
+								<img src="/modules/core/img/no-data-no-text.png" style="max-width: 42%; height: auto;"/>
+								<p style="font-size: 16px !important;">No existe suficiente data<br/>para generar esta gráfica</p>
+							</div>
+
+						</div>
+						<!--RATING-->							
 							
 						</div>
 

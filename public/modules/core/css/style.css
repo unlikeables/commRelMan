@@ -4126,6 +4126,12 @@ section{
 	background-repeat:no-repeat;
 }
 
+.no-postFiltro{
+  background-image:url(../img/noPostsFiltro.png);
+  background-position:center;
+  background-repeat:no-repeat;
+}
+
 
 .no-result{
 	background-image:url(../img/no-result-text.png) !important;
