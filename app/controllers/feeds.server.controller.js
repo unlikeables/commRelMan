@@ -4240,12 +4240,16 @@ exports.totalPendientes = function(req,res){
 			criterio_filtro = {
 				$or: [ 
 					{'tipo':{$eq: 'comment'}}, 
-					{'tipo':{$eq:'post'}}
+					{'tipo':{$eq:'post'}},
+					{'tipo':{$eq:'rating'}}
 				]
 			};
 		break;
 		case 'facebook_inbox':
 			criterio_filtro = {tipo:{$eq:'facebook_inbox'}};
+		break;	
+		case 'rating':
+			criterio_filtro = {tipo:{$eq:'rating'}};
 		break;	
 		case 'twitter':
 			criterio_filtro = {obj:{$eq:'twitter'}};
