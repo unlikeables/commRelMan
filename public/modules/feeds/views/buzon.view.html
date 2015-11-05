@@ -43,6 +43,7 @@
                                     <a ng-switch on="twit.obj">
                                         <!--fotos twitter-->
                                         <img data-ng-if="twit.obj == 'twitter' && twit.tipo == 'twit'" src="{{(twit.user.profile_image_url_https)?twit.user.profile_image_url_https:'/modules/core/img/usuario-sem-imagem.png'}}" style="width:44px; height:44px; border:solid 2px #404040 !important; cursor: default !important;" class="circular"/>
+
                                         <img data-ng-if="twit.obj == 'twitter' && twit.tipo == 'direct_message'" src="{{(twit.sender.profile_image_url_https)?twit.sender.profile_image_url_https:'/modules/core/img/usuario-sem-imagem.png'}}" style="width:44px; height:44px; border:solid 2px #404040 !important; cursor: default !important;" class="circular"/>
                                        
                                         <!--fotos twitter-->
@@ -281,21 +282,8 @@
                         <div class="mensaje-cont limpiar">
                             <div class="usuario">
                                 <div class="notificacion" data-ng-show="twit.influencers"></div>
-									
-                                <a ng-switch on="twit.obj">
-                                    <!--fotos twitter-->
-                                    <img data-ng-if="twit.obj == 'twitter' && twit.tipo == 'twit'" ng-src="{{twit.user.profile_image_url_https}}" fallback-image="/modules/core/img/usuario-sem-imagem.png" style="width:44px; height:44px; border:solid 2px #404040 !important; cursor: default !important;" class="circular"/>
-                                    <img data-ng-if="twit.obj == 'twitter' && twit.tipo == 'direct_message'" src="{{(twit.sender.profile_image_url_https)?twit.sender.profile_image_url_https:'/modules/core/img/usuario-sem-imagem.png'}}" style="width:44px; height:44px; border:solid 2px #404040 !important; cursor: default !important;" class="circular"/>
-                                    <!--fotos twitter-->
-                                    <img ng-switch-when="twitter_dm" src="{{(twit.user.profile_image_url_https)?twit.user.profile_image_url_https:'/modules/core/img/usuario-sem-imagem.png'}}" style="width:44px; height:44px; border:solid 2px #404040 !important; cursor: default !important;" class="circular"/>
-                                    <img data-ng-if="twit.obj == 'facebook' && twit.tipo != 'facebook_inbox' " src="{{(twit.foto)?twit.foto:'/modules/core/img/usuario-sem-imagem.png'}}" style="width:44px; height:44px; border:solid 2px #404040 !important; cursor: default !important;" class="circular"/>
-                                  	<!--imagen trackers-->  
-                                   <img data-ng-if="twit.obj === 'twitter' && twit.tipo === 'tracker'" data-ng-src="{{twit.user.profile_image_url_https}}" fallback-image="/modules/core/img/usuario-sem-imagem.png" style="width:44px; height:44px; border:solid 2px #404040 !important; cursor: default !important;" class="circular" />
-                                   <!--imagen trackers-->                                      
-                                </a>
-                                <a data-ng-if ="twit.tipo == 'facebook_inbox'">
-                                     <img fallback-image="/modules/core/img/usuario-sem-imagem.png" ng-src="https://graph.facebook.com/{{twit.from.id}}/picture" style="width:44px; height:44px; border:solid 2px #404040 !important; cursor: default !important;" class="circular"/>
-                                </a>
+                                <!--Imagen -->
+                                    <img src="{{twit.imagen_https}}" style="width:44px; height:44px; border:solid 2px #404040 !important; cursor: default !important;" class="circular"/>                             
                             </div>
                             <!--datos-->
                             <div class="datos" ng-switch on="twit.obj">
@@ -432,7 +420,7 @@
 											<li data-ng-show="(twit.tipo === 'twit' || twit.tipo === 'tracker') && !twit.follower" translate ng-click="follow(twit)">Follow</li>
                                             <li data-ng-show="(twit.tipo === 'twit' || twit.tipo === 'tracker') && twit.follower" ng-click="unFollow(twit)" style="border-bottom:solid 3px #465769">Dejar de Seguir</li>
 											<li data-ng-show="(twit.tipo === 'twit' || twit.tipo === 'tracker') && !twit.influencer" data-ng-controller="ModalDemoCtrl" data-ng-click="openNuevo(twit)" style="border-bottom:solid 3px #465769">Agregar Influencer</li>
-                                            <li data-ng-show="(twit.tipoMensaje === 'nuevo') && (authentication.user.roles[0] === 'app-manager' ||  authentication.user.roles[0] === 'account-manager')" data-ng-controller="ModalDemoCtrl" data-ng-click="asignarMensaje(twit)">Asignar</li>
+                                            <li data-ng-show="(twit.tipoMensaje === 'nuevo')" data-ng-controller="ModalDemoCtrl" data-ng-click="asignarMensaje(twit)">Asignar</li>
                                             <li data-ng-show="twit.tipoMensaje === 'nuevo' || twit.tipoMensaje === 'atendido'" data-ng-controller="ModalDemoCtrl" data-ng-click="openDescartados({{twit}})" translate>Reject</li>
                                             <li data-ng-show="twit.tipoMensaje === 'completo' || twit.tipoMensaje === 'descartado'" data-ng-controller="ModalDemoCtrl" ng-click="openRegresaDescartados(twit)">{{ 'Return to entries' | translate }}​</li>
                                         </ul>
@@ -486,8 +474,9 @@
                             <li>
                                 <div class="respuesta-cont">
                                     <div class="foto">
-                                        <img data-ng-if ="items[0].tipo != 'facebook_inbox'" src="{{(items[0].foto)?items[0].foto:'/modules/core/img/usuario-sem-imagem.png'}}" class="circular" style="width:44px; height: 44px; max-width: 1000px;" />
-                                        <img data-ng-if ="items[0].tipo == 'facebook_inbox'" src="https://graph.facebook.com/{{items[0].from.id}}/picture" class="circular" style="width:44px; height: 44px; max-width: 1000px;"/>
+                                        <img src="{{items[0].imagen_https}}" class="circular" style="width:44px; height: 44px; max-width: 1000px;"/>
+                                        <!--<img data-ng-if ="items[0].tipo != 'facebook_inbox'" src="{{(items[0].foto)?items[0].foto:'/modules/core/img/usuario-sem-imagem.png'}}" class="circular" style="width:44px; height: 44px; max-width: 1000px;" />
+                                        <img data-ng-if ="items[0].tipo == 'facebook_inbox'" src="https://graph.facebook.com/{{items[0].from.id}}/picture" class="circular" style="width:44px; height: 44px; max-width: 1000px;"/>-->
                                     </div>
                                     <div class="contenido">
                                         <div class="pure-u-md-1-1">
@@ -711,8 +700,7 @@
                                 <div class="respuesta-cont">
                                     <div class="foto">
                                         <!--fotos twitter-->
-                                        <img data-ng-if="items[0].obj == 'twitter' && (items[0].tipo == 'twit' || items[0].tipo == 'tracker')" src="{{(items[0].user.profile_image_url_https)?items[0].user.profile_image_url_https:'/modules/core/img/usuario-sem-imagem.png'}}" style="width:44px; height:44px; border:solid 2px #404040 !important; cursor: default !important;" class="circular"/>
-                                        <img data-ng-if="items[0].obj == 'twitter' && items[0].tipo == 'direct_message'" src="{{(items[0].sender.profile_image_url_https)?items[0].sender.profile_image_url_https:'/modules/core/img/usuario-sem-imagem.png'}}" style="width:44px; height:44px; border:solid 2px #404040 !important; cursor: default !important;" class="circular"/>
+                                        <img src="{{items[0].imagen_https}}" style="width:44px; height:44px; border:solid 2px #404040 !important; cursor: default !important;" class="circular"/>
                                     </div>
                                     <div class="contenido">
                                         <div class="pure-u-md-1-1">

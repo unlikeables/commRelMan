@@ -229,21 +229,26 @@ function get_trackAccounts_array(thedata, configCuentas, callback) {
 };
 
 function follows_de_ctas(follows_accs, index, losfollows, callback) {
-  var more = index+1;
-  var cuantasctas = follows_accs.length;
-  if (more > cuantasctas) {
+  if (typeof follows_accs === 'undefined') {
     return callback(losfollows);
   }
   else {
-    setImmediate(function(){
-      if (!follows_accs || !follows_accs[index]) {
-	return follows_de_ctas(follows_accs, more, losfollows, callback);
-      }
-      else {
-	losfollows.push(follows_accs[index]+'_propio');
-	return follows_de_ctas(follows_accs, more, losfollows, callback);
-      }
-    });
+    var more = index+1;
+    var cuantasctas = follows_accs.length;
+    if (more > cuantasctas) {
+      return callback(losfollows);
+    }
+    else {
+      setImmediate(function(){
+        if (!follows_accs || !follows_accs[index]) {
+	  return follows_de_ctas(follows_accs, more, losfollows, callback);
+        }
+        else {
+	  losfollows.push(follows_accs[index]+'_propio');
+	  return follows_de_ctas(follows_accs, more, losfollows, callback);
+        }
+      });
+    }
   }
 };
 
@@ -349,6 +354,7 @@ function dequecuentas(ctasdfollow, accs_tracks, tipo, index, cuentas_tipo_terms,
 };
 
 function clasifica(untweet, losdatos, callback){
+
   var follow = losdatos.follow,
       twauthorid = untweet.user.id,
       follow_acc = losdatos.follows_accounts,
@@ -362,6 +368,9 @@ function clasifica(untweet, losdatos, callback){
       track_acc_co = losdatos.tr_acc_wp_conv,
 
       accs_tracks = losdatos.accounts_tracks;
+
+    // console.log(losdatos);
+    // console.log(accounts_del_follow);
 
   untweet.colecciones_pr = [];
   untweet.colecciones_at = [];

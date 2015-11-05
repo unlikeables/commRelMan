@@ -63,9 +63,10 @@ angular.module('feeds')
            	for(var t in trackers){
            		var buscar = trackers[t];
            		var reemplazar = new RegExp(buscar, 'gim');
-           		replacedText = replacedText.replace(reemplazar, function(e){
-           		return '<span class="tracker">'+e+'</span>';	
-           		});
+           		replacedText = replacedText.replace(trackers[t],'<span class="tracker">'+trackers[t]+'</span>');
+           		//replacedText = replacedText.replace(reemplazar, function(e){
+           		//return '<span class="tracker">'+e+'</span>';	
+           		//});
            	}           	
            	}
           
@@ -1161,6 +1162,8 @@ angular.module('feeds')
 				console.log('URL !!!');
 				console.log('/mailbox/?id='+$scope.authentication.user.cuenta._id+'&firstdate='+parametros+'&eltipo='+tipoFiltro+'&organizacion='+tipoOrganizacion+'&idUsuario='+idUsuario+'&tipoBuzon='+tipoBuzon+'&palabra='+palabra);
 				$http.get('/mailbox/?id='+$scope.authentication.user.cuenta._id+'&firstdate='+parametros+'&eltipo='+tipoFiltro+'&organizacion='+tipoOrganizacion+'&idUsuario='+idUsuario+'&tipoBuzon='+tipoBuzon+'&palabra='+palabra).success(function(data){
+		    		console.log('DATA unificado');
+		    		console.log(data);
 		    		if(data){
 		    			var cuentaData = 0;
 		    			cuentaData = data.length-1;
@@ -1177,6 +1180,7 @@ angular.module('feeds')
 		    				$scope.fechas = data[cuentaData].fecha;
 		    				delete data[cuentaData];
 							for(var i=0; i<=cuenta;i++){
+								if(data[i] !== 'error'){
 				    			delete data[i].conversacion;
 				    			data[i].conv_cuenta++;
 				    			if(data[i].conv_cuenta < 1){
@@ -1215,6 +1219,7 @@ angular.module('feeds')
 									}
 			    				})(i);
 				    			data[i].conversacion = [];
+				    		}
 				    		}
 		   				}
 						var new_array = [];
@@ -2028,6 +2033,8 @@ angular.module('feeds')
 
             var cuentaData = 0;
             $http.get('/mailbox/?id='+id+'&eltipo='+filtro+'&organizacion='+organizacion+'&tipoBuzon='+tipoBuzon+'&idUsuario='+idUsuario+'&palabra='+palabra).success(function(data){
+                console.log('DATA');
+                console.log(data);
                 $scope.posts = data;    
                 
                 //Sirve para saber si muestra la imagen de no post              
