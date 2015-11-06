@@ -2333,9 +2333,6 @@ exports.obtieneBuzon = function(req, res) {
     if (typeof req.query.eltipo !== 'undefined') {eltipo = req.query.eltipo;}
     if (typeof req.query.organizacion !== 'undefined') {organizacion = req.query.organizacion;}
     if (typeof req.query.tipoBuzon !== 'undefined') {tipoBuzon = req.query.tipoBuzon;}
-
-	console.log('Obteniendo el BUZON +++++++++++++++++++++-------------------------');
-	console.log(req.query.tipoBuzon);
 	
 	function regex(string) {
 	    var charac = string;
@@ -2671,8 +2668,6 @@ exports.obtieneBuzon = function(req, res) {
 				};              
 			}
 		} 
-		console.log('CRITERIO BUSQUEDA BUZON !!!');
-		console.log(JSON.stringify(elcriterio));
 		classdb.buscarToStreamLimit(cole, elcriterio, elsort, ellimit, 'feeds/getMailbox/querybuzon', function(lositems){
 			for(var i=0;i<lositems.length;i++){
 				if(lositems[i].descartado){    
@@ -2941,7 +2936,10 @@ exports.obtieneBuzon = function(req, res) {
 	   	
 	   	T.get('users/show', parametros_twitter, function(error, reply) {
 			if(error){
-				return callback('error');
+				console.log('ERROR DE TWITTER');
+				console.log(error);
+				console.log('\n\n');
+				return callback(mensaje);
 			}else{
 				var criterio = {'_id' : new ObjectID(mensaje._id)};
 				var elset = {};
@@ -2988,28 +2986,32 @@ exports.obtieneBuzon = function(req, res) {
 
 
     function validaImagenURL(cuenta, mensaje, callback){
-    	var request = https.get(mensaje.imagen_https, function (response) {
-  			imagesize(response, function (err, result) {
-  				if(err){
-			    	/*console.log(mensaje.imagen_https);
-  					console.log('ERRORRRRRRRRRR');
-  					console.log(mensaje.from_user_screen_name);
-  					console.log(mensaje._id);
-  					console.log('\n\n\n\n');*/
-  					pideFotoTwitter(cuenta, mensaje, function(mensajeConFoto){
-  						if(mensajeConFoto !== 'error'){
-  							return callback(mensajeConFoto);
-  						}else{
-		  					mensajeConFoto.imagen = 'http://crm.likeable.mx/modules/core/img/usuario-sem-imagem.png';
-		  					mensajeConFoto.imagen_https = 'https://crm.likeable.mx/modules/core/img/usuario-sem-imagem.png';
-		  					return callback(mensajeConFoto);
-  						}
-  					});
-  				}else{
-  					return callback(mensaje);
-  				}
-  			});
-		});	
+		if(mensaje.obj === 'twitter'){
+	    	var request = https.get(mensaje.imagen_https, function (response) {
+	  			imagesize(response, function (err, result) {
+	  				if(err){
+				    	console.log(mensaje.imagen_https);
+	  					console.log('ERRORRRRRRRRRR');
+	  					console.log(mensaje.from_user_screen_name);
+	  					console.log(mensaje._id);
+	  					console.log('\n\n\n\n');
+	  					pideFotoTwitter(cuenta, mensaje, function(mensajeConFoto){
+	  						if(mensajeConFoto !== 'error'){
+	  							return callback(mensajeConFoto);
+	  						}else{
+			  					mensajeConFoto.imagen = 'http://crm.likeable.mx/modules/core/img/usuario-sem-imagem.png';
+			  					mensajeConFoto.imagen_https = 'https://crm.likeable.mx/modules/core/img/usuario-sem-imagem.png';
+			  					return callback(mensajeConFoto);
+	  						}
+	  					});
+	  				}else{
+	  					return callback(mensaje);
+	  				}
+	  			});
+			});	
+	    }else{
+	    	return callback(mensaje);
+	    }
     }
 	
 	getdatoscuenta(id, function(datos_cuenta){
@@ -3033,36 +3035,36 @@ exports.obtieneBuzon = function(req, res) {
 				if (page_id === '') {
 					res.jsonp(obj);
 				}else {
-querybuzon(coleccion, first_date, page_id, eltipo, organizacion, tipoBuzon, palabra, function(losmensajes) {
-    if (losmensajes === 'error' || losmensajes.length < 1) {
-	res.jsonp(obj);                 
-	}else {
-	    //console.log(losmensajes[0].id+ ' ' + new Date());
-	    fecha.firstdate = losmensajes[losmensajes.length-1].created_time;
-	    obtenMensajesSecundarios(coleccion, losmensajes, [], 0, function(loscomentarios){
-		var ememasuno = 0;
-		var todoslosmensajes = '';
-		var arregloRetorno = [];
-		if(organizacion !== 'asc'){
-		    todoslosmensajes = _.sortBy((loscomentarios), 'created_time').reverse();
-		    }else{
-			todoslosmensajes = loscomentarios;
-			}
-		for(var i in todoslosmensajes){
-		    ememasuno++;
-		    //obj[m] = todoslosmensajes[m];
-		    arregloRetorno.push(todoslosmensajes[i]);
-		    if (todoslosmensajes.length === (ememasuno)) {
-			obj.fecha = fecha;
-			arregloRetorno.push(obj);
-			res.jsonp(arregloRetorno); 
-			}
-		    }
-		});
-	    }
-    });
-/*
 					querybuzon(coleccion, first_date, page_id, eltipo, organizacion, tipoBuzon, palabra, function(losmensajes) {
+					    if (losmensajes === 'error' || losmensajes.length < 1) {
+						res.jsonp(obj);                 
+						}else {
+						    //console.log(losmensajes[0].id+ ' ' + new Date());
+						    fecha.firstdate = losmensajes[losmensajes.length-1].created_time;
+						    obtenMensajesSecundarios(coleccion, losmensajes, [], 0, function(loscomentarios){
+							var ememasuno = 0;
+							var todoslosmensajes = '';
+							var arregloRetorno = [];
+							if(organizacion !== 'asc'){
+							    todoslosmensajes = _.sortBy((loscomentarios), 'created_time').reverse();
+							    }else{
+								todoslosmensajes = loscomentarios;
+								}
+							for(var i in todoslosmensajes){
+							    ememasuno++;
+							    //obj[m] = todoslosmensajes[m];
+							    arregloRetorno.push(todoslosmensajes[i]);
+							    if (todoslosmensajes.length === (ememasuno)) {
+								obj.fecha = fecha;
+								arregloRetorno.push(obj);
+								res.jsonp(arregloRetorno); 
+								}
+							    }
+							});
+						    }
+					    });
+						/*
+						querybuzon(coleccion, first_date, page_id, eltipo, organizacion, tipoBuzon, palabra, function(losmensajes) {
 						if (losmensajes === 'error' || losmensajes.length < 1) {
 							res.jsonp(obj);                 
 						}else {
@@ -3091,7 +3093,7 @@ querybuzon(coleccion, first_date, page_id, eltipo, organizacion, tipoBuzon, pala
 							});
 						}
 					});
-*/
+					*/
 				}
 			}else {
 				// no había datos cuenta para este usuario
@@ -5342,5 +5344,100 @@ exports.obtienePorClick = function(req, res){
 			items[i].tipoMensaje = tipoMensaje;
 		}
 		res.jsonp(items);
+    });
+};
+
+exports.actualizaImgTwitter = function(req, res){
+	var idCuenta = req.body.cuenta._id;
+	var nombreSistema = req.body.cuenta.marca;
+	var mensaje = req.body.mensaje;
+
+	//console.log('actualizaImgTwitter');
+	//console.log(idCuenta);
+	//console.log(nombreSistema);
+
+	function datosCuenta(idCuenta, callback) {
+		var id = new ObjectID(idCuenta);
+		var criterio = {'_id' : id};
+		classdb.buscarToStream('accounts', criterio, {}, 'feeds/actualizaImgTwitter/datosCuenta', function(datos){
+			return callback(datos[0]);
+		});
+    }
+
+function pideFotoTwitter(cuenta, mensaje, callback){
+	   	var accesos_twitter =  cuenta.datosTwitter;
+	    var T  = new Twit({
+			'consumer_key' : accesos_twitter.twitter_consumer_key,
+			'consumer_secret' : accesos_twitter.twitter_consumer_secret,
+			'access_token' : accesos_twitter.twitter_access_token,
+			'access_token_secret' : accesos_twitter.twitter_access_token_secret
+	    });
+	    var parametros_twitter = {
+	    	//'screen_name' : mensaje.from_user_screen_name
+	    	'user_id' : mensaje.from_user_id
+	    };
+	   	
+	   	T.get('users/show', parametros_twitter, function(error, reply) {
+			if(error){
+				console.log('ERROR DE TWITTER');
+				console.log(mensaje.from_user_screen_name);
+				console.log(mensaje.from_user_id);
+				console.log(error);
+				console.log('\n\n');
+				return callback(mensaje);
+			}else{
+				var criterio = {'_id' : new ObjectID(mensaje._id)};
+				var elset = {};
+				if(mensaje.obj === 'twitter' && mensaje.tipo === 'direct_message'){					
+					elset = { 
+						'sender.profile_image_url' : reply.profile_image_url,
+						'sender.profile_image_url_https' : reply.profile_image_url_https
+					};
+					classdb.actualiza(cuenta.nombreSistema+'_consolidada', criterio, elset, 'feeds/pideFotoTwitter', function(updated){
+			    		if (updated === 'error') {
+							console.log(updated);	
+			    		}else{
+							console.log('Imagen Actualizada');
+							console.log(updated);
+							console.log('\n\n');
+			    		}
+					});
+
+				}else if(mensaje.obj === 'twitter' && (mensaje.tipo === 'tracker' || mensaje.tipo === 'twit')){					
+					elset = { 
+						'user.profile_image_url' : reply.profile_image_url,
+						'user.profile_image_url_https' : reply.profile_image_url_https
+					};
+					classdb.actualiza(cuenta.nombreSistema+'_consolidada', criterio, elset, 'feeds/pideFotoTwitter', function(updated){
+			    		if (updated === 'error') {
+							console.log(updated);	
+			    		}else{
+							console.log('Imagen Actualizada');
+							console.log(updated);
+							console.log('\n\n');
+			    		}
+					});
+				}else{
+					console.log('EL TIPO');
+					console.log(mensaje.obj);
+					console.log(mensaje.tipo);
+				}
+				mensaje.imagen = reply.profile_image_url;
+  				mensaje.imagen_https = reply.profile_image_url_https;
+				return callback(mensaje);
+			}
+	    });	 
+    }
+
+    datosCuenta(idCuenta, function(cuenta){
+    	if(cuenta){
+    		pideFotoTwitter(cuenta, mensaje, function(mensajeConFoto){
+	  			if(mensajeConFoto !== 'error'){
+	  				res.jsonp(mensajeConFoto);
+	  			}else{
+    				res.jsonp(mensajeConFoto);
+    			}
+    		});
+    	}
     });
 };

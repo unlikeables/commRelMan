@@ -417,7 +417,44 @@ angular.module('feeds')
 
 		};
 		
-		
+/*  
+             _               _ _          _____                 _            _ _   _            
+            | |             | (_)        |_   _|               | |          (_) | | |           
+   __ _  ___| |_ _   _  __ _| |_ ______ _  | |  _ __ ___   __ _| |___      ___| |_| |_ ___ _ __ 
+  / _` |/ __| __| | | |/ _` | | |_  / _` | | | | '_ ` _ \ / _` | __\ \ /\ / / | __| __/ _ \ '__|
+ | (_| | (__| |_| |_| | (_| | | |/ / (_| |_| |_| | | | | | (_| | |_ \ V  V /| | |_| ||  __/ |   
+  \__,_|\___|\__|\__,_|\__,_|_|_/___\__,_|_____|_| |_| |_|\__, |\__| \_/\_/ |_|\__|\__\___|_|   
+                                                           __/ |                                
+                                                          |___/                                 
+*/
+		$scope.actualizaImgTwitter = function (mensaje) {	
+			for(var i = 0; i<$scope.posts.length;i++){
+				if(mensaje._id === $scope.posts[i]._id){
+					$scope.posts[i].imagen = 'http://crm.likeable.mx/modules/core/img/loading.gif';
+					$scope.posts[i].imagen_https = 'https://crm.likeable.mx/modules/core/img/loading.gif';
+
+				}
+			}	
+			$http.post('/actualizaImgTwitter', {'cuenta' : $scope.authentication.user.cuenta, 'mensaje' : mensaje}).success(function(imgActualizada){
+				if(imgActualizada){
+					for(var i = 0; i<$scope.posts.length;i++){
+						if(imgActualizada._id === $scope.posts[i]._id){
+							$scope.posts[i] = imgActualizada;
+						}
+					}
+				}
+			});	
+		};
+/*
+                 _              _               _ _          _____                 _            _ _   _            
+                | |            | |             | (_)        |_   _|               | |          (_) | | |           
+   ___ _ __   __| |   __ _  ___| |_ _   _  __ _| |_ ______ _  | |  _ __ ___   __ _| |___      ___| |_| |_ ___ _ __ 
+  / _ \ '_ \ / _` |  / _` |/ __| __| | | |/ _` | | |_  / _` | | | | '_ ` _ \ / _` | __\ \ /\ / / | __| __/ _ \ '__|
+ |  __/ | | | (_| | | (_| | (__| |_| |_| | (_| | | |/ / (_| |_| |_| | | | | | (_| | |_ \ V  V /| | |_| ||  __/ |   
+  \___|_| |_|\__,_|  \__,_|\___|\__|\__,_|\__,_|_|_/___\__,_|_____|_| |_| |_|\__, |\__| \_/\_/ |_|\__|\__\___|_|   
+                                                                              __/ |                                
+                                                                             |___/                                 
+*/
 		
 		$scope.refreshAux = function(){
 			$scope.paginacion_busqueda = false
@@ -460,9 +497,9 @@ angular.module('feeds')
 		    }
 		};
 	    };
+	    var existe_notificacion = false;
 	    //funcion que determina en que parte del crm se llamo la nitificacion pra redirigit a buzon
 	    $scope.comparaUrl = function(){
-	    	console.log('Authenticando ');
 	    	$scope.authentication = Authentication;
 		    var tieneSesion=$scope.authentication.user.hasOwnProperty('_id');
 		    if(tieneSesion===false){
@@ -472,13 +509,10 @@ angular.module('feeds')
 				$scope.totalDesempenioDiario = data;
 			});
 		  	if($location.$$search.colec){
-			  	var notificacion = {};
-			  	notificacion.coleccion = $location.$$search.colec;
-			  	notificacion.mongo_id = $location.$$search.mo_id;
-			  	notificacion._id = $location.$$search.not_id;
-			  	if($scope.notificacionesOcultas)
-			  		$scope.abrirNotificaciones();
-			    $scope.showNotificacion(notificacion);
+			  	$scope.notificacion = {};
+			  	$scope.notificacion.coleccion = $location.$$search.colec;
+			  	$scope.notificacion.mongo_id = $location.$$search.mo_id;
+			  	$scope.notificacion._id = $location.$$search.not_id;
 		  	}
 		};
 		
@@ -627,6 +661,7 @@ angular.module('feeds')
 		/*+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+ SOOCKETS Notificaciones +-+-+-+-+-+-+-+-+-+-+-+*/
 
 	    Socket.emit('getNotificaciones',$scope.authentication.user._id);
+
 	    $scope.notificar = function(data){
 		if(typeof data[0].screen_name !== 'undefined'){
 		 if (!Notification) {
@@ -684,6 +719,25 @@ angular.module('feeds')
 					$scope.notificaciones[i].profile_image = '/modules/core/img/usuario-sem-imagem.png';
 				}
 			}
+
+			for(var i in $scope.notificaciones){
+			  		console.log($scope.notificaciones[i].mongo_id +'==='+ $scope.notificacion.mongo_id);
+			  		if($scope.notificaciones[i].mongo_id === $scope.notificacion.mongo_id){
+			  			existe_notificacion = true;
+			  		}
+			  	}
+			  	console.log('Mostrando notificacion');
+		  		console.log(existe_notificacion);
+			  	if(existe_notificacion){
+			  		if($scope.notificacionesOcultas)
+			  			$scope.abrirNotificaciones();
+			  		$scope.showNotificacion($scope.notificacion);
+			  	}
+			  	
+			  	if($scope.notificacionesOcultas)
+			  		$scope.abrirNotificaciones();
+
+
 	    });
 	    Socket.on('bloqueaNotificacion', function(id_notificacion){
 		$scope.notificaciones_ocupadas.push(id_notificacion);
@@ -1152,18 +1206,14 @@ angular.module('feeds')
 			}
 			
 			var tipoBuzon = $scope.tipoBuzon;
-			console.log('El tipo de buzon');
-			console.log(tipoBuzon);
 			if($scope.fechas){
 				var parametros = $scope.fechas.firstdate;
 				delete $scope.fechas;
 				$scope.muestraLoading=true;
 				var idUsuario = $scope.authentication.user._id;
-				console.log('URL !!!');
-				console.log('/mailbox/?id='+$scope.authentication.user.cuenta._id+'&firstdate='+parametros+'&eltipo='+tipoFiltro+'&organizacion='+tipoOrganizacion+'&idUsuario='+idUsuario+'&tipoBuzon='+tipoBuzon+'&palabra='+palabra);
 				$http.get('/mailbox/?id='+$scope.authentication.user.cuenta._id+'&firstdate='+parametros+'&eltipo='+tipoFiltro+'&organizacion='+tipoOrganizacion+'&idUsuario='+idUsuario+'&tipoBuzon='+tipoBuzon+'&palabra='+palabra).success(function(data){
-		    		console.log('DATA unificado');
-		    		console.log(data);
+		    		//console.log('DATA unificado');
+		    		//console.log(data);
 		    		if(data){
 		    			var cuentaData = 0;
 		    			cuentaData = data.length-1;
@@ -1272,8 +1322,6 @@ angular.module('feeds')
 		Socket.on('bloquea', function(datos_a_bloquear){
 			$scope.ocupados[($scope.ocupados.length)]={_id: datos_a_bloquear._id, user:datos_a_bloquear.user,user_image: datos_a_bloquear.user_image};		
 		});
-		console.log('Ocupados al iniciar');
-		console.log($scope.ocupados);
 		/* Socket para desbloquear la caja del twit o post */
 		Socket.on('libera',function(libera){
 
@@ -1456,9 +1504,7 @@ angular.module('feeds')
 					}
 				}
 			}
-			if(clasificacion.sentiment || clasificacion.tema !== "'Tema'"){
-				console.log('paso filtro de clasificacion');
-				
+			if(clasificacion.sentiment || clasificacion.tema !== "'Tema'"){				
 				for (var i in $scope.posts) {
 					if($scope.posts[i]){
 						
@@ -2033,8 +2079,8 @@ angular.module('feeds')
 
             var cuentaData = 0;
             $http.get('/mailbox/?id='+id+'&eltipo='+filtro+'&organizacion='+organizacion+'&tipoBuzon='+tipoBuzon+'&idUsuario='+idUsuario+'&palabra='+palabra).success(function(data){
-                console.log('DATA');
-                console.log(data);
+                //console.log('DATA');
+                //console.log(data);
                 $scope.posts = data;    
                 
                 //Sirve para saber si muestra la imagen de no post              
@@ -2076,12 +2122,13 @@ angular.module('feeds')
                             }(i,cont));
                         }   
                     }
-
-                    delete $scope.posts[i].conversacion;
-                    $scope.posts[i].conversacion = [];
-                    $scope.posts[i].conv_cuenta++;
-                    if($scope.posts[i].conv_cuenta < 1){
-                        $scope.posts[i].conv_cuenta = '';
+                    if($scope.posts[i].conversacion){
+                    	delete $scope.posts[i].conversacion;
+                    	$scope.posts[i].conversacion = [];
+                    	$scope.posts[i].conv_cuenta++;
+                    	if($scope.posts[i].conv_cuenta < 1){
+                        	$scope.posts[i].conv_cuenta = '';
+                    	}
                     }
                 }
 
@@ -2780,18 +2827,20 @@ $scope.constant = CONSTANT;
   
   
   
-  $scope.comparaUrl = function(){
+  /*$scope.comparaUrl = function(){
   	NotificacionService.getDesempenio().success(function(data){
 		$scope.totalDesempenioDiario = data;
 	});
   	if($location.$$search.colec){
+  		console.log('Notificaciones en otra compara ');
+  		console.log($scope.notificaciones);
 	  	var notificacion = {};
 	  	notificacion.coleccion = $location.$$search.colec;
 	  	notificacion.mongo_id = $location.$$search.mo_id;
 	  	notificacion._id = $location.$$search.not_id;
 	    $scope.openNotificacion(notificacion);
   	}
-  };
+  };*/
 
   $scope.openNuevo = function (tweet) {
   	$scope.items=[tweet];
@@ -5022,6 +5071,7 @@ FUNCIONES DE LA LIBRERÍA DE TWITTER
 					$rootScope.$broadcast('finalizarCtrl',$scope.items[0]);
 				}
 				if($scope.items[0].influencers || $scope.items[0].asignado){
+					console.log('Eliminando la notificacion !!! ');
 			  		Socket.emit('eliminaNotificacion',$scope.items[0]._id);
 			  	}
 				var answer = {

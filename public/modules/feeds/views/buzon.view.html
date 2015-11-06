@@ -268,7 +268,7 @@
             <a style="position:fixed; z-index: 999; cursor:pointer;left:50%;top:70px;border-radius: 5px; padding: 7px 40px;display:block; opacity: .8" ng-show="flash" class="bg-naranja txt-blanco">{{flash_text}}</a>
             <div class="pure-u-md-1-1">
                 <ul class="listado-mensajes" style="padding-top: 15px; padding-bottom:70px;" data-ng-show="MuestraListadoFeeds">
-                    <li ng-class="{'ocupado': evalua_ocupado(twit._id),'no-leido': !twit.clasificacion,'asignado': (twit.asignado && !twit.clasificacion) }" ng-hide="evalOculto(twit._id)" data-ng-repeat="twit in posts" style="position:relative;"  ng-mouseover="(evalua_ocupado(twit._id)?showCheck = false:showCheck = true)" ng-mouseleave="showCheck = false" id="{{ 'object-' + $index }}">
+                    <li ng-class="{'ocupado': evalua_ocupado(twit._id),'no-leido': !twit.clasificacion,'asignado': (twit.asignado && !twit.clasificacion) }" ng-hide="evalOculto(twit._id)" data-ng-repeat="twit in posts track by $index" style="position:relative;"  ng-mouseover="(evalua_ocupado(twit._id)?showCheck = false:showCheck = true)" ng-mouseleave="showCheck = false" id="{{ 'object-' + $index }}">
                     
                         <!--<input class="check_selector" /*ng-show="showCheck || (evalua_ocupado(twit._id) && checkt) "*/ ng-hide ="!checkt && evalua_ocupado(twit._id)" type ="checkbox" name="checkt" ng-model="checkt" ng-change="checkLote(checkt,twit)" ng-class="activacheckbox">-->
                         
@@ -283,7 +283,10 @@
                             <div class="usuario">
                                 <div class="notificacion" data-ng-show="twit.influencers"></div>
                                 <!--Imagen -->
-                                    <img src="{{twit.imagen_https}}" style="width:44px; height:44px; border:solid 2px #404040 !important; cursor: default !important;" class="circular"/>                             
+                                    <img src="{{twit.imagen_https}}" ng-if = "twit.obj === 'twitter'" ng-click ="actualizaImgTwitter(twit)" style="width:44px; height:44px; border:solid 2px #404040 !important; cursor: pointer !important;" class="circular" title = "Click para actualizar la foto" /> 
+                                    
+                                    <img src="{{twit.imagen_https}}" ng-if = "twit.obj === 'facebook'" style="width:44px; height:44px; border:solid 2px #404040 !important; cursor: default !important;" class="circular"/> 
+
                             </div>
                             <!--datos-->
                             <div class="datos" ng-switch on="twit.obj">

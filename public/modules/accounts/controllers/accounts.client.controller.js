@@ -1494,9 +1494,11 @@ for(var o in obj){
 			var aux_respuestas = new Array();
 			var aux_clasificados = new Array();
 			var images = {};
+			var count = 0;
 			var miniatura = '';
 			for(var i in data_desem){
 				if(data_desem[i].total!==0){
+					count++;
 					existe_data++;
 					images['<span style="text-align:center";>'+data_desem[i].nombre+'<br><span style="font-weight:bold;">'+data_desem[i].total+' Casos</span></span>'] = (data_desem[i].imagen)?'<br><img src="'+data_desem[i].imagen+'" class="circular--ligero" style="width:30px; height:30px;border-radius:50%;">':'<br><img src="/modules/core/img/usuario-sem-imagem.png" class="circular-ligero" style="width:30px; height:30px;border-radius:50%;">';			
 					miniatura = data_desem[i].imagen;
@@ -1568,16 +1570,18 @@ for(var o in obj){
 			}
 			
 			$scope.obj_desem = obj_desem;
-			
+			var alto = (count * 50 < 400)?400:(count * 50);
+			console.log('Alto !!!!!');
+			console.log(alto);
 			$scope.loadingDesempenio = false;
-			
 			$scope.chartDesempenio = {
 				
     			loading: true,				
 				options:{
 					chart: {
 					    type: 'bar',
-					    height: 300,
+					    height: alto,
+					    renderTo:'container',
 						events:{
 							redraw:function(){
 								$scope.chartDesempenio.loading = false;
@@ -1620,6 +1624,7 @@ for(var o in obj){
 			
 						series: {
 							stacking: 'normal',
+							//pointWidth: 50
                 /*dataLabels: {
                     enabled: true,
                     color: '#FFFFFF'
