@@ -153,6 +153,12 @@ exports.chartPromedioCasos = function(req, res){
     }
   
     function obtieneTodos(coleccion, debut, finale, idFb, callback) {
+ 		console.log('TODOS');
+		console.log(debut);
+		console.log(finale);
+		console.log(typeof(idFb));
+		console.log('\n\n\n\n');
+
 		var criterio = { $and: 
 			 [
 			    {'created_time' : {$gte : debut}},
@@ -168,23 +174,24 @@ exports.chartPromedioCasos = function(req, res){
     }
 
     function obtieneAtendidos(coleccion, debut, finale, idFb, tipent, callback) {
+		console.log('ATENDIDOS');
+		console.log(debut);
+		console.log(finale);
+		console.log(typeof(idFb));
+		console.log('\n\n\n\n');
 		var criterioA ={};
 		if(tipent ==='general'){
 
 			criterioA={ $and: 
 				[
-					{'retweeted_status': {$exists: false}},
 			    	{'created_time' : {$gte : debut }},
 			    	{'created_time' : {$lte : finale }},
 				    {'from_user_id' : {$ne: idFb}},
-					{'descartado':{$exists: false}}, 
+					{'retweeted_status': {$exists: false}},
 					{'eliminado':{$exists: false}}, 
-					//{$or: [
-						//{'sentiment' : { $exists : true }}, 
-						{'atendido':{$exists: true}}
-					//	{'clasificacion' : { $exists : true }},
-					//	{'respuestas' : { $exists: true }},	
-					//]}
+					{'descartado':{$exists: false}}, 
+					//{'respuestas.$.user_id':{$nin:['direct-facebook']}},
+					{'atendido':{$exists: true}}
 				]
 		    };
 		}
@@ -192,10 +199,10 @@ exports.chartPromedioCasos = function(req, res){
 
 			criterioA={ $and: 
 				[
-					{'retweeted_status': {$exists: false}},
-			    	{'created_time' : {$gte : debut }},
-			        {'obj' : tipent},
+					{'created_time' : {$gte : debut }},
 			    	{'created_time' : {$lte : finale }},
+					{'retweeted_status': {$exists: false}},
+			        {'obj' : tipent},
 				    {'from_user_id' : {$ne: idFb}},
 					{'descartado':{$exists: false}}, 
 					{'eliminado':{$exists: false}}, 
@@ -219,9 +226,11 @@ exports.chartPromedioCasos = function(req, res){
 		if(tipoEntrada==='general'){
 	    	criterioD = { $and: 
 				[
-			    	{'descartado' : {$exists : true}},
 					{'created_time' : {$gte : debut}},
 					{'created_time' : {$lte : finale}},
+			    	{'descartado' : {$exists : true}},
+					//{'respuestas.$.user_id':{$nin:['direct-facebook']}},
+			    	//{'atendido' : {$exists : false}},
 			    	{'from_user_id' : {$ne: idFb}},
 			      	{'retweeted_status' : {$exists:false}},
 					{'eliminado' : {$exists : false}}
@@ -261,8 +270,7 @@ exports.chartPromedioCasos = function(req, res){
 			    	{'from_user_id' : {$ne: idFb}},
 			      	{'descartado' : {$exists : false}},
 			      	{'atendido' : {$exists : false}},
-			      	{'sentiment' : {$exists : false}},
-			      	{'clasificacion' : {$exists:false}},
+				//	{'respuestas.$.user_id':{$nin:['direct-facebook']}},
 			      	{'respuestas' : {$exists:false}},
 			      	{'retweeted_status' : {$exists:false}},
 					{'eliminado' : {$exists : false}}
@@ -298,10 +306,24 @@ exports.chartPromedioCasos = function(req, res){
 			    {'created_time' : {$lte : finale}},
 			    {'from_user_id' : {$ne: idFb}},
 			    {'retweeted_status' : {$exists:false}},
-			    {'respuestas.user_id':{$eq : 'direct-facebook'}},			
-			    {'eliminado':{$exists: false}}
+			    {'respuestas.user_id':{$in : ['direct-facebook']}},
+			    {'atendido' : {$exists : false}},			
+			    {'eliminado':{$exists: false}},
+			 	
+			 	{'descartado':{$exists:false}}
 			 ]
 		};	
+
+		classdb.buscarToArray(coleccion, criterio, {}, 'charts/chartRating/obtieneTodos', function(mensajes){		    	
+	    	if(mensajes === 'error'){
+				console.log(mensajes);
+				//return callback('error');
+	    	}else{
+				console.log('MENSAJES FACEBOOOK');
+				console.log(mensajes);
+	    	}
+		});
+
 		classdb.count(coleccion, criterio, 'charts/chartPromedioCasos/obtieneTodos', function(totalFacebook){
 	    	return callback(totalFacebook);
 		});
@@ -347,7 +369,7 @@ exports.chartPromedioCasos = function(req, res){
 									    		res.jsonp(facebook);
 									    	}else{
 									    		var obj = {};
-												//obj.Todos = todos;
+												obj.Todos = todos;
 												obj.Entrada = nuevos;
 												obj.Completos = atendidos;
 												//obj.Proceso = enproceso;
@@ -1709,8 +1731,11 @@ exports.chartDesempenioHora = function(req, res){
 			criterio = { $and: 
 				[
 					{'retweeted_status': {$exists: false}},
-			    	{'created_time' : {$gte : fecha_inicial }},
-			    	{'created_time' : {$lte : fecha_final }},
+			    	{'atendido.fecha' : {$gte : fecha_inicial}},
+			    	{'atendido.fecha' : {$lte : fecha_final}},
+				    {'respuestas.$.user_id':{$ne : 'direct-facebook'}},			
+			    	//{'created_time' : {$gte : fecha_inicial }},
+			    	//{'created_time' : {$lte : fecha_final }},
 				    {'from_user_id' : {$ne: idCuenta}},
 					{'descartado':{$exists: false}}, 
 					{'eliminado':{$exists: false}}, 
@@ -1724,6 +1749,7 @@ exports.chartDesempenioHora = function(req, res){
 				[
 					{'retweeted_status': {$exists: false}},
 			    	{'created_time' : {$gte : fecha_inicial }},
+				    {'respuestas.user_id':{$ne : 'direct-facebook'}},			
 			        {'obj' : tipo},
 			    	{'created_time' : {$lte : fecha_final }},
 				    {'from_user_id' : {$ne: idCuenta}},
@@ -1748,8 +1774,10 @@ exports.chartDesempenioHora = function(req, res){
 	    	criterio = { $and: 
 				[
 			    	{'descartado' : {$exists : true}},
-					{'created_time' : {$gte : fecha_inicial}},
-					{'created_time' : {$lte : fecha_final}},
+					{'descartado.fecha' : {$gte : fecha_inicial}},
+					{'descartado.fecha' : {$lte : fecha_final}},					
+					//{'created_time' : {$gte : fecha_inicial}},
+					//{'created_time' : {$lte : fecha_final}},
 			    	{'from_user_id' : {$ne: idCuenta}},
 			      	{'retweeted_status' : {$exists:false}},
 					{'eliminado' : {$exists : false}}
@@ -1843,7 +1871,7 @@ exports.chartDesempenioHora = function(req, res){
 		});
 	}
     
-    function desglosaMensajes(tipo, fecha_inicial, fecha_final, todos, nombreSistema, idCuenta, index, objTodos, callback){
+    function desglosaMensajes(tipo, fecha_inicial, fecha_final, todos, nombreSistema, idCuenta, index, objTodos, tipoBuzon, callback){
 		var cuantos = todos.length;
 		var more = index+1;
 		if (more > cuantos) {
@@ -1851,111 +1879,144 @@ exports.chartDesempenioHora = function(req, res){
 		}
 		else {
 			setImmediate(function(){
-				var fechaCreated=new Date(todos[index].created_time);
-				var horasCreated=fechaCreated.getHours();
-				var minutosCreated=fechaCreated.getMinutes();
-				var segundosCreated=fechaCreated.getSeconds();
+					var fechaCreated = '';
+					var horasCreated = '';
+					var minutosCreated = '';
+					var segundosCreated = '';
 
-				var horasCreatedConvertidas=horasCreated*3600;
-				var minutosCreatedConvertidos=minutosCreated*60;
-				var totalSegundosCreated=horasCreatedConvertidas+minutosCreatedConvertidos+segundosCreated;
+					var horasCreatedConvertidas = '';
+					var minutosCreatedConvertidos = '';
+					var totalSegundosCreated = '';
+
+				if(tipoBuzon === 'atendidos'){
 				
+					fechaCreated=new Date(todos[index].atendido.fecha);
+					horasCreated=fechaCreated.getHours();
+					minutosCreated=fechaCreated.getMinutes();
+					segundosCreated=fechaCreated.getSeconds();
+
+					horasCreatedConvertidas=horasCreated*3600;
+					minutosCreatedConvertidos=minutosCreated*60;
+					totalSegundosCreated=horasCreatedConvertidas+minutosCreatedConvertidos+segundosCreated;
+				
+				}else if(tipoBuzon === 'descartados'){
+					
+					fechaCreated=new Date(todos[index].descartado.fecha);
+					horasCreated=fechaCreated.getHours();
+					minutosCreated=fechaCreated.getMinutes();
+					segundosCreated=fechaCreated.getSeconds();
+
+					horasCreatedConvertidas=horasCreated*3600;
+					minutosCreatedConvertidos=minutosCreated*60;
+					totalSegundosCreated=horasCreatedConvertidas+minutosCreatedConvertidos+segundosCreated;	
+				
+				}else{
+					
+					fechaCreated=new Date(todos[index].created_time);
+					horasCreated=fechaCreated.getHours();
+					minutosCreated=fechaCreated.getMinutes();
+					segundosCreated=fechaCreated.getSeconds();
+
+					horasCreatedConvertidas=horasCreated*3600;
+					minutosCreatedConvertidos=minutosCreated*60;
+					totalSegundosCreated=horasCreatedConvertidas+minutosCreatedConvertidos+segundosCreated;
+				}
 				if(totalSegundosCreated <= 3600){
 					//Las cero horas
 					objTodos.cero = objTodos.cero + 1;
-					desglosaMensajes(tipo, fecha_inicial, fecha_final, todos, nombreSistema, idCuenta, more, objTodos, callback);
+					desglosaMensajes(tipo, fecha_inicial, fecha_final, todos, nombreSistema, idCuenta, more, objTodos, tipoBuzon, callback);
 				}else if(totalSegundosCreated > 3600 && totalSegundosCreated <= 7200){
 					//La una de la mañana
 					objTodos.una = objTodos.una + 1;
-					desglosaMensajes(tipo, fecha_inicial, fecha_final, todos, nombreSistema, idCuenta, more, objTodos, callback);
+					desglosaMensajes(tipo, fecha_inicial, fecha_final, todos, nombreSistema, idCuenta, more, objTodos, tipoBuzon, callback);
 				}else if(totalSegundosCreated > 7200 && totalSegundosCreated <= 10800){
 					//Las dos de la mañana
 					objTodos.dos = objTodos.dos + 1;
-					desglosaMensajes(tipo, fecha_inicial, fecha_final, todos, nombreSistema, idCuenta, more, objTodos, callback);
+					desglosaMensajes(tipo, fecha_inicial, fecha_final, todos, nombreSistema, idCuenta, more, objTodos, tipoBuzon, callback);
 				}else if(totalSegundosCreated > 10800 && totalSegundosCreated <= 14400){
 					//Las tres de la mañana
 					objTodos.tres = objTodos.tres + 1;
-					desglosaMensajes(tipo, fecha_inicial, fecha_final, todos, nombreSistema, idCuenta, more, objTodos, callback);
+					desglosaMensajes(tipo, fecha_inicial, fecha_final, todos, nombreSistema, idCuenta, more, objTodos, tipoBuzon, callback);
 				}else if(totalSegundosCreated > 14400 && totalSegundosCreated <= 18000){
 					//Las cuatro de la mañana
 					objTodos.cuatro = objTodos.cuatro + 1;
-					desglosaMensajes(tipo, fecha_inicial, fecha_final, todos, nombreSistema, idCuenta, more, objTodos, callback);
+					desglosaMensajes(tipo, fecha_inicial, fecha_final, todos, nombreSistema, idCuenta, more, objTodos, tipoBuzon, callback);
 				}else if(totalSegundosCreated > 18000 && totalSegundosCreated <= 21600){
 					//Las cinco de la mañana
 					objTodos.cinco = objTodos.cinco + 1;
-					desglosaMensajes(tipo, fecha_inicial, fecha_final, todos, nombreSistema, idCuenta, more, objTodos, callback);
+					desglosaMensajes(tipo, fecha_inicial, fecha_final, todos, nombreSistema, idCuenta, more, objTodos, tipoBuzon, callback);
 				}else if(totalSegundosCreated > 21600 && totalSegundosCreated <= 25200){
 					//Las seis de la mañana
 					objTodos.seis = objTodos.seis + 1;
-					desglosaMensajes(tipo, fecha_inicial, fecha_final, todos, nombreSistema, idCuenta, more, objTodos, callback);
+					desglosaMensajes(tipo, fecha_inicial, fecha_final, todos, nombreSistema, idCuenta, more, objTodos, tipoBuzon, callback);
 				}else if(totalSegundosCreated > 25200 && totalSegundosCreated <= 28800){
 					//Las siete de la mañana
 					objTodos.siete = objTodos.siete + 1;
-					desglosaMensajes(tipo, fecha_inicial, fecha_final, todos, nombreSistema, idCuenta, more, objTodos, callback);
+					desglosaMensajes(tipo, fecha_inicial, fecha_final, todos, nombreSistema, idCuenta, more, objTodos, tipoBuzon, callback);
 				}else if(totalSegundosCreated > 28800 && totalSegundosCreated <= 32400){
 					//Las ocho de la mañana
 					objTodos.ocho = objTodos.ocho + 1;
-					desglosaMensajes(tipo, fecha_inicial, fecha_final, todos, nombreSistema, idCuenta, more, objTodos, callback);
+					desglosaMensajes(tipo, fecha_inicial, fecha_final, todos, nombreSistema, idCuenta, more, objTodos, tipoBuzon, callback);
 				}else if(totalSegundosCreated > 32400 && totalSegundosCreated <= 36000){
 					//Las nueve de la mañana
 					objTodos.nueve = objTodos.nueve + 1;
-					desglosaMensajes(tipo, fecha_inicial, fecha_final, todos, nombreSistema, idCuenta, more, objTodos, callback);
+					desglosaMensajes(tipo, fecha_inicial, fecha_final, todos, nombreSistema, idCuenta, more, objTodos, tipoBuzon, callback);
 				}else if(totalSegundosCreated > 36000 && totalSegundosCreated <= 39600){
 					//Las diez de la mañana
 					objTodos.diez = objTodos.diez + 1;
-					desglosaMensajes(tipo, fecha_inicial, fecha_final, todos, nombreSistema, idCuenta, more, objTodos, callback);
+					desglosaMensajes(tipo, fecha_inicial, fecha_final, todos, nombreSistema, idCuenta, more, objTodos, tipoBuzon, callback);
 				}else if(totalSegundosCreated > 39600 && totalSegundosCreated <= 43200){
 					//Las once de la mañana
 					objTodos.once = objTodos.once + 1;
-					desglosaMensajes(tipo, fecha_inicial, fecha_final, todos, nombreSistema, idCuenta, more, objTodos, callback);
+					desglosaMensajes(tipo, fecha_inicial, fecha_final, todos, nombreSistema, idCuenta, more, objTodos, tipoBuzon, callback);
 				}else if(totalSegundosCreated > 43200 && totalSegundosCreated <= 46800){
 					//Las doce de la mañana
 					objTodos.doce = objTodos.doce + 1;
-					desglosaMensajes(tipo, fecha_inicial, fecha_final, todos, nombreSistema, idCuenta, more, objTodos, callback)
+					desglosaMensajes(tipo, fecha_inicial, fecha_final, todos, nombreSistema, idCuenta, more, objTodos, tipoBuzon, callback);
 				}else if(totalSegundosCreated > 46800 && totalSegundosCreated <= 50400){
 					//La una de la tarde
 					objTodos.trece = objTodos.trece + 1;
-					desglosaMensajes(tipo, fecha_inicial, fecha_final, todos, nombreSistema, idCuenta, more, objTodos, callback);		
+					desglosaMensajes(tipo, fecha_inicial, fecha_final, todos, nombreSistema, idCuenta, more, objTodos, tipoBuzon, callback);
 				}else if(totalSegundosCreated > 50400 && totalSegundosCreated <= 54000){
 					//Las dos de la tarde
 					objTodos.catorce = objTodos.catorce + 1;
-					desglosaMensajes(tipo, fecha_inicial, fecha_final, todos, nombreSistema, idCuenta, more, objTodos, callback);
+					desglosaMensajes(tipo, fecha_inicial, fecha_final, todos, nombreSistema, idCuenta, more, objTodos, tipoBuzon, callback);
 				}else if(totalSegundosCreated > 54000 && totalSegundosCreated <= 57600){
 					//Las tres de la tarde
 					objTodos.quince = objTodos.quince + 1;
-					desglosaMensajes(tipo, fecha_inicial, fecha_final, todos, nombreSistema, idCuenta, more, objTodos, callback);
+					desglosaMensajes(tipo, fecha_inicial, fecha_final, todos, nombreSistema, idCuenta, more, objTodos, tipoBuzon, callback);
 				}else if(totalSegundosCreated > 57600 && totalSegundosCreated <= 61200){
 					//Las cuatro de la tarde
 					objTodos.dieciseis = objTodos.dieciseis + 1;
-					desglosaMensajes(tipo, fecha_inicial, fecha_final, todos, nombreSistema, idCuenta, more, objTodos, callback);
+					desglosaMensajes(tipo, fecha_inicial, fecha_final, todos, nombreSistema, idCuenta, more, objTodos, tipoBuzon, callback);
 				}else if(totalSegundosCreated > 61200 && totalSegundosCreated <= 64800){
 					//Las cinco de la tarde
 					objTodos.diecisiete = objTodos.diecisiete + 1;
-					desglosaMensajes(tipo, fecha_inicial, fecha_final, todos, nombreSistema, idCuenta, more, objTodos, callback);
+					desglosaMensajes(tipo, fecha_inicial, fecha_final, todos, nombreSistema, idCuenta, more, objTodos, tipoBuzon, callback);
 				}else if(totalSegundosCreated > 64800 && totalSegundosCreated <= 68400){
 					//Las seis de la tarde
 					objTodos.dieciocho = objTodos.dieciocho + 1;
-					desglosaMensajes(tipo, fecha_inicial, fecha_final, todos, nombreSistema, idCuenta, more, objTodos, callback);
+					desglosaMensajes(tipo, fecha_inicial, fecha_final, todos, nombreSistema, idCuenta, more, objTodos, tipoBuzon, callback);
 				}else if(totalSegundosCreated > 68400 && totalSegundosCreated <= 72000){
 					//Las siete de la noche
 					objTodos.diecinueve = objTodos.diecinueve + 1;
-					desglosaMensajes(tipo, fecha_inicial, fecha_final, todos, nombreSistema, idCuenta, more, objTodos, callback);
+					desglosaMensajes(tipo, fecha_inicial, fecha_final, todos, nombreSistema, idCuenta, more, objTodos, tipoBuzon, callback);
 				}else if(totalSegundosCreated > 72000 && totalSegundosCreated <= 75600){
 					//Las ocho de la noche
 					objTodos.veinte = objTodos.veinte + 1;
-					desglosaMensajes(tipo, fecha_inicial, fecha_final, todos, nombreSistema, idCuenta, more, objTodos, callback);
+					desglosaMensajes(tipo, fecha_inicial, fecha_final, todos, nombreSistema, idCuenta, more, objTodos, tipoBuzon, callback);
 				}else if(totalSegundosCreated > 75600 && totalSegundosCreated <= 79200){
 					//Las nueve de la noche
 					objTodos.veintiuno = objTodos.veintiuno + 1;
-					desglosaMensajes(tipo, fecha_inicial, fecha_final, todos, nombreSistema, idCuenta, more, objTodos, callback);
+					desglosaMensajes(tipo, fecha_inicial, fecha_final, todos, nombreSistema, idCuenta, more, objTodos, tipoBuzon, callback);
 				}else if(totalSegundosCreated > 79200 && totalSegundosCreated <= 82800){
 					//Las diez de la noche
 					objTodos.veintidos = objTodos.veintidos + 1;
-					desglosaMensajes(tipo, fecha_inicial, fecha_final, todos, nombreSistema, idCuenta, more, objTodos, callback);
+					desglosaMensajes(tipo, fecha_inicial, fecha_final, todos, nombreSistema, idCuenta, more, objTodos, tipoBuzon, callback);
 				}else if(totalSegundosCreated > 82800 && totalSegundosCreated <= 86400){
 					//Las once de la noche
 					objTodos.veintitres = objTodos.veintitres + 1;
-					desglosaMensajes(tipo, fecha_inicial, fecha_final, todos, nombreSistema, idCuenta, more, objTodos, callback);
+					desglosaMensajes(tipo, fecha_inicial, fecha_final, todos, nombreSistema, idCuenta, more, objTodos, tipoBuzon, callback);
 				}
 			});
 		}
@@ -1976,6 +2037,16 @@ exports.chartDesempenioHora = function(req, res){
 		else if(typeof account[0] !== 'undefined' && typeof account[0].datosMonitoreo !== 'undefined'){
 	    	idCuenta = account[0].datosMonitoreo.id;
 		}
+
+		var objetoTodos = {
+			'cero' : 0, 'una' : 0, 'dos' : 0, 'tres' : 0,
+			'cuatro' : 0, 'cinco' : 0, 'seis' : 0, 'siete' : 0,
+			'ocho' : 0, 'nueve' : 0, 'diez' : 0, 'once' : 0,
+			'doce' : 0, 'trece' : 0, 'catorce' : 0, 'quince' : 0,
+			'dieciseis' : 0, 'diecisiete' : 0, 'dieciocho' : 0, 'diecinueve' : 0,
+			'veinte' : 0, 'veintiuno' : 0, 'veintidos' : 0, 'veintitres' : 0
+		};
+
 		var objetoAtendidos = {
 			'cero' : 0, 'una' : 0, 'dos' : 0, 'tres' : 0,
 			'cuatro' : 0, 'cinco' : 0, 'seis' : 0, 'siete' : 0,
@@ -2011,69 +2082,88 @@ exports.chartDesempenioHora = function(req, res){
 			'dieciseis' : 0, 'diecisiete' : 0, 'dieciocho' : 0, 'diecinueve' : 0,
 			'veinte' : 0, 'veintiuno' : 0, 'veintidos' : 0, 'veintitres' : 0
 		};
-				
-		obtieneAtendidos(tipoEntrada, nombreSistema, fecha_inicial, fecha_final, idCuenta, function(mensajesAtendidos){
-			if(mensajesAtendidos === 'error'){
-				res.jsonp(mensajesAtendidos);
+		obtieneTodos(tipoEntrada, nombreSistema, fecha_inicial, fecha_final, idCuenta, function(mensajesTodos){
+			if(mensajesTodos === 'error'){
+				res.jsonp(mensajesTodos);
 			}else{
-				objeto.totalAtendidos = mensajesAtendidos.length;
-		    	desglosaMensajes(tipoEntrada, fecha_inicial, fecha_final, mensajesAtendidos, nombreSistema, idCuenta, 0, objetoAtendidos, function(atendidosActualizados){
-		    		if(atendidosActualizados === 'error'){
-		    			res.jsonp(atendidosActualizados);
-		    		}else{
-		    			objeto.atendidos = atendidosActualizados;
-						obtieneDescartados(tipoEntrada, nombreSistema, fecha_inicial, fecha_final, idCuenta, function(mensajesDescartados){
-							if(mensajesDescartados === 'error'){
-								res.jsonp(mensajesDescartados);
+				objeto.totalTodos = mensajesTodos.length;
+				desglosaMensajes(tipoEntrada, fecha_inicial, fecha_final, mensajesTodos, nombreSistema, idCuenta, 0, objetoTodos, 'todos', function(todosActualizados){
+				   	if(todosActualizados === 'error'){
+				    	res.jsonp(todosActualizados);
+				    }else{
+				    	console.log('todos todosActualizados');
+				    	console.log(todosActualizados);
+				    	objeto.todos = todosActualizados;
+						obtieneAtendidos(tipoEntrada, nombreSistema, fecha_inicial, fecha_final, idCuenta, function(mensajesAtendidos){
+							if(mensajesAtendidos === 'error'){
+								res.jsonp(mensajesAtendidos);
 							}else{
-								objeto.totalDescartados = mensajesDescartados.length;
-								desglosaMensajes(tipoEntrada, fecha_inicial, fecha_final, mensajesDescartados, nombreSistema, idCuenta, 0, objetoDescartados, function(descartadosActualizados){
-		    						if(descartadosActualizados === 'error'){
-		    							res.jsonp(descartadosActualizados);
-		    						}else{
-		    							objeto.descartados = descartadosActualizados;
-										obtieneNuevos(tipoEntrada, nombreSistema, fecha_inicial, fecha_final, idCuenta, function(mensajesNuevos){
-											if(mensajesNuevos === 'error'){
-												res.jsonp(mensajesNuevos);
+								objeto.totalAtendidos = mensajesAtendidos.length;
+						    	desglosaMensajes(tipoEntrada, fecha_inicial, fecha_final, mensajesAtendidos, nombreSistema, idCuenta, 0, objetoAtendidos, 'atendidos', function(atendidosActualizados){
+						    		if(atendidosActualizados === 'error'){
+						    			res.jsonp(atendidosActualizados);
+						    		}else{
+						    			objeto.atendidos = atendidosActualizados;
+										obtieneDescartados(tipoEntrada, nombreSistema, fecha_inicial, fecha_final, idCuenta, function(mensajesDescartados){
+											if(mensajesDescartados === 'error'){
+												res.jsonp(mensajesDescartados);
 											}else{
-												objeto.totalNuevos = mensajesNuevos.length;
-												desglosaMensajes(tipoEntrada, fecha_inicial, fecha_final, mensajesNuevos, nombreSistema, idCuenta, 0, objetoNuevos, function(nuevosActualizados){
-						    						if(nuevosActualizados === 'error'){
-						    							res.jsonp(nuevosActualizados);
+												objeto.totalDescartados = mensajesDescartados.length;
+												desglosaMensajes(tipoEntrada, fecha_inicial, fecha_final, mensajesDescartados, nombreSistema, idCuenta, 0, objetoDescartados, 'descartados', function(descartadosActualizados){
+						    						if(descartadosActualizados === 'error'){
+						    							res.jsonp(descartadosActualizados);
 						    						}else{
-						 								objeto.nuevos = nuevosActualizados;
-														obtieneFacebook(tipoEntrada, nombreSistema, fecha_inicial, fecha_final, idCuenta, function(mensajesFacebook){
-															if(mensajesFacebook === 'error'){
-																res.jsonp(mensajesFacebook);
+						    							objeto.descartados = descartadosActualizados;
+														obtieneNuevos(tipoEntrada, nombreSistema, fecha_inicial, fecha_final, idCuenta, function(mensajesNuevos){
+															if(mensajesNuevos === 'error'){
+																res.jsonp(mensajesNuevos);
 															}else{
-																objeto.totalFacebook = mensajesFacebook.length;
-																desglosaMensajes(tipoEntrada, fecha_inicial, fecha_final, mensajesFacebook, nombreSistema, idCuenta, 0, objetoFacebook, function(facebookActualizados){
-										    						if(facebookActualizados === 'error'){
-										    							res.jsonp(facebookActualizados);
+																objeto.totalNuevos = mensajesNuevos.length;
+																desglosaMensajes(tipoEntrada, fecha_inicial, fecha_final, mensajesNuevos, nombreSistema, idCuenta, 0, objetoNuevos, 'nuevos', function(nuevosActualizados){
+										    						if(nuevosActualizados === 'error'){
+										    							res.jsonp(nuevosActualizados);
 										    						}else{
-										 								objeto.facebook = facebookActualizados;
-										 								if(tipoEntrada !== 'twitter'){
-									    									objeto.totalAtendidos = objeto.totalAtendidos + objeto.totalFacebook;
-																		}
-								    									objeto.totalCasos = objeto.totalAtendidos + objeto.totalDescartados + objeto.totalNuevos;
-																		
-								    								//	objeto.totalCasos = objeto.totalAtendidos + objeto.totalDescartados + objeto.totalNuevos + objeto.totalFacebook;
-																		res.jsonp(objeto);
+										 								objeto.nuevos = nuevosActualizados;
+																		obtieneFacebook(tipoEntrada, nombreSistema, fecha_inicial, fecha_final, idCuenta, function(mensajesFacebook){
+																			if(mensajesFacebook === 'error'){
+																				res.jsonp(mensajesFacebook);
+																			}else{
+																				objeto.totalFacebook = mensajesFacebook.length;
+																				desglosaMensajes(tipoEntrada, fecha_inicial, fecha_final, mensajesFacebook, nombreSistema, idCuenta, 0, objetoFacebook, 'facebook', function(facebookActualizados){
+														    						if(facebookActualizados === 'error'){
+														    							res.jsonp(facebookActualizados);
+														    						}else{
+														 								objeto.facebook = facebookActualizados;
+														 								if(tipoEntrada !== 'twitter'){
+													    									objeto.totalAtendidos = objeto.totalAtendidos + objeto.totalFacebook;
+																						}
+												    									objeto.totalCasos = objeto.totalAtendidos + objeto.totalDescartados + objeto.totalNuevos;
+																						
+												    								//	objeto.totalCasos = objeto.totalAtendidos + objeto.totalDescartados + objeto.totalNuevos + objeto.totalFacebook;
+																						console.log('\n\n');
+																						console.log('EL OBJETO EN DESEMPENIO HORA');
+																						console.log(objeto);
+																						console.log('\n\n');
+																						res.jsonp(objeto);
+																					}
+																				});
+																			}
+																		});
 																	}
 																});
 															}
 														});
 													}
 												});
-											}
-										});
+						    				}
+								    	});
 									}
-								});
-		    				}
-				    	});
+								});	
+							}
+						});
 					}
-				});	
-		    }
+			    });
+			}
 		});
     });
 };

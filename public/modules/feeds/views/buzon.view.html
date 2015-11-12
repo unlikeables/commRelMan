@@ -154,7 +154,7 @@
                                 		<p><img src="/modules/core/img/usuario-sem-imagem.png" class="circular-ligero" /><a title="{{twit.atendido.user_name}}" style="padding: 4px 5px; color:#0DBEC8; min-width:190px;">Atendido por {{twit.atendido.user_name}}</a></p>
                                 	</li>                                	
                                 	<li class="atendido-usuario" data-ng-show="twit.tipoMensaje === 'atendido'">
-                                		<p><img src="/modules/core/img/usuario-sem-imagem.png" class="circular-ligero" /><a title="{{twit.atendido.user_name}}" style="padding: 4px 5px; display: block; color:#0DBEC8; min-width:190px;">Atendido por {{twit.atendido.user_name}}</a></p>
+                                		<p><img src="/modules/core/img/usuario-sem-imagem.png" class="circular-ligero" /><a title="{{twit.atendido.user_name}}" style="padding: 4px 5px; display: block; color:#0DBEC8; min-width:190px;">Atendido por Hola {{twit.atendido.user_name}}</a></p>
                                 	</li>
                                     <li class="asignado-usuario" ng-show="(twit.asignado && !evalua_ocupado(twit._id)) && (twit.tipoMensaje !== 'proceso' && twit.tipoMensaje !== 'completo' && twit.tipoMensaje !== 'descartado')">
                                         <p><img src="{{twit.asignado.usuario_asignado_image}}" class="circular-ligero" /><a class="muestra_ocupado_por" title="{{twit.asignado.usuario_asignado_displayName}}" style="padding: 4px 5px; display: block; color:#0DBEC8; min-width:190px;">Asignado a : {{twit.asignado.usuario_asignado_displayName}}</a></p>
@@ -176,11 +176,11 @@
                                     <li class="contenedor-menu-globo settings">
                                         
                                         <ul class='menu-globo menu-globo-gris'>
-											<li data-ng-show="(twit.tipo === 'twit' || twit.tipo === 'tracker') && !twit.follower" translate ng-click="follow(twit)">Follow</li>
+											
                                             <li data-ng-show="(twit.tipo === 'twit' || twit.tipo === 'tracker') && twit.follower" ng-click="unFollow(twit)" style="border-bottom:solid 3px #465769">Dejar de Seguir</li>
-											<li data-ng-show="(twit.tipo === 'twit' || twit.tipo === 'tracker') && !twit.influencer" data-ng-controller="ModalDemoCtrl" data-ng-click="openNuevo(twit)" style="border-bottom:solid 3px #465769">Agregar Influencer</li>
-                                            <li data-ng-show="(twit.tipoMensaje === 'entrada') && (authentication.user.roles[0] === 'app-manager' ||  authentication.user.roles[0] === 'account-manager')" data-ng-controller="ModalDemoCtrl" data-ng-click="asignarMensaje(twit)">Asignar</li>
-                                            <li data-ng-show="twit.tipoMensaje === 'entrada' || twit.tipoMensaje === 'atendido'" data-ng-controller="ModalDemoCtrl" data-ng-click="openDescartados({{twit}})" translate>Reject</li>
+											
+                                            <li data-ng-show="(twit.tipoMensaje === 'entrada')" data-ng-controller="ModalDemoCtrl" data-ng-click="asignarMensaje(twit)">Asignar</li>
+                                            <li data-ng-controller="ModalDemoCtrl" data-ng-click="openDescartados({{twit}})" translate>Reject</li>
                                             <li data-ng-show="twit.tipoMensaje === 'completo' || twit.tipoMensaje === 'descartado'" data-ng-controller="ModalDemoCtrl" ng-click="openRegresaDescartados(twit)">{{ 'Return to entries' | translate }}​</li>
                                         </ul>
                                         
@@ -268,8 +268,8 @@
             <a style="position:fixed; z-index: 999; cursor:pointer;left:50%;top:70px;border-radius: 5px; padding: 7px 40px;display:block; opacity: .8" ng-show="flash" class="bg-naranja txt-blanco">{{flash_text}}</a>
             <div class="pure-u-md-1-1">
                 <ul class="listado-mensajes" style="padding-top: 15px; padding-bottom:70px;" data-ng-show="MuestraListadoFeeds">
-                    <li ng-class="{'ocupado': evalua_ocupado(twit._id),'no-leido': !twit.clasificacion,'asignado': (twit.asignado && !twit.clasificacion) }" ng-hide="evalOculto(twit._id)" data-ng-repeat="twit in posts track by $index" style="position:relative;"  ng-mouseover="(evalua_ocupado(twit._id)?showCheck = false:showCheck = true)" ng-mouseleave="showCheck = false" id="{{ 'object-' + $index }}">
-                    
+
+                    <li ng-class="{'ocupado': evalua_ocupado(twit._id),'no-leido': !twit.clasificacion,'asignado': (twit.asignado && !twit.clasificacion && !twit.descartado) }" ng-hide="evalOculto(twit._id)" data-ng-repeat="twit in posts track by $index" style="position:relative;"  ng-mouseover="(evalua_ocupado(twit._id)?showCheck = false:showCheck = true)" ng-mouseleave="showCheck = false" id="{{ 'object-' + $index }}">
                         <!--<input class="check_selector" /*ng-show="showCheck || (evalua_ocupado(twit._id) && checkt) "*/ ng-hide ="!checkt && evalua_ocupado(twit._id)" type ="checkbox" name="checkt" ng-model="checkt" ng-change="checkLote(checkt,twit)" ng-class="activacheckbox">-->
                         
                         <div class="contenedor-checkbox-feed">
@@ -283,9 +283,11 @@
                             <div class="usuario">
                                 <div class="notificacion" data-ng-show="twit.influencers"></div>
                                 <!--Imagen -->
+				<!--<img src="{{twit.imagen_https}}" style="width:44px; height:44px; border:solid 2px #404040 !important; cursor: default !important;" class="circular"/>-->
+				
                                     <img src="{{twit.imagen_https}}" ng-if = "twit.obj === 'twitter'" ng-click ="actualizaImgTwitter(twit)" style="width:44px; height:44px; border:solid 2px #404040 !important; cursor: pointer !important;" class="circular" title = "Click para actualizar la foto" /> 
-                                    
-                                    <img src="{{twit.imagen_https}}" ng-if = "twit.obj === 'facebook'" style="width:44px; height:44px; border:solid 2px #404040 !important; cursor: default !important;" class="circular"/> 
+                                    <img ng-src="{{twit | validaImgFacebook}}" ng-if = "twit.obj === 'facebook'" style="width:44px; height:44px; border:solid 2px #404040 !important; cursor: default !important;" class="circular"/> 
+				    
 
                             </div>
                             <!--datos-->
@@ -392,13 +394,13 @@
                             <div class="iconos-lateral">
                                 <ul>
                                 	<li class="descartado-usuario" data-ng-show="twit.tipoMensaje === 'descartado'">
-                                		<p><img ng-src="{{twit.descartado.imagenUsuario}}" fallback-image="/modules/core/img/usuario-sem-imagem.png" class="circular-ligero" /><a title="{{twit.descartado.usuario}}" style="padding: 4px 5px; color:#0DBEC8; min-width:190px;">Descartado por {{twit.descartado.usuario}}</a></p>
+                                		<p><img ng-src="{{twit.descartado.imagenUsuario | validaImagenDescartado}}" class="circular-ligero" /><a title="{{twit.descartado.usuario}}" style="padding: 4px 5px; color:#0DBEC8; min-width:190px;">Descartado por {{twit.descartado.usuario | capitalize}}</a></p>
                                 	</li>                                  	
                                 	<li class="atendido-usuario" data-ng-show="twit.tipoMensaje === 'completo'">
-                                		<p><img ng-src="{{twit.clasificacion.imagen_usuario}}" fallback-image="/modules/core/img/usuario-sem-imagem.png" class="circular-ligero" /><a title="{{twit.atendido.user_name}}" style="padding: 4px 5px; color:#0DBEC8; min-width:190px;">Atendido por {{twit.atendido.user_name}}</a></p>
+                                		<p><img ng-src="{{twit.clasificacion.imagen_usuario}}" fallback-image="/modules/core/img/usuario-sem-imagem.png" class="circular-ligero" /><a title="{{twit.atendido.user_name}}" style="padding: 4px 5px; color:#0DBEC8; min-width:190px;">Atendido por {{twit.atendido.usuario_nombre | capitalize}}</a></p>
                                 	</li>                                	
                                 	<li class="atendido-usuario" data-ng-show="twit.tipoMensaje === 'atendido'">
-                                		<p><img ng-src="{{twit.clasificacion.imagen_usuario}}" fallback-image="/modules/core/img/usuario-sem-imagem.png" class="circular-ligero" /><a title="{{twit.clasificacion.user_name}}" style="padding: 4px 5px; display: block; color:#0DBEC8; min-width:190px;">Atendido por {{twit.clasificacion.user_name}}</a></p>
+                                		<p><img ng-src="{{twit | searchResultImg}}" class="circular-ligero" /><a title="{{twit.clasificacion.user_name}}" style="padding: 4px 5px; display: block; color:#0DBEC8; min-width:190px;">Atendido por {{twit.atendido.usuario_nombre | capitalize}}</a></p>
                                 	</li>
                                     <li class="asignado-usuario" ng-show="(twit.asignado && !evalua_ocupado(twit._id)) && (twit.tipoMensaje !== 'proceso' && twit.tipoMensaje !== 'completo' && twit.tipoMensaje !== 'descartado' && !twit.clasificacion)">
                                         <p><img src="{{twit.asignado.usuario_asignado_image}}" class="circular-ligero" /><a class="muestra_ocupado_por" title="{{twit.asignado.usuario_asignado_displayName}}" style="padding: 4px 5px; display: block; color:#0DBEC8; min-width:190px;">Asignado a : {{twit.asignado.usuario_asignado_displayName}}</a></p>
@@ -424,8 +426,8 @@
                                             <li data-ng-show="(twit.tipo === 'twit' || twit.tipo === 'tracker') && twit.follower" ng-click="unFollow(twit)" style="border-bottom:solid 3px #465769">Dejar de Seguir</li>
 											<li data-ng-show="(twit.tipo === 'twit' || twit.tipo === 'tracker') && !twit.influencer" data-ng-controller="ModalDemoCtrl" data-ng-click="openNuevo(twit)" style="border-bottom:solid 3px #465769">Agregar Influencer</li>
                                             <li data-ng-show="(twit.tipoMensaje === 'nuevo')" data-ng-controller="ModalDemoCtrl" data-ng-click="asignarMensaje(twit)">Asignar</li>
-                                            <li data-ng-show="twit.tipoMensaje === 'nuevo' || twit.tipoMensaje === 'atendido'" data-ng-controller="ModalDemoCtrl" data-ng-click="openDescartados({{twit}})" translate>Reject</li>
-                                            <li data-ng-show="twit.tipoMensaje === 'completo' || twit.tipoMensaje === 'descartado'" data-ng-controller="ModalDemoCtrl" ng-click="openRegresaDescartados(twit)">{{ 'Return to entries' | translate }}​</li>
+                                            <li data-ng-show="twit.tipoMensaje === 'nuevo' || twit.tipoMensaje === 'nuevo'" data-ng-controller="ModalDemoCtrl" data-ng-click="openDescartados(twit)" translate>Reject</li>
+                                            <li data-ng-show="twit.tipoMensaje === 'atendido' || twit.tipoMensaje === 'descartado'" data-ng-controller="ModalDemoCtrl" ng-click="openRegresaDescartados(twit)">{{ 'Return to entries' | translate }}​</li>
                                         </ul>
                                         
                                     </li>
@@ -1105,7 +1107,7 @@
                     </div>
                 </div>
                 <!--caja para twitter-->
-                <div class="pure-u-md-1-1" data-ng-show="items[0].obj !=='facebook' && items[0].tipo !== 'tracker'">
+                <div class="pure-u-md-1-1" data-ng-show="items[0].obj !=='facebook' && items[0].tipo !== 'tracker' && imtems[0].tipoMensaje !== 'descartado'">
                     <textarea data-ng-class="{ 'txt-rojo': faltanteMensaje <= 0 }"  style="width:80%; padding:2%; margin-top:30px; margin-left:10%; float:left; height: 100px;border:solid 1px #465769;border-radius:3px;" data-ng-change="textChange()" data-ng-model="respuesta" name="respuesta" placeholder="Respuesta Nueva" id="respuesta-comentario" ng-focus="focus_area()">
                         {{respuesta}}}
                     </textarea>
@@ -1470,7 +1472,24 @@
 </div>
 </script>
 <!--Modal para asignacion--> 
-    
+    <script type="text/ng-template" id="regresaDescartado.html" data-ng-controller="ModalDemoCtrl">
+<div align="center" class="pure-u-md-1-1 izq">
+        <div class="pure-u-md-1-1" align="center" style="width:100%;">
+             <p class="txt-centro">¿Estás Seguro?</p>
+             <!--<p style="margin-top:-13px; margin-bottom: 5px;"><small class="txt-centro txt-error" translate>By doing so, you will delete its Subtopics</small></p>-->
+        </div>
+        <div class="pure-u-md-1-1">
+
+<table width="100%" class="tabla-botones-acciones-basicas">
+<tr>
+<td><button class="btn btn-guardar der"  ng-click="close(items[0])" translate>Cancel</button></td>
+<td><button class="btn btn-guardar izq" ng-click="regresarMailbox(items[0])"  translate>Accept</button></td>
+</tr>
+</table> 
+
+        </div>
+    </div
+</script>
 
 </div>
 <!--</section>-->

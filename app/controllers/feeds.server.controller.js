@@ -481,8 +481,8 @@ exports.respondeMailbox = function(req, res){
 			}
     	});		
 	}
+
 	function respondeTweet(idMensaje, cuenta, coleccion, mensaje, respuesta, idUsuario, nombreUsuario, imagenUsuario, callback){
-		var obj = {};    	
     	var item_id = new ObjectID(idMensaje);
 		classdb.buscarToArray('accounts', {'_id' : cuenta}, {}, 'feeds/respondeTweet', function(cuenta) {
 	    	if (cuenta === 'error') {
@@ -498,6 +498,7 @@ exports.respondeMailbox = function(req, res){
 						'access_token_secret' : accesos_twitter.twitter_access_token_secret
 		    		});
 		    		T.post('statuses/update', {'status': respuesta, 'in_reply_to_status_id' : mensaje.id_str, 'wrap_links':'true' }, function(error_twit, reply) {
+                                  var obj = {};
 						if(error_twit){
 							console.log(error_twit);
 							obj.error = error_twit;
@@ -792,7 +793,9 @@ exports.respondeTweet = function(req, res){
 */
 //Método que realiza la actualización del Descarte de algún mensaje
 exports.insertaDescarte=function(req,res){
-
+	console.log('EL DESCARTEEEE');
+	console.log(req.body);
+	console.log('\n\n');
     function getFacebookPageByCuenta(account_name, account_id, callback){
 		var acc_id = new ObjectID(account_id);
 		var criterio =  { nombreSistema : account_name };
@@ -1226,13 +1229,13 @@ exports.activaBloqueo = function(req, res){
 exports.regresarDescartado = function(req, res){
 	var id = new ObjectID(req.body.id);
 	var criterio = {'_id':id};
-    var elset = {descartado: 1};
+    var elset = {descartado: 1, atendido:1,sentiment:1,sentiment_user_name:1,sentiment_user_id:1,clasificacion:1};
     classdb.actualizaUnsetDelete(req.body.col, criterio, elset, 'feeds/regresarDescartado', function(actualizado){
     	if(actualizado === 'error'){
     		console.log('error');
     		res.jsonp('error');
     	}else{
-    		res.jsonp('actualizado');
+    		res.jsonp({ok:'actualizado'});
     	}    	
     });
 };
@@ -1243,14 +1246,15 @@ exports.regresarResuelto = function(req, res){
 	var objectId = new ObjectID();
 	var twit = req.body.twit;
 	var criterio = {'_id':id};
-    var elset = {atendido: 1};
+    var elset = {atendido: 1,sentiment:1,sentiment_user_name:1,sentiment_user_id:1,clasificacion: 1, descartado:1};
     var coleccion = req.body.col;
     classdb.actualizaUnsetDelete(req.body.col, criterio, elset, 'feeds/regresarDescartado', function(actualizado){
     	if(actualizado === 'error'){
     		console.log('error');
     		res.jsonp('error');
     	}else{
-    		var tipo;
+    		res.jsonp({ok:'actualizado'});
+    		/*var tipo;
     		var obj;
     		if(twit.type){
     			tipo = twit.type;
@@ -1284,10 +1288,10 @@ exports.regresarResuelto = function(req, res){
 					res.jsonp(obj);
 			    }
 			}
-		    });
+		    });*/
     	}	
     });
-	function procesaConversacion(coleccion, contenido,objectId, contenidos, index, contenidosprocesados, callback){
+	/*function procesaConversacion(coleccion, contenido,objectId, contenidos, index, contenidosprocesados, callback){
 		var more = index+1;
 		var cuantos = contenidos.length;
 		if (more > cuantos) {
@@ -1308,7 +1312,7 @@ exports.regresarResuelto = function(req, res){
 				});
 			});
 		}	
-    }
+    }*/
 };
 /*                ______        _ _ _                                             
              _   |  ___ \      (_) | |                       _               _    
@@ -2704,6 +2708,8 @@ exports.obtieneBuzon = function(req, res) {
 						lositems[i].urlUsuario = 'https://twitter.com/'+lositems[i].user.screen_name;
 					} 	           
 				}else if(lositems[i].obj==='facebook'){
+					var post = '';
+					var comentario = '';
 				    if (lositems[i].foto) {
 					var img = lositems[i].foto.replace('https', 'http');
 					lositems[i].imagen = img;
@@ -2715,23 +2721,23 @@ exports.obtieneBuzon = function(req, res) {
 					lositems[i].imagen_https = lositems[i].foto;
 					lositems[i].texto = lositems[i].message;
 					lositems[i].urlUsuario = 'http://facebook.com/'+lositems[i].from.id;
-					if (lositems[i].tipo == 'comment') {
-						if (lositems[i].parent_post == lositems[i].parent_comment) {
+					if (lositems[i].tipo === 'comment') {
+						if (lositems[i].parent_post === lositems[i].parent_comment) {
 							//si es un bucomentario
 							var id = lositems[i].id.split('_');
-							var post = lositems[i].parent_post.split('_');
-							var comentario = lositems[i].parent_comment.split('_');
+							post = lositems[i].parent_post.split('_');
+							comentario = lositems[i].parent_comment.split('_');
 							lositems[i].urlEnlace = 'https://www.facebook.com/'+page_id+'/posts/' + post[0] + '?comment_id=' + post[1] + '&reply_comment_id=' + id[1] + '';
 						} else {
 							if(typeof lositems[i].parent_post !== 'undefined'){
-							    var post = lositems[i].parent_post.split('_');
+							    post = lositems[i].parent_post.split('_');
 							    if (lositems[i].parent_comment) {
-								var comentario = lositems[i].parent_comment.split('_');
+								comentario = lositems[i].parent_comment.split('_');
 								lositems[i].urlEnlace = 'https://www.facebook.com/'+page_id+'/posts/'+ post[1]+'?comment_id='+comentario[1];
 							    }
 							}else{                                                  
 							    if (lositems[i].parent_comment) {
-								var comentario = lositems[i].parent_comment.split('_');
+								comentario = lositems[i].parent_comment.split('_');
 								lositems[i].urlEnlace = 'https://www.facebook.com/' + post[0] + '/posts/' + post[1] + '?comment_id=' + comentario[1];
 							    }
 							}
@@ -3487,7 +3493,10 @@ exports.getOneContent = function (req, res) {
 		var mid = new ObjectID(mongoid);
 		var criterio = { '_id' : mid };
 		classdb.buscarToArray(coleccion, criterio, {}, 'feeds/getOneContent/queryUno', function(items){
-
+                  if (items.length < 1) {
+                    return callback([]);
+                  }
+                  else {
 			var parent_post = {id:{$exists:true}};
 			var criterioc = {
 			    $and : [
@@ -3513,6 +3522,7 @@ exports.getOneContent = function (req, res) {
 					return callback(items);
 				}
 			});
+                    }
 		});
 			
     }
@@ -4248,19 +4258,18 @@ exports.finalizar = function(req, res){
 		if(twit.obj === 'facebook'){
 			console.log('Es tipo facebook !!!');
 			if(twit.tipo !== 'facebook_inbox'){
-				tipo = { $or: [ { tipo:'comment' }, { tipo:'post' } ] };
+				tipo = { $or: [ { tipo:{$eq:'comment'} }, { tipo:{$eq:'post' }} ] };
 			}else{
-				tipo = {tipo:'facebook_inbox'};
+				tipo = {tipo:{$eq:'facebook_inbox'}};
 			}
 		}else{
 			console.log('Es tipo twitter');
 			if(twit.tipo === 'direct_message'){
-				tipo = {tipo: 'direct_message'};
+				tipo = {tipo:{$eq:'direct_message'}};
 			}else{
-				tipo = {tipo: 'twit'};
+				tipo = {tipo: {$eq:'twit'}};
 			}
 		}
-		console.log('Se asigno un tipo y es !! ');
 		console.log(tipo);
 
 
@@ -4268,7 +4277,7 @@ exports.finalizar = function(req, res){
 		$and : [
 		    {'from_user_id':twit.from_user_id}, 
 		    {'atendido': {$exists: false}}, 
-		    {'descartado': {$exists: false}}, 
+		    //{'descartado': {$exists: false}}, 
 		    {'id': {$ne : twit.id}}, 
 		    {'eliminado':{$exists:false}},
 		    tipo,
@@ -4276,8 +4285,11 @@ exports.finalizar = function(req, res){
 		    {'created_time':{$lt: new Date(twit.created_time)}}
 		]
 	    };
+	    console.log('JSON');
+	    console.log(JSON.stringify(criteriof));
 	    classdb.buscarToArray(coleccion, criteriof, {}, 'feeds/finalizar', function(items){
 		if(items === 'error'){
+			console.log(obj);
 		    obj = {'error': 'se actualizó correctamente pero no el historial'};
 		    res.jsonp(obj);
 		}
@@ -5209,7 +5221,7 @@ exports.nuevosPostsFiltered = function(req, res){
 		criteriored_page
 	    ]
 	};
-	classdb.buscarToArray(cole, criterio,{}, 'feeds/getCuentaNuevos/querybuzon', function(cuenta){
+	classdb.buscarToArray(cole, criterio,{created_time:1}, 'feeds/getCuentaNuevos/querybuzon', function(cuenta){
 	    console.log('cuenta !');
 	    console.log(cuenta.length);
 	    return callback(cuenta);
@@ -5245,12 +5257,87 @@ exports.nuevosPostsFiltered = function(req, res){
 			    }
 			    else {
 				querybuzon(coleccion, last_ct, page_id, tipo, function(lacuenta) {
-				    if (lacuenta === 'error') {
-					res.jsonp(obj);
-				    }
-				    else {
-					obj.cuenta = lacuenta;
-					res.jsonp(obj);
+					if (lacuenta === 'error') {
+						res.jsonp(obj);
+				    }else {
+						for(var i=0;i<lacuenta.length;i++){
+							if(lacuenta[i].descartado){    
+								lacuenta[i].tipoMensaje = 'descartado';
+			                }else if(!lacuenta[i].descartado && !lacuenta[i].eliminado && (lacuenta[i].respuestas || lacuenta[i].sentiment || lacuenta[i].clasificacion || lacuenta[i].atendido)){
+								//console.log('PROCESO');
+								lacuenta[i].tipoMensaje = 'atendido';
+			                }else if(!lacuenta[i].descartado && !lacuenta[i].atendido && !lacuenta[i].eliminado && !lacuenta[i].sentiment && !lacuenta[i].clasificacion){
+								//console.log('ENTRADA');
+								lacuenta[i].tipoMensaje = 'nuevo';
+							}else{
+								console.log('No entro a un buzon valido');
+								console.log(lacuenta[i]);
+								console.log('\n\n');
+							}
+		
+							if(lacuenta[i].obj==='twitter'){
+								if(lacuenta[i].tipo === 'direct_message'){ 
+									lacuenta[i].nombre = lacuenta[i].sender_screen_name;
+									lacuenta[i].imagen = lacuenta[i].sender.profile_image_url;
+									lacuenta[i].imagen_https = lacuenta[i].sender.profile_image_url_https;
+									lacuenta[i].texto = lacuenta[i].text;
+									lacuenta[i].urlEnlace = '#';
+									lacuenta[i].urlUsuario = 'https://twitter.com/'+lacuenta[i].sender.screen_name;
+								}else{
+									lacuenta[i].nombre = lacuenta[i].user.screen_name;
+									lacuenta[i].imagen = lacuenta[i].user.profile_image_url;
+									lacuenta[i].imagen_https = lacuenta[i].user.profile_image_url_https;
+									lacuenta[i].texto = lacuenta[i].text;
+									lacuenta[i].urlEnlace = lacuenta[i].tw_url;
+									lacuenta[i].urlUsuario = 'https://twitter.com/'+lacuenta[i].user.screen_name;
+								} 	           
+							}else if(lacuenta[i].obj==='facebook'){
+						    	if (lacuenta[i].foto) {
+									var img = lacuenta[i].foto.replace('https', 'http');
+									lacuenta[i].imagen = img;
+						    	}else {
+									lacuenta[i].imagen = '';
+						    	}
+								lacuenta[i].nombre = lacuenta[i].from.name;
+								lacuenta[i].imagen_https = lacuenta[i].foto;
+								lacuenta[i].texto = lacuenta[i].message;
+								lacuenta[i].urlUsuario = 'http://facebook.com/'+lacuenta[i].from.id;
+								if (lacuenta[i].tipo == 'comment') {
+									var post = '';
+									var comentario = '';
+									if (lacuenta[i].parent_post == lacuenta[i].parent_comment) {
+										//si es un bucomentario
+										var id = lacuenta[i].id.split('_');
+										post = lacuenta[i].parent_post.split('_');
+										comentario = lacuenta[i].parent_comment.split('_');
+										lacuenta[i].urlEnlace = 'https://www.facebook.com/'+page_id+'/posts/' + post[0] + '?comment_id=' + post[1] + '&reply_comment_id=' + id[1] + '';
+									} else {
+										if(typeof lacuenta[i].parent_post !== 'undefined'){
+									    	post = lacuenta[i].parent_post.split('_');
+									    	if (lacuenta[i].parent_comment) {
+												comentario = lacuenta[i].parent_comment.split('_');
+												lacuenta[i].urlEnlace = 'https://www.facebook.com/'+page_id+'/posts/'+ post[1]+'?comment_id='+comentario[1];
+									    	}
+										}else{                                                  
+									    	if (lacuenta[i].parent_comment) {
+												comentario = lacuenta[i].parent_comment.split('_');
+												lacuenta[i].urlEnlace = 'https://www.facebook.com/' + post[0] + '/posts/' + post[1] + '?comment_id=' + comentario[1];
+									    	}
+										}
+									}
+		    				   	} else if (lacuenta[i].tipo == 'facebook_inbox') {
+							  		lacuenta[i].urlEnlace = lacuenta[i].conversation_link;
+								} else if (lacuenta[i].tipo == 'post') {
+									//si es un post
+									var id = lacuenta[i].id.split('_');
+									lacuenta[i].urlEnlace = 'https://www.facebook.com/'+page_id+'/posts/'+id[1]; 
+						        }else{
+									lacuenta[i].urlEnlace = lacuenta[i].rating_link;
+						        }        
+		                	}                               
+	           	 		}
+						obj.cuenta = lacuenta;
+						res.jsonp(obj);
 				    }
 				});		
 			    }
@@ -5366,12 +5453,21 @@ exports.actualizaImgTwitter = function(req, res){
 
 function pideFotoTwitter(cuenta, mensaje, callback){
 	   	var accesos_twitter =  cuenta.datosTwitter;
-	    var T  = new Twit({
-			'consumer_key' : accesos_twitter.twitter_consumer_key,
-			'consumer_secret' : accesos_twitter.twitter_consumer_secret,
-			'access_token' : accesos_twitter.twitter_access_token,
-			'access_token_secret' : accesos_twitter.twitter_access_token_secret
-	    });
+	   	if(accesos_twitter.twitter_consumer_secret !== '' && accesos_twitter.twitter_consumer_key !== '' && accesos_twitter.twitter_access_token && accesos_twitter.twitter_access_token_secret !== ''){
+		    var T  = new Twit({
+				'consumer_key' : accesos_twitter.twitter_consumer_key,
+				'consumer_secret' : accesos_twitter.twitter_consumer_secret,
+				'access_token' : accesos_twitter.twitter_access_token,
+				'access_token_secret' : accesos_twitter.twitter_access_token_secret
+		    });
+		}else{
+		    var T  = new Twit({
+				'consumer_key' : tck_def,
+				'consumer_secret' : tcs_def,
+				'access_token' : tat_def,
+				'access_token_secret' : tats_def
+		    });
+		}
 	    var parametros_twitter = {
 	    	//'screen_name' : mensaje.from_user_screen_name
 	    	'user_id' : mensaje.from_user_id

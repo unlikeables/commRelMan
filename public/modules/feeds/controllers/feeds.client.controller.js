@@ -36,7 +36,52 @@ angular.module('feeds')
 	};
     }
 ])
+.filter('capitalize', function() {
+    return function(input) {
+      return (!!input) ? input.charAt(0).toUpperCase() + input.substr(1).toLowerCase() : '';
+    }
+})
+.filter('searchResultImg', function() {      
+        return function(input) {
+           	if(input){
+           		if(input.atendido){
+           			if(input.atendido.usuario_foto){
+           				return input.atendido.usuario_foto;
+           			}else{
+           				if(input.clasificacion.imagen_usuario){
+           					return input.clasificacion.imagen_usuario;
+           				}else{
+           					return '/modules/core/img/usuario-sem-imagem.png';
+           					//console.log('No tiene imagen en atendido ni en clasificacion');
+           				}
+           			}
+           		}
+           	}
+        };
+})
+.filter('validaImagenDescartado', function() {      
+        return function(input) {
+           	if (typeof(input) == "undefined" || input === null) {
+                return "/modules/core/img/usuario-sem-imagem.png";
+            } else { 
+            	return input;
+            }
+        };
+})
+.filter('validaImgFacebook', function() { 
+        return function(input) {
+            if (typeof(input.imagen_https) == "undefined") {
+                return "/modules/core/img/usuario-sem-imagem.png";
+            } else { 
+            	if(input.imagen_https.length === 0){         		
+	                return "/modules/core/img/usuario-sem-imagem.png";
+            	}else{
+            		return input.imagen_https;
+            	}
 
+            }
+        };
+})
 .filter('linksTwitter',['$filter', function($filter) {
         return function(text,entities,trackers) {
             if (!text){
@@ -427,6 +472,7 @@ angular.module('feeds')
                                                            __/ |                                
                                                           |___/                                 
 */
+
 		$scope.actualizaImgTwitter = function (mensaje) {	
 			for(var i = 0; i<$scope.posts.length;i++){
 				if(mensaje._id === $scope.posts[i]._id){
@@ -439,12 +485,14 @@ angular.module('feeds')
 				if(imgActualizada){
 					for(var i = 0; i<$scope.posts.length;i++){
 						if(imgActualizada._id === $scope.posts[i]._id){
-							$scope.posts[i] = imgActualizada;
+							$scope.posts[i].imagen_https = imgActualizada.imagen_https;
+							$scope.posts[i].imagen = imgActualizada.imagen;
 						}
 					}
 				}
 			});	
 		};
+
 /*
                  _              _               _ _          _____                 _            _ _   _            
                 | |            | |             | (_)        |_   _|               | |          (_) | | |           
@@ -462,6 +510,9 @@ angular.module('feeds')
 			$scope.posts =$scope.aux;
 		};
 		$scope.$on('muestraFlash', function(event,str){
+			$scope.muestraFlash(str);
+		});
+		$scope.muestraFlash = function(str){
 			console.log(str);
 			$scope.flash = true;
 			$scope.flash_text = str;
@@ -469,7 +520,7 @@ angular.module('feeds')
 				$scope.flash = false;
 				$scope.flash_text = '';
 			}, 2500);
-		});
+		}
 		$scope.obtieneNuevoBuzon = function(){
 			//$http.get('http://likeable-crm.mvsdigital.info:8082/nuevoBuzon?coleccion=facespa_consolidada&cuenta_id=254867754693028&inicio=0').success(function(data){
 			$http.get($scope.constant.host+'/nuevoBuzon?coleccion=facespa_consolidada&cuenta_id=167584559969748&inicio=0').success(function(data){
@@ -500,6 +551,10 @@ angular.module('feeds')
 	    var existe_notificacion = false;
 	    //funcion que determina en que parte del crm se llamo la nitificacion pra redirigit a buzon
 	    $scope.comparaUrl = function(){
+	    	var url = window.location.href;
+	    	url = url.replace('#object-0','');
+	    	window.location.href = url;
+	    	//console.log('LOCATION');
 	    	$scope.authentication = Authentication;
 		    var tieneSesion=$scope.authentication.user.hasOwnProperty('_id');
 		    if(tieneSesion===false){
@@ -721,13 +776,14 @@ angular.module('feeds')
 			}
 
 			for(var i in $scope.notificaciones){
-			  		console.log($scope.notificaciones[i].mongo_id +'==='+ $scope.notificacion.mongo_id);
+				if($scope.notificaciones[i] && $scope.notificacion){
 			  		if($scope.notificaciones[i].mongo_id === $scope.notificacion.mongo_id){
 			  			existe_notificacion = true;
 			  		}
 			  	}
-			  	console.log('Mostrando notificacion');
-		  		console.log(existe_notificacion);
+			}
+			  //	console.log('Mostrando notificacion');
+		  	//	console.log(existe_notificacion);
 			  	if(existe_notificacion){
 			  		if($scope.notificacionesOcultas)
 			  			$scope.abrirNotificaciones();
@@ -761,29 +817,31 @@ angular.module('feeds')
 	    
 	    /*+-+-+-+-+-+-++-+-+-+-+-+-+-+-+-+-+-+ SOCEKTS TIEMPO REAL +-+-+-+-+-+-+-+++-+---+-+-+-+-+-+-*/
 	    Socket.on('tiempoRealFront', function(obj_actualizar){
-	    	if(_.size($scope.posts) < 3){
-				console.log('Pediremos mas de este buzon !!!');
-				console.log($scope.tipoBuzon);
-	    		$scope.loadMoreUnificado();
-	    	}
+	    	console.log('Actualizando tiempo Real Front');
+	    	console.log(obj_actualizar);
 	    	if(obj_actualizar.cuenta === Authentication.user.cuenta.marca){
 				$http.post('/totalPendientes',{coleccion: Authentication.user.cuenta.marca+'_consolidada',id_cuenta: Authentication.user.cuenta._id,filtro:$scope.tipo}).success(function(data){
 					$scope.pendientes = parseInt(data);
 					if($scope.tipoBuzon === 'nuevos'){
 						$scope.textoSelectorBandeja = "Nuevos ("+$scope.pendientes+")";
 					}
-					//$scope.textoSelectorBandeja = "Nuevos ("+$scope.pendientes+")";
-					/*if($scope.tipoBuzon === 'nuevos'){
-						$scope.textoSelectorBandeja = "Nuevos ("+$scope.pendientes+")";
-					}*/
+					console.log('TOTALES!!!');
+					console.log(_.size($scope.posts));
+					if(_.size($scope.posts) < 3){
+			    		$scope.loadMoreUnificado();
+			    	}
 				});
 		    	switch($scope.tipoBuzon){
 		    		case 'nuevos':	
-		    			for(var i in $scope.posts){
-		    				if($scope.posts[i]._id === obj_actualizar._id){
-		    					delete $scope.posts[i];
-		    					$scope.posts = $scope.posts.filter(function(){return true;});
-		    				}
+		    			if(obj_actualizar.regresa){
+		    				console.log('El elemento se agrega en su fecha indicada');
+		    			}else{
+		    				for(var i in $scope.posts){
+			    				if($scope.posts[i]._id === obj_actualizar._id){
+			    					delete $scope.posts[i];
+			    					$scope.posts = $scope.posts.filter(function(){return true;});
+			    				}
+			    			}
 		    			}
 		    		break;
 		    		//case 'atendidos':
@@ -827,7 +885,38 @@ angular.module('feeds')
 				    		}
 				    	}
 		    		break;
+		    		case 'atendidos':
+		    			if(obj_actualizar.regresa){
+		    				for(var i in $scope.posts){
+			    				if($scope.posts[i]._id === obj_actualizar._id){
+			    					delete $scope.posts[i];
+			    					$scope.posts = $scope.posts.filter(function(){return true;});
+			    				}
+			    			}
+		    			}
+		    		break;
 		    		case 'todos':
+		    			if(obj_actualizar.regresa){
+		    				console.log('TODOS !!! con parametro regresa !!');
+		    				console.log(obj_actualizar);
+		    				for(var i in $scope.posts){
+		    					console.log($scope.posts[i]._id +'==='+ obj_actualizar._id);
+				    			if($scope.posts[i]._id === obj_actualizar._id){
+				    				console.log('Son iguales !');
+				    				$scope.posts[i].tipoMensaje = 'nuevo';
+				    				console.log($scope.posts[i].atendido);
+				    				if($scope.posts[i].clasificacion)
+				    					delete $scope.posts[i].clasificacion;
+				    				if($scope.posts[i].atendido)
+				    					delete $scope.posts[i].atendido;
+
+				    				console.log($scope.posts[i].atendido);
+				    				if($scope.posts[i].descartado)
+				    					delete $scope.posts[i].descartado;	
+				    			}
+				    		}
+				    		$scope.posts = $scope.posts.filter(function(){return true;});
+		    			}
 		    			if(obj_actualizar.descartado){
 		    				for(var i in $scope.posts){
 				    			if($scope.posts[i]._id === obj_actualizar._id){
@@ -842,27 +931,29 @@ angular.module('feeds')
 				    			}
 				    		}
 		    			}else{
-		    				for(var i in $scope.posts){
-				    			if($scope.posts[i]._id === obj_actualizar._id){
-				    				$scope.posts[i].clasificacion = {
-				    					tema: obj_actualizar.tema,
-				    					subtema: obj_actualizar.subtema,
-										user_name: obj_actualizar.username,
-										user_id: obj_actualizar.user,
-										imagen_usuario: obj_actualizar.user_image
-				    				};
-									console.log('ACTUALIZANDO USERNAME!');
-									console.log(obj_actualizar);
-									console.log(obj_actualizar.username);
-									$scope.posts[i].atendido ={
-										"usuario_id": obj_actualizar.user,
-										"user_name": obj_actualizar.username
-									}
-				    				$scope.posts[i].sentiment = obj_actualizar.sentiment;
-				    				$scope.posts[i].tipoMensaje = 'atendido';
-				    				$scope.posts = $scope.posts.filter(function(){return true;});
-				    			}
-				    		}
+		    				if(!obj_actualizar.regresa){
+			    				for(var i in $scope.posts){
+					    			if($scope.posts[i]._id === obj_actualizar._id){
+					    				$scope.posts[i].clasificacion = {
+					    					tema: obj_actualizar.tema,
+					    					subtema: obj_actualizar.subtema,
+											user_name: obj_actualizar.username,
+											user_id: obj_actualizar.user,
+											imagen_usuario: obj_actualizar.user_image
+					    				};
+										console.log('ACTUALIZANDO USERNAME!');
+										console.log(obj_actualizar);
+										console.log(obj_actualizar.username);
+										$scope.posts[i].atendido ={
+											"usuario_id": obj_actualizar.user,
+											"user_name": obj_actualizar.username
+										}
+					    				$scope.posts[i].sentiment = obj_actualizar.sentiment;
+					    				$scope.posts[i].tipoMensaje = 'atendido';
+					    				$scope.posts = $scope.posts.filter(function(){return true;});
+					    			}
+					    		}
+					    	}
 		    			}		
 		    		break;
 
@@ -984,10 +1075,17 @@ angular.module('feeds')
 				        // set the $location.hash to `newHash` and
 				        // $anchorScroll will automatically scroll to it
 				        $location.hash('object-0');
+
 				      } else {
 				        // call $anchorScroll() explicitly,
 				        // since $location.hash hasn't changed
 				        $anchorScroll();
+				        console.log('Removiendo el hash !')
+					    var url = window.location.href;
+					    console.log(url);
+					   	url = url.replace('#object-0','');
+					   	console.log(url);
+					    window.location.href = url;
 				      }
 				});	
 			}
@@ -1320,7 +1418,10 @@ angular.module('feeds')
 	    $scope.ocultos = [];
 	    /* Socket para bloquear la caja del twit o post seleccionado*/
 		Socket.on('bloquea', function(datos_a_bloquear){
+			//console.log('Datos a bloquear en front');
+			//console.log(datos_a_bloquear);
 			$scope.ocupados[($scope.ocupados.length)]={_id: datos_a_bloquear._id, user:datos_a_bloquear.user,user_image: datos_a_bloquear.user_image};		
+			//console.log($scope.ocupados);
 		});
 		/* Socket para desbloquear la caja del twit o post */
 		Socket.on('libera',function(libera){
@@ -1455,7 +1556,9 @@ angular.module('feeds')
 						}	
 					}
 				}
-				$scope.posts = $scope.posts.filter(function(){return true;});
+				if($scope.posts){
+					$scope.posts = $scope.posts.filter(function(){return true;});
+				}
 				if($scope.tipoBuzon === 'asignados'){
 					if(Authentication.user._id === data.asignado.usuario_asignado_id){	
 						for(var i in mensajes_asignados){
@@ -2365,6 +2468,8 @@ angular.module('feeds')
 		/* $scope.getResueltos*/	    
 	    
 	    $scope.$on('eventRegresaMailbox', function(e,item){
+	    	console.log('regresando mailbox !!!');
+	    	console.log(item);
 	    	if(item.descartado){
 	    		$scope.regresarDescartado(item._id);
 	    	}
@@ -2374,27 +2479,58 @@ angular.module('feeds')
 	    });
 
 	    $scope.regresarDescartado = function(id){
+	    	console.log('Entro a regresarDescatado !');
 	    	Socket.emit('liberaOcupado',{cuenta:$scope.authentication.user.cuenta.marca,_id:id});
 	    	$http.post('/regresarDescartado',{col:Authentication.user.cuenta.marca+'_consolidada',id:id}).success(function(data){
-	    		for(var i in $scope.posts){
+	    		console.log(data);
+	    		if(data.ok){
+	    			$scope.muestraFlash('El mensaje está como nuevo');
+	    		}
+	    		console.log($scope.tipoBuzon);
+	    		var obj_actualizar = {
+					'_id' : id,
+					'regresa': true,
+					'cuenta' : $scope.authentication.user.cuenta.marca,
+					'tipoBuzon': $scope.tipoBuzon
+				};
+				console.log('Llamando a tiempoRealServer');
+				Socket.emit('tiempoRealServer', obj_actualizar);
+	    		/*for(var i in $scope.posts){
 	    			if($scope.posts[i]){
 		    			if($scope.posts[i]._id === id){
 		    				delete $scope.posts[i];
 		    				$scope.posts = $scope.posts.filter(function(){return true;}); 
 		    			}
 	    			}
-	    		}
+	    		}*/
+	    	}).error(function(err){
+	    		console.log('ERROR !!!');
+	    		console.log(err)
 	    	});
 	    };
 	    $scope.regresarResuelto = function(twit){
+	    	console.log('Entro a regresarResuelto !');
 	    	Socket.emit('liberaOcupado',{cuenta:$scope.authentication.user.cuenta.marca,_id:twit._id});
+	    	//Socket.emit('actualizaClasificacion')
 	    	$http.post('/regresarResuelto',{col:Authentication.user.cuenta.marca+'_consolidada',twit: twit}).success(function(data){
-	    		for(var i in $scope.posts){
+	    		if(data.ok){
+	    			$scope.muestraFlash('El mensaje está como nuevo');
+	    		}
+	    		console.log($scope.tipoBuzon);
+	    		var obj_actualizar = {
+					'_id' : twit._id,
+					'regresa': true,
+					'cuenta' : $scope.authentication.user.cuenta.marca,
+					'tipoBuzon': $scope.tipoBuzon
+				};
+				console.log('Llamando a tiempoRealServer');
+				Socket.emit('tiempoRealServer', obj_actualizar);
+	    		/*for(var i in $scope.posts){
 	    			if($scope.posts[i]._id === twit._id){
 	    				delete $scope.posts[i];
 	    				$scope.posts = $scope.posts.filter(function(){return true;}); 
 	    			}
-	    		}
+	    		}*/
 	    	});
 	    };
 	    $scope.getMailboxProceso = function(filtro, organizacion){
@@ -2913,6 +3049,7 @@ $scope.constant = CONSTANT;
   $scope.openDescartados = function (tweet) {
   	console.log(tweet);
   	$scope.tweet = [tweet];
+
     var modalInstance = $modal.open({
       templateUrl: 'descartados.html',
       controller: 'ModalInstanceCtrl',
@@ -3079,10 +3216,12 @@ $scope.constant = CONSTANT;
     	item: $scope.items
   	};
   	var datos_bloqueo = {};
-  	datos_bloqueo.cuenta = $scope.authentication.user.marca;
+  	datos_bloqueo.cuenta = $scope.authentication.user.cuenta.marca;
   	datos_bloqueo.user = $scope.authentication.user.displayName;
   	datos_bloqueo._id = items[0]._id;
   	datos_bloqueo.user_image = $scope.authentication.user.imagen_src;
+  	//console.log('Bloqueando !!!');
+  	//console.log(datos_bloqueo);
   	Socket.emit('idBloquea',datos_bloqueo);
 
 /*
@@ -5028,6 +5167,10 @@ FUNCIONES DE LA LIBRERÍA DE TWITTER
 
   	$scope.respondeMensaje = function(tipoCuenta, tipoRespuesta){
   	//Si el metodo es 1 es solo aceptar y si es 2 es aceptar y completar
+  	if($scope.items[0].descartado){
+  		$scope.respuesta_server = 'No puedes clasificar un descartado';
+  		return;
+  	}
   	var coleccion = Authentication.user.cuenta.marca+'_consolidada';
 	$scope.items[0].clasificacion = {
 		tema : $scope.themeDefault,
@@ -5065,7 +5208,7 @@ FUNCIONES DE LA LIBRERÍA DE TWITTER
 		console.log(items[0]);
 		$http.post('/respondeMailbox', criterio).success(function(data){
 			if(!data.error && !data.errorface){
-				if($scope.items[0].tipoMensaje === 'nuevo'){
+				if(1==1){
 				//if(metodo === '2'){
 					$scope.items[0].imagenUsuario = Authentication.user.imagen_src;
 					$rootScope.$broadcast('finalizarCtrl',$scope.items[0]);
@@ -5796,6 +5939,7 @@ $scope.respondePostFb = function(param){
 	  					for(var i = 0; i < data.length; i++){
 	  						console.log('Liberando ocupado ');
 	  						console.log(data);
+						  	Socket.emit('eliminaNotificacion',data[i]);
 	  						Socket.emit('liberaOcupado',{cuenta:Authentication.user.cuenta.marca,_id:data[i]});
 	  						var obj_actualizar_descartado ={
 		  						username: Authentication.user.displayName,
@@ -5820,6 +5964,10 @@ $scope.respondePostFb = function(param){
 	  		}else{
 	  			console.log('Accion individual');
 	  			$http.post('/descartado', criterio).success(function(data){
+	  				if($scope.items[0].influencers || $scope.items[0].asignado){
+						console.log('Eliminando la notificacion !!! ');
+				  		Socket.emit('eliminaNotificacion',idPost);
+				  	}
 		  			console.log('EL RRETORNO DE DESCARTE');
 		  			console.log(data);
 		  			if(data.error === 'noPage_access_token'){
@@ -5880,6 +6028,8 @@ $scope.respondePostFb = function(param){
   };
 
    $scope.regresarMailbox = function(item){
+   	console.log('Evento multiple !!!');
+   	console.log(item);
    		$rootScope.$broadcast('eventRegresaMailbox',item);
 	    $modalInstance.dismiss(item);
 	};
@@ -5996,6 +6146,8 @@ $scope.respondePostFb = function(param){
   	datos_bloqueo.user = $scope.authentication.user.displayName;
   	datos_bloqueo._id = $scope.mensaje._id;
   	datos_bloqueo.user_image = $scope.authentication.user.imagen_src;
+  	console.log('Bloqueando el twit !');
+  	console.log(datos_bloqueo);
   	Socket.emit('idBloquea',datos_bloqueo);
 	$scope.evaluaActivo = function(id){
   	    if(id === $scope.usuario_seleccionado){
@@ -6033,9 +6185,15 @@ $scope.respondePostFb = function(param){
 				if(!data.code){
 					console.log('Mensajes asignados !!! ');
 					console.log(data);
+					console.log('EL MENSAJE');
+					console.log($scope.mensaje);
 					Socket.emit('liberaOcupado',{cuenta:$scope.authentication.user.cuenta.marca,_id:$scope.mensaje._id});
 					//var obj_atendido = {_id:$scope.mensaje._id, cuenta: Authentication.user.cuenta.marca,asignado:obj.asignado,mensaje:$scope.mensaje};
-					data.push($scope.mensaje._id);
+					if(data.ok){
+						data = [$scope.mensaje._id];
+					}else{
+						data.push($scope.mensaje._id);
+					}
 					var obj_atendido = {mensajes: data,cuenta: Authentication.user.cuenta.marca,asignado:obj.asignado};
 					Socket.emit('socketAsignaServer',obj_atendido);
 					console.log($scope.mensaje);

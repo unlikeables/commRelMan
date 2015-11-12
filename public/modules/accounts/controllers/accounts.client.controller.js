@@ -783,6 +783,8 @@ $http.post('/chartPromedioCasos',{nombreSistema:nombreSistema,fecha_inicial:$sco
 
 	//data.Completos = data.Completos - data.facebook;
 	var total = data.Completos + data.Descartados + data.Entrada;
+	console.log('Imprimiendo el total de promedio caso');
+	console.log(data);
 	$scope.totalCasos = total;
 
 	var vistos = total - data.Entrada;
@@ -1915,32 +1917,20 @@ $http.post('/chartDesempenioHora',{nombreSistema : nombreSistema, fecha_inicial 
 			series : [
 				{
 					color : '#0DBEC8',
-					name : 'Total de Casos ('+desempenioHora.totalCasos+')',
+					name : 'Total de Casos ('+desempenioHora.totalTodos+')',
 					data : [
-						desempenioHora.atendidos.cero + desempenioHora.descartados.cero + desempenioHora.nuevos.cero + desempenioHora.facebook.cero, 
-						desempenioHora.atendidos.una + desempenioHora.descartados.una + desempenioHora.nuevos.una + desempenioHora.facebook.una, 
-						desempenioHora.atendidos.dos + desempenioHora.descartados.dos + desempenioHora.nuevos.dos + desempenioHora.facebook.dos, 
-						desempenioHora.atendidos.tres + desempenioHora.descartados.tres + desempenioHora.nuevos.tres + desempenioHora.facebook.tres, 
-						desempenioHora.atendidos.cuatro + desempenioHora.descartados.cuatro + desempenioHora.nuevos.cuatro + desempenioHora.facebook.cuatro, 
-						desempenioHora.atendidos.cinco + desempenioHora.descartados.cinco + desempenioHora.nuevos.cinco + desempenioHora.facebook.cinco, 
-						desempenioHora.atendidos.seis + desempenioHora.descartados.seis + desempenioHora.nuevos.seis + desempenioHora.facebook.seis, 
-						desempenioHora.atendidos.siete + desempenioHora.descartados.siete + desempenioHora.nuevos.siete + desempenioHora.facebook.siete, 
-						desempenioHora.atendidos.ocho + desempenioHora.descartados.ocho + desempenioHora.nuevos.ocho + desempenioHora.facebook.ocho, 
-						desempenioHora.atendidos.nueve + desempenioHora.descartados.nueve + desempenioHora.nuevos.nueve + desempenioHora.facebook.nueve, 
-						desempenioHora.atendidos.diez + desempenioHora.descartados.diez + desempenioHora.nuevos.diez + desempenioHora.facebook.diez, 
-						desempenioHora.atendidos.once + desempenioHora.descartados.once + desempenioHora.nuevos.once + desempenioHora.facebook.once, 
-						desempenioHora.atendidos.doce + desempenioHora.descartados.doce + desempenioHora.nuevos.doce + desempenioHora.facebook.doce, 
-						desempenioHora.atendidos.trece + desempenioHora.descartados.trece + desempenioHora.nuevos.trece + desempenioHora.facebook.trece,
-						desempenioHora.atendidos.catorce + desempenioHora.descartados.catorce + desempenioHora.nuevos.catorce + desempenioHora.facebook.catorce,
-						desempenioHora.atendidos.quince + desempenioHora.descartados.quince + desempenioHora.nuevos.quince + desempenioHora.facebook.quince, 
-						desempenioHora.atendidos.dieciseis + desempenioHora.descartados.dieciseis + desempenioHora.nuevos.dieciseis + desempenioHora.facebook.dieciseis,
-						desempenioHora.atendidos.diecisiete + desempenioHora.descartados.diecisiete + desempenioHora.nuevos.diecisiete + desempenioHora.facebook.diecisiete,
-						desempenioHora.atendidos.dieciocho + desempenioHora.descartados.dieciocho + desempenioHora.nuevos.dieciocho + desempenioHora.facebook.dieciocho, 
-						desempenioHora.atendidos.diecinueve + desempenioHora.descartados.diecinueve + desempenioHora.nuevos.diecinueve + desempenioHora.facebook.diecinueve, 
-						desempenioHora.atendidos.veinte + desempenioHora.descartados.veinte + desempenioHora.nuevos.veinte + desempenioHora.facebook.veinte, 
-						desempenioHora.atendidos.veintiuno + desempenioHora.descartados.veintiuno + desempenioHora.nuevos.veintiuno + desempenioHora.facebook.veintiuno, 
-						desempenioHora.atendidos.veintidos + desempenioHora.descartados.veintidos + desempenioHora.nuevos.veintidos + desempenioHora.facebook.veintidos, 
-						desempenioHora.atendidos.veintitres + desempenioHora.descartados.veintitres + desempenioHora.nuevos.veintitres + desempenioHora.facebook.veintitres
+						desempenioHora.todos.cero, desempenioHora.todos.una, 
+						desempenioHora.todos.dos, desempenioHora.todos.tres, 
+						desempenioHora.todos.cuatro, desempenioHora.todos.cinco, 
+						desempenioHora.todos.seis, desempenioHora.todos.siete, 
+						desempenioHora.todos.ocho, desempenioHora.todos.nueve, 
+						desempenioHora.todos.diez, desempenioHora.todos.once, 
+						desempenioHora.todos.doce, desempenioHora.todos.trece, 
+						desempenioHora.todos.catorce, desempenioHora.todos.quince, 
+						desempenioHora.todos.dieciseis, desempenioHora.todos.diecisiete, 
+						desempenioHora.todos.dieciocho, desempenioHora.todos.diecinueve, 
+						desempenioHora.todos.veinte, desempenioHora.todos.veintiuno, 
+						desempenioHora.todos.veintidos, desempenioHora.todos.veintitres
 					]				
 				},{
 					color:'#32d285',
