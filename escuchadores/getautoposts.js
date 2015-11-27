@@ -98,7 +98,7 @@ function peticion_automatica(solicitude, callback) {
 
 function procesaVariousContents() {
     /* deldup = deleteDupes, om = obtieneMonitoreo, pb = publicaciones, automu = muro de facebook, autofi = facebook inbox, autocp = comments pending, autopp = posts pending */
-    var solicitudes_posibles = ['/deldup', '/getom', '/getpb','/getautomu', '/getautofi', '/getautocp', '/getautopp'];
+    var solicitudes_posibles = ['/deldup', '/getom', '/getpb','/getautomu', '/getautocp', '/getautopp'];
     revisalast(solicitudes_posibles, function(sol) {
 	// console.log(sol);
 	if (typeof sol.path === 'undefined') {

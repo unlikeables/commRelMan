@@ -450,6 +450,36 @@ module.exports = {
     });
   },
 
+  creaIndexDeTexto : function(collection, propiedad, lengua, metodo, callback) {
+    promesa_conexion.done(function() {
+      var coleccion = dbase.collection(collection);
+      coleccion.createIndex(propiedad, {default_language: lengua, background: true}, function(error, risposta) {
+        if(error) {
+          console.log(metodo+' - classdb/creaIndexDeTexto - error en creacion: '+error);
+          return callback('error');
+        }
+        else {
+          return callabck(responsa);
+        }        
+      });
+    });
+  },
+
+  creaIndexSinTexto : function(collection, propiedad, metodo, callback) {
+    promesa_conexion.done(function(){
+      var coleccion = dbase.collection(collection);
+      coleccion.createIndex(propiedad, {background: true}, function(error, responsa) {
+        if(error) {
+          console.log(metodo+' - classdb/creaIndexSinTexto - error en creacion: '+error);
+          return callback('error');
+        }
+        else {
+          return callback(responsa);
+        }
+      });
+    });
+  },
+
   remove : function(collection, criterio, metodo, callback){
     promesa_conexion.done(function(){
       var coleccion = dbase.collection(collection);

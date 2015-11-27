@@ -153,12 +153,6 @@ exports.chartPromedioCasos = function(req, res){
     }
   
     function obtieneTodos(coleccion, debut, finale, idFb, callback) {
- 		console.log('TODOS');
-		console.log(debut);
-		console.log(finale);
-		console.log(typeof(idFb));
-		console.log('\n\n\n\n');
-
 		var criterio = { $and: 
 			 [
 			    {'created_time' : {$gte : debut}},
@@ -174,11 +168,6 @@ exports.chartPromedioCasos = function(req, res){
     }
 
     function obtieneAtendidos(coleccion, debut, finale, idFb, tipent, callback) {
-		console.log('ATENDIDOS');
-		console.log(debut);
-		console.log(finale);
-		console.log(typeof(idFb));
-		console.log('\n\n\n\n');
 		var criterioA ={};
 		if(tipent ==='general'){
 
@@ -256,11 +245,6 @@ exports.chartPromedioCasos = function(req, res){
     }
 
     function obtieneNuevos(coleccion, debut, finale, idFb, tipent, callback) {
-		console.log('FECHAS EN ppromedio GRAFICA');
-    	console.log(debut);
-    	console.log(finale);
-    	console.log(idFb);
-		console.log(tipent);
 		var criterioN ={};
 		if(tipoEntrada==='general'){
 			criterioN = { $and: 
@@ -377,8 +361,6 @@ exports.chartPromedioCasos = function(req, res){
 												if(tipoEntrada !== 'twitter'){
 													obj.facebook = facebook;
 												}
-												console.log('Finalizo chartPromedioCasos');
-												console.log(obj);
 												res.jsonp(obj);
 									    	}
 									    });
@@ -503,7 +485,6 @@ exports.chartDescartados = function(req, res){
 			    		objeto.campaña=campaign;
 			    		objeto.mediático = mediatico;
 			    	//}
-		    		console.log('Finalizo chartDescartados');
 		    		res.jsonp(objeto);
 				}else{
 		    		//console.log('No hay resultados');
@@ -721,7 +702,6 @@ exports.chartDesempenio = function(req, res){
 				    				var x = b.total;
 				    				return x < y ? -1 : x > y ? 1 : 0;
 								});
-								console.log('Finalizo chartDesempenio');
 			    				res.jsonp(byName);
 			    			}
 						}
@@ -881,7 +861,6 @@ exports.chartPromedioRespuesta = function(req, res){
 								objetoTiempos.otros=objetoTiempos.otros+1;
 							}
 						}
-						console.log('Finalizo chartPromedioRespuesta');
 						res.jsonp(objetoTiempos);
 					});
 				}else{
@@ -1094,7 +1073,6 @@ exports.chartPromedioTiempo = function(req,res){
 				    		res.jsonp(objetoTiempos);
 				    	}
 				    }
-					console.log('Finalizo chartPromedioTiempo');
 					});
 				}else{
 					res.jsonp('No hubo resultados');
@@ -1267,7 +1245,6 @@ exports.chartNivelServicio = function(req,res){
 								}
 							}
 						}
-						console.log('Finalizo chartNivelServicio');
 						res.jsonp(objetoTiempos);
 					});
 				}else{
@@ -2091,8 +2068,6 @@ exports.chartDesempenioHora = function(req, res){
 				   	if(todosActualizados === 'error'){
 				    	res.jsonp(todosActualizados);
 				    }else{
-				    	console.log('todos todosActualizados');
-				    	console.log(todosActualizados);
 				    	objeto.todos = todosActualizados;
 						obtieneAtendidos(tipoEntrada, nombreSistema, fecha_inicial, fecha_final, idCuenta, function(mensajesAtendidos){
 							if(mensajesAtendidos === 'error'){
@@ -2140,10 +2115,6 @@ exports.chartDesempenioHora = function(req, res){
 												    									objeto.totalCasos = objeto.totalAtendidos + objeto.totalDescartados + objeto.totalNuevos;
 																						
 												    								//	objeto.totalCasos = objeto.totalAtendidos + objeto.totalDescartados + objeto.totalNuevos + objeto.totalFacebook;
-																						console.log('\n\n');
-																						console.log('EL OBJETO EN DESEMPENIO HORA');
-																						console.log(objeto);
-																						console.log('\n\n');
 																						res.jsonp(objeto);
 																					}
 																				});

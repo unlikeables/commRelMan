@@ -1,8 +1,9 @@
 'use strict';
 // Feeds controller
 
-
 angular.module('feeds')
+
+
 
 /*______ _ _ _               ______       _                       _______       _ _   _            
  |  ____(_) | |             |  ____|     | |                     |__   __|     (_) | | |           
@@ -43,6 +44,9 @@ angular.module('feeds')
 })
 .filter('searchResultImg', function() {      
         return function(input) {
+        	if(typeof(input) === 'undefined' || input === null){
+        		console.log('no existe nada de nada');
+        	}
            	if(input){
            		if(input.atendido){
            			if(input.atendido.usuario_foto){
@@ -55,14 +59,44 @@ angular.module('feeds')
            					//console.log('No tiene imagen en atendido ni en clasificacion');
            				}
            			}
-           		}
+           		}else {
+           			if(input.clasificacion){
+           				if(input.clasificacion.imagen_usuario){
+           					return input.clasificacion.imagen_usuario;
+           				}else{
+           					return '/modules/core/img/usuario-sem-imagem.png';
+           					//console.log('No tiene imagen en atendido ni en clasificacion');
+           				}
+           			} 
+              	}
+           	}
+        };
+})
+.filter('validaAtendido', function() {      
+        return function(input) {
+           	if(input){
+           		if(input.atendido){
+           			if(input.atendido.usuario_nombre){
+           				return input.atendido.usuario_nombre;
+           			}else{
+           				if(input.clasificacion.user_name){
+           					return input.clasificacion.user_name;
+           				}
+           			}
+           		}else {
+           			if(input.clasificacion){
+           				if(input.clasificacion.user_name){
+           					return input.clasificacion.user_name;
+           				}
+           			} 
+              	}
            	}
         };
 })
 .filter('validaImagenDescartado', function() {      
         return function(input) {
-           	if (typeof(input) == "undefined" || input === null) {
-                return "/modules/core/img/usuario-sem-imagem.png";
+           	if (typeof(input) === 'undefined' || input === null) {
+                return '/modules/core/img/usuario-sem-imagem.png';
             } else { 
             	return input;
             }
@@ -70,13 +104,27 @@ angular.module('feeds')
 })
 .filter('validaImgFacebook', function() { 
         return function(input) {
-            if (typeof(input.imagen_https) == "undefined") {
-                return "/modules/core/img/usuario-sem-imagem.png";
+            if (typeof(input.imagen_https) === 'undefined') {
+                return '/modules/core/img/usuario-sem-imagem.png';
             } else { 
             	if(input.imagen_https.length === 0){         		
-	                return "/modules/core/img/usuario-sem-imagem.png";
+	                return '/modules/core/img/usuario-sem-imagem.png';
             	}else{
             		return input.imagen_https;
+            	}
+
+            }
+        };
+})
+.filter('validaImgUser', function() { 
+        return function(input) {
+            if (typeof(input.imagen_src) === 'undefined') {
+                return '/modules/core/img/usuario-sem-imagem.png';
+            } else { 
+            	if(input.imagen_src.length === 0){         		
+	                return '/modules/core/img/usuario-sem-imagem.png';
+            	}else{
+            		return input.imagen_src;
             	}
 
             }
@@ -104,7 +152,7 @@ angular.module('feeds')
            
            /*TRACKERS*/
           
-           if (angular.isDefined(trackers)) { 
+/*           if (angular.isDefined(trackers)) { 
            	for(var t in trackers){
            		var buscar = trackers[t];
            		var reemplazar = new RegExp(buscar, 'gim');
@@ -114,7 +162,7 @@ angular.module('feeds')
            		//});
            	}           	
            	}
-          
+  */        
           /*TRACKERS*/
            
            
@@ -126,7 +174,17 @@ angular.module('feeds')
            	var patronLink2 = /(^|\s)(https:\/\/t\.[co\/])(\w*[a-zA-Z_]+\w*)\/(\w*[a-zA-Z_]+\w*)/gim;
             replacedText = replacedText.replace(patronLink2, '$1<a href="$2$3/$4" target="_blank" class="link-twitter link-twitter-hastag">$2$3/$4</a>');
             /*LINKS*/ 
-            
+   			if (angular.isDefined(trackers)) { 
+           	for(var t in trackers){
+           		var buscar = trackers[t];
+           		var reemplazar = new RegExp(buscar, 'gim');
+           		replacedText = replacedText.replace('#'+trackers[t],'<span class="tracker">'+trackers[t]+'</span>').replace(' '+trackers[t],'<span class="tracker">'+trackers[t]+'</span>');
+           		//replacedText = replacedText.replace(reemplazar, function(e){
+           		//return '<span class="tracker">'+e+'</span>';	
+           		//});
+           	}           	
+           	}
+            //console.log(replacedText);
             return replacedText;            
             
          
@@ -308,13 +366,13 @@ angular.module('feeds')
 			$scope.totalDesempenioDiario = data;
 		});
 		$scope.tipo = 'todos';
-		$http.post('/totalPendientes',{coleccion: Authentication.user.cuenta.marca+'_consolidada',id_cuenta: Authentication.user.cuenta._id,filtro:$scope.tipo}).success(function(data){
+		/*$http.post('/totalPendientes',{coleccion: Authentication.user.cuenta.marca+'_consolidada',id_cuenta: Authentication.user.cuenta._id,filtro:$scope.tipo}).success(function(data){
 			$scope.pendientes = parseInt(data);
 			if($scope.tipoBuzon === 'nuevos'){
 				$scope.textoSelectorBandeja = "Nuevos ("+$scope.pendientes+")";
 			}
 			//$scope.textoSelectorBandeja = "Nuevos ("+$scope.pendientes+")";
-		});
+		});*/
 		$scope.filter_show = true;
 		$scope.paginacion_a = false;
 		$scope.paginacion_busqueda_skip = 0;
@@ -560,9 +618,9 @@ angular.module('feeds')
 		    if(tieneSesion===false){
 		    	$location.path('/');
 		    }
-			NotificacionService.getDesempenio().success(function(data){
+			/*NotificacionService.getDesempenio().success(function(data){
 				$scope.totalDesempenioDiario = data;
-			});
+			});*/
 		  	if($location.$$search.colec){
 			  	$scope.notificacion = {};
 			  	$scope.notificacion.coleccion = $location.$$search.colec;
@@ -761,9 +819,9 @@ angular.module('feeds')
 			for(var i = 0; i < datos[0].usuarios.length; i++){
 			    if(datos[0].usuarios[i]._id === $scope.authentication.user._id){
 					$scope.notificaciones.push(datos[0]);
-					console.log('Notificando !!!!!');
-					console.log(datos);
-			    	$scope.notificar(datos);
+					//console.log('Notificando !!!!!');
+					//console.log(datos);
+			    	//$scope.notificar(datos);
 			    }
 			}
 	    });
@@ -800,16 +858,16 @@ angular.module('feeds')
 	    });
 	    Socket.on('quitaNotificacion', function(id_notificacion){
 	    	NotificacionService.delete();
-	    	console.log('Llamando a notificaciones');
-	    	console.log(id_notificacion);
+	    	//console.log('Llamando a notificaciones');
+	    	//console.log(id_notificacion);
 			for(var i = 0; i < $scope.notificaciones.length; i++){
-				console.log($scope.notificaciones[i]);
+				//console.log($scope.notificaciones[i]);
 			    if($scope.notificaciones[i]._id === id_notificacion || $scope.notificaciones[i].mongo_id === id_notificacion){
-			    	console.log($scope.notificaciones.length);
+			    	//console.log($scope.notificaciones.length);
 				$scope.notificaciones.splice(i,1);
-					console.log($scope.notificaciones);
+					//console.log($scope.notificaciones);
 				$scope.notificaciones = $scope.notificaciones.filter(function(){return true;}); 
-					console.log($scope.notificaciones.length);
+					//console.log($scope.notificaciones.length);
 			    }
 			}
 	    });
@@ -817,30 +875,32 @@ angular.module('feeds')
 	    
 	    /*+-+-+-+-+-+-++-+-+-+-+-+-+-+-+-+-+-+ SOCEKTS TIEMPO REAL +-+-+-+-+-+-+-+++-+---+-+-+-+-+-+-*/
 	    Socket.on('tiempoRealFront', function(obj_actualizar){
-	    	console.log('Actualizando tiempo Real Front');
-	    	console.log(obj_actualizar);
+	    	//console.log('Actualizando tiempo Real Front');
+	    	//console.log(obj_actualizar);
 	    	if(obj_actualizar.cuenta === Authentication.user.cuenta.marca){
-				$http.post('/totalPendientes',{coleccion: Authentication.user.cuenta.marca+'_consolidada',id_cuenta: Authentication.user.cuenta._id,filtro:$scope.tipo}).success(function(data){
+				/*$http.post('/totalPendientes',{coleccion: Authentication.user.cuenta.marca+'_consolidada',id_cuenta: Authentication.user.cuenta._id,filtro:$scope.tipo}).success(function(data){
 					$scope.pendientes = parseInt(data);
 					if($scope.tipoBuzon === 'nuevos'){
 						$scope.textoSelectorBandeja = "Nuevos ("+$scope.pendientes+")";
 					}
-					console.log('TOTALES!!!');
-					console.log(_.size($scope.posts));
+					//console.log('TOTALES!!!');
+					//console.log(_.size($scope.posts));
 					if(_.size($scope.posts) < 3){
 			    		$scope.loadMoreUnificado();
 			    	}
-				});
+				});*/
 		    	switch($scope.tipoBuzon){
 		    		case 'nuevos':	
 		    			if(obj_actualizar.regresa){
 		    				console.log('El elemento se agrega en su fecha indicada');
 		    			}else{
 		    				for(var i in $scope.posts){
-			    				if($scope.posts[i]._id === obj_actualizar._id){
-			    					delete $scope.posts[i];
-			    					$scope.posts = $scope.posts.filter(function(){return true;});
-			    				}
+		    					if($scope.posts[i]){
+				    				if($scope.posts[i]._id === obj_actualizar._id){
+				    					delete $scope.posts[i];
+				    					$scope.posts = $scope.posts.filter(function(){return true;});
+				    				}
+				    			}
 			    			}
 		    			}
 		    		break;
@@ -888,34 +948,32 @@ angular.module('feeds')
 		    		case 'atendidos':
 		    			if(obj_actualizar.regresa){
 		    				for(var i in $scope.posts){
-			    				if($scope.posts[i]._id === obj_actualizar._id){
-			    					delete $scope.posts[i];
-			    					$scope.posts = $scope.posts.filter(function(){return true;});
+			    				if($scope.posts){
+				    				if($scope.posts[i]._id === obj_actualizar._id){
+				    					delete $scope.posts[i];
+				    					$scope.posts = $scope.posts.filter(function(){return true;});
+				    				}
 			    				}
 			    			}
 		    			}
 		    		break;
 		    		case 'todos':
 		    			if(obj_actualizar.regresa){
-		    				console.log('TODOS !!! con parametro regresa !!');
-		    				console.log(obj_actualizar);
 		    				for(var i in $scope.posts){
-		    					console.log($scope.posts[i]._id +'==='+ obj_actualizar._id);
 				    			if($scope.posts[i]._id === obj_actualizar._id){
-				    				console.log('Son iguales !');
 				    				$scope.posts[i].tipoMensaje = 'nuevo';
-				    				console.log($scope.posts[i].atendido);
 				    				if($scope.posts[i].clasificacion)
 				    					delete $scope.posts[i].clasificacion;
 				    				if($scope.posts[i].atendido)
 				    					delete $scope.posts[i].atendido;
 
-				    				console.log($scope.posts[i].atendido);
 				    				if($scope.posts[i].descartado)
 				    					delete $scope.posts[i].descartado;	
 				    			}
 				    		}
-				    		$scope.posts = $scope.posts.filter(function(){return true;});
+				    		if($scope.posts){ 
+				    			$scope.posts = $scope.posts.filter(function(){return true;});
+		    				}
 		    			}
 		    			if(obj_actualizar.descartado){
 		    				for(var i in $scope.posts){
@@ -934,6 +992,9 @@ angular.module('feeds')
 		    				if(!obj_actualizar.regresa){
 			    				for(var i in $scope.posts){
 					    			if($scope.posts[i]._id === obj_actualizar._id){
+					    				console.log('Aqui actualiza el mensaje');
+					    				console.log(obj_actualizar);
+					    				console.log('\n\n\n');
 					    				$scope.posts[i].clasificacion = {
 					    					tema: obj_actualizar.tema,
 					    					subtema: obj_actualizar.subtema,
@@ -1451,13 +1512,13 @@ angular.module('feeds')
 		Socket.on('mensajeNuevo', function(mensaje){
 
 			if(mensaje.cuenta === Authentication.user.cuenta.marca){
-				$http.post('/totalPendientes',{coleccion: Authentication.user.cuenta.marca+'_consolidada',id_cuenta: Authentication.user.cuenta._id,filtro:$scope.tipo}).success(function(data){
+				/*$http.post('/totalPendientes',{coleccion: Authentication.user.cuenta.marca+'_consolidada',id_cuenta: Authentication.user.cuenta._id,filtro:$scope.tipo}).success(function(data){
 					$scope.pendientes = parseInt(data);
 					if($scope.tipoBuzon === 'nuevos'){
 						$scope.textoSelectorBandeja = "Nuevos ("+$scope.pendientes+")";
 					}
 					//$scope.textoSelectorBandeja = "Nuevos ("+$scope.pendientes+")";
-				});
+				});*/
 				switch($scope.tipo){
 				
 					case 'facebook':
@@ -1590,14 +1651,14 @@ angular.module('feeds')
 		/* Socket que actualiza la clasificacion, sentiment y seccion(proceso,entrada,descartados y complretos) en tiempo real*/
 		Socket.on('actualizaClasificacionFront', function(clasificacion){
 			if(clasificacion.user === $scope.authentication.user._id){
-				NotificacionService.getDesempenio().success(function(data){
+				/*NotificacionService.getDesempenio().success(function(data){
 					$scope.totalDesempenioDiario = data;
-				});
+				});*/
 			}
 			if(clasificacion.cuenta === $scope.authentication.user.cuenta.marca){
-				$http.post('/totalPendientes',{coleccion: Authentication.user.cuenta.marca+'_consolidada',id_cuenta: Authentication.user.cuenta._id,filtro:$scope.tipo}).success(function(data){
+				/*$http.post('/totalPendientes',{coleccion: Authentication.user.cuenta.marca+'_consolidada',id_cuenta: Authentication.user.cuenta._id,filtro:$scope.tipo}).success(function(data){
 					$scope.pendientes = parseInt(data);
-				});
+				});*/
 			}
 			if(clasificacion.descartado){
 				for(var i in $scope.posts){
@@ -1757,9 +1818,9 @@ angular.module('feeds')
 	  				}
 					
 	
-					NotificacionService.getDesempenio().success(function(data){
+					/*NotificacionService.getDesempenio().success(function(data){
 						$scope.totalDesempenioDiario = data;
-					});
+					});*/
 
 				}).error(function(error_post){
 					console.log('Eror en post!');
@@ -2046,13 +2107,13 @@ angular.module('feeds')
 			$scope.mostrarSelectorRed = false;
 			console.log('Pendientes');
 			console.log($scope.tipo);
-			$http.post('/totalPendientes',{coleccion: Authentication.user.cuenta.marca+'_consolidada',id_cuenta: Authentication.user.cuenta._id,filtro:$scope.tipo}).success(function(data){
+			/*$http.post('/totalPendientes',{coleccion: Authentication.user.cuenta.marca+'_consolidada',id_cuenta: Authentication.user.cuenta._id,filtro:$scope.tipo}).success(function(data){
 				$scope.pendientes = parseInt(data);
 				if($scope.tipoBuzon === 'nuevos'){
 						$scope.textoSelectorBandeja = "Nuevos ("+$scope.pendientes+")";
 					}
 				//$scope.textoSelectorBandeja = "Nuevos ("+$scope.pendientes+")";
-			});
+			});*/
 			switch($scope.tipo){
 				
 				case 'facebook':
@@ -2470,69 +2531,34 @@ angular.module('feeds')
 	    $scope.$on('eventRegresaMailbox', function(e,item){
 	    	console.log('regresando mailbox !!!');
 	    	console.log(item);
-	    	if(item.descartado){
-	    		$scope.regresarDescartado(item._id);
-	    	}
-	    	if(item.atendido){
-	    		$scope.regresarResuelto(item);
-	    	}
+	    	//if(item.descartado){
+	    	//	$scope.regresarDescartado(item._id);
+	    	//}
+	    	//if(item.atendido){
+	    	//	$scope.regresarResuelto(item);
+	    	//}
+	    	$scope.regresarEntrada(item);
 	    });
 
-	    $scope.regresarDescartado = function(id){
-	    	console.log('Entro a regresarDescatado !');
-	    	Socket.emit('liberaOcupado',{cuenta:$scope.authentication.user.cuenta.marca,_id:id});
-	    	$http.post('/regresarDescartado',{col:Authentication.user.cuenta.marca+'_consolidada',id:id}).success(function(data){
-	    		console.log(data);
+	    $scope.regresarEntrada = function(id){
+	    	Socket.emit('liberaOcupado',{cuenta:$scope.authentication.user.cuenta.marca,_id:id._id});
+	    	$http.post('/regresarEntrada',{ col : Authentication.user.cuenta.marca+'_consolidada', 'mensaje' : id}).success(function(data){
 	    		if(data.ok){
 	    			$scope.muestraFlash('El mensaje está como nuevo');
 	    		}
-	    		console.log($scope.tipoBuzon);
 	    		var obj_actualizar = {
-					'_id' : id,
+					'_id' : id._id,
 					'regresa': true,
 					'cuenta' : $scope.authentication.user.cuenta.marca,
 					'tipoBuzon': $scope.tipoBuzon
 				};
-				console.log('Llamando a tiempoRealServer');
 				Socket.emit('tiempoRealServer', obj_actualizar);
-	    		/*for(var i in $scope.posts){
-	    			if($scope.posts[i]){
-		    			if($scope.posts[i]._id === id){
-		    				delete $scope.posts[i];
-		    				$scope.posts = $scope.posts.filter(function(){return true;}); 
-		    			}
-	    			}
-	    		}*/
 	    	}).error(function(err){
 	    		console.log('ERROR !!!');
 	    		console.log(err)
 	    	});
 	    };
-	    $scope.regresarResuelto = function(twit){
-	    	console.log('Entro a regresarResuelto !');
-	    	Socket.emit('liberaOcupado',{cuenta:$scope.authentication.user.cuenta.marca,_id:twit._id});
-	    	//Socket.emit('actualizaClasificacion')
-	    	$http.post('/regresarResuelto',{col:Authentication.user.cuenta.marca+'_consolidada',twit: twit}).success(function(data){
-	    		if(data.ok){
-	    			$scope.muestraFlash('El mensaje está como nuevo');
-	    		}
-	    		console.log($scope.tipoBuzon);
-	    		var obj_actualizar = {
-					'_id' : twit._id,
-					'regresa': true,
-					'cuenta' : $scope.authentication.user.cuenta.marca,
-					'tipoBuzon': $scope.tipoBuzon
-				};
-				console.log('Llamando a tiempoRealServer');
-				Socket.emit('tiempoRealServer', obj_actualizar);
-	    		/*for(var i in $scope.posts){
-	    			if($scope.posts[i]._id === twit._id){
-	    				delete $scope.posts[i];
-	    				$scope.posts = $scope.posts.filter(function(){return true;}); 
-	    			}
-	    		}*/
-	    	});
-	    };
+
 	    $scope.getMailboxProceso = function(filtro, organizacion){
 	    	if(typeof organizacion==='undefined'){
 	    		organizacion='';
@@ -2918,8 +2944,9 @@ $scope.constant = CONSTANT;
 	    };
   $scope.open = function (tweet) {
   	console.log(tweet);
+  	tweet.tipoBuzon = $scope.tipoBuzon;
   	$scope.tweet = [tweet];
-  	
+
     var modalInstance = $modal.open({
       templateUrl: 'myModalContent.html',
       controller: 'ModalInstanceCtrl',
@@ -3108,7 +3135,7 @@ $scope.constant = CONSTANT;
   };
  /*Confirmacion de RegresarDescartado*/
 })
-.controller('ModalInstanceCtrl',function ($scope, $modalInstance, items,temas,$resource,$http,Accounts,Authentication,Socket,$rootScope,$modal,$timeout,CONSTANT) {
+.controller('ModalInstanceCtrl',function ($scope, $modalInstance, items, temas, $resource, $http, Accounts, Authentication,Socket,$rootScope,$modal,$timeout,CONSTANT) {
 	//Variable que contiene los textos default de tema y subtema
 	$scope.textos = {
 		tema:'Tema',
@@ -3147,7 +3174,6 @@ $scope.constant = CONSTANT;
 		'Viajes',
 		'Deportes'
 	];
-	
 	$scope.listaIndustry.sort();
 	$scope.listaIndustry.push('Otro');
 	
@@ -5166,6 +5192,8 @@ FUNCIONES DE LA LIBRERÍA DE TWITTER
  };
 
   	$scope.respondeMensaje = function(tipoCuenta, tipoRespuesta){
+  		var sentimientoMensaje = $scope.items[0].sentiment;
+
   	//Si el metodo es 1 es solo aceptar y si es 2 es aceptar y completar
   	if($scope.items[0].descartado){
   		$scope.respuesta_server = 'No puedes clasificar un descartado';
@@ -5190,7 +5218,7 @@ FUNCIONES DE LA LIBRERÍA DE TWITTER
   		'coleccion' : coleccion,
   		'mensaje' : items[0],
   		'clasificacion' : $scope.items[0].clasificacion,
-  		'sentiment' : $scope.items[0].sentiment,
+  		'sentiment' : sentimientoMensaje,
   		'usuario' : Authentication.user,
   		'imagenUsuario' : Authentication.user.imagen_src,
   		'idMensaje' : $scope.items[0]._id,
@@ -5202,10 +5230,10 @@ FUNCIONES DE LA LIBRERÍA DE TWITTER
 		'nombreSistema' : Authentication.user.cuenta.marca,
 		'account_id' : Authentication.user.cuenta._id
   	};
-  	console.log('Criterio de respuesta !');
-	console.log(criterio);
+  	//console.log('Criterio de respuesta !');
+	//console.log(criterio);
 	if($scope.items[0].clasificacion && $scope.items[0].sentiment){	
-		console.log(items[0]);
+		//console.log(items[0]);
 		$http.post('/respondeMailbox', criterio).success(function(data){
 			if(!data.error && !data.errorface){
 				if(1==1){
@@ -5223,22 +5251,20 @@ FUNCIONES DE LA LIBRERÍA DE TWITTER
 					'user_id' : Authentication.user._id,
 					'timestamp' : new Date()
 				};
-				console.log('AUTHENTICACION !!!!');
-				console.log(Authentication.user);
 				var obj_actualizar = {
 					'_id' : $scope.items[0]._id,
 					'mensajeBuzon': $scope.items[0].tipoMensaje,
 					'tema' : $scope.themeDefault,
 					'subtema' : $scope.subthemeDefault, 
-					'sentiment' : items[0].sentiment, 
+					'sentiment' : sentimientoMensaje, 
 					'answer' : answer,
 					'user' : $scope.authentication.user._id,
 					'username': Authentication.user.username,
 					'user_image': Authentication.user.imagen_src,
 					'cuenta' : $scope.authentication.user.cuenta.marca,
-					'tipoBuzon': $scope.tipoBuzon
+					'tipoBuzon': $scope.items[0].tipoBuzon
 				};
-				
+						
 				//Socket.emit('actualizaClasificacion',obj_actualizar);
 				Socket.emit('tiempoRealServer', obj_actualizar);
 				//Socket.emit('liberaOcupado',$scope.items[0]._id);
@@ -6028,8 +6054,8 @@ $scope.respondePostFb = function(param){
   };
 
    $scope.regresarMailbox = function(item){
-   	console.log('Evento multiple !!!');
-   	console.log(item);
+   	//console.log('Evento multiple !!!');
+   	//console.log(item);
    		$rootScope.$broadcast('eventRegresaMailbox',item);
 	    $modalInstance.dismiss(item);
 	};
@@ -6227,4 +6253,31 @@ $scope.respondePostFb = function(param){
             }
         });
     };
+})
+.directive('fallbackSrc', function () {
+  var fallbackSrc = {
+    link: function postLink(scope, iElement, iAttrs) {
+      iElement.bind('error', function() {
+        angular.element(this).attr("src", iAttrs.fallbackSrc);
+      });
+    }
+   }
+   return fallbackSrc;
+})
+.directive('fallbackAtt', function () {
+  var fallbackAtt = {
+    link: function postLink(scope, iElement, iAttrs) {
+      iElement.bind('error', function() {
+      	console.log('Error de sticker');
+       var id = iAttrs.fallbackAtt;
+      	//console.log(angular.element('valorID').val());
+        //angular.element(this).attr("title", 'ERRORRRRRRRRR');
+        angular.element(this).attr('src', '/modules/core/img/redzap_flynn.gif');
+        angular.element(this).css('width', '30%');
+        angular.element(this).css('height', '25%');
+        angular.element(document.getElementsByClassName("mensajeErrorIMG_"+id)).html('Facebook expiró los permisos de esta imagen');
+      });
+    }
+   }
+   return fallbackAtt;
 });

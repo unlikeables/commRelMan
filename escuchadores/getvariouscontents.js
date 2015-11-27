@@ -90,7 +90,7 @@ function peticion_automatica(solicitude, callback) {
 
 function procesaVariousContents() {
     /*ol = obtieneLikes, dm = directMessages, of = obtieneFans, tt = twitterElements, oc= obtieneComments, tl = twittList, os = obtieneShares*/
-    var solicitudes_posibles = ['/getol', '/getdm', '/getof', '/gettt', '/getoc', '/gettl', '/getos'];
+    var solicitudes_posibles = ['/getol', '/gettt', '/getof', '/getoc', '/gettl', '/getos'];
   revisalast(solicitudes_posibles, function(sol) {
 	if (typeof sol.path === 'undefined') {
 	    console.log('not-yet');

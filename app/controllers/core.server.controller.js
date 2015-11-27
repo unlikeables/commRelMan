@@ -130,20 +130,12 @@ exports.nuevoMensaje= function(req, res){
 	}
 }
 exports.obtieneDesempenioDiario = function(req, res){
-	//console.log(req.body);
 	var coleccion = req.body.cuenta+'_consolidada';
 	var idUsuario = req.body.idUsuario;
-	//console.log('La fecha de ahora: '+now);
-	console.log('LLamando al obtieneDesempenioDiario');
-	console.log('++++++++****************************+++++++++');
-
 	var hoy = new Date().getDate();
 	var timestamp = new Date().setDate(hoy);
 	var start_date = new Date(timestamp); start_date.setHours(0); start_date.setMinutes(0); start_date.setSeconds(0);
 	var fechaActual = new Date(timestamp); fechaActual.getHours(); fechaActual.getMinutes(); fechaActual.getSeconds();
-	
-	//console.log('La fecha inicial: '+start_date);
-	//console.log('La fecha fechaActual: '+fechaActual); 
 	var criterio = {$or: [ 
 		{$and: [
 				{'atendido':{$exists:true}},
@@ -156,16 +148,9 @@ exports.obtieneDesempenioDiario = function(req, res){
 		  			{'descartado.fecha' : {$gte : start_date}},
 		    		{'descartado.fecha' : {$lte : fechaActual}}
 			]}
-			//{'created_time' : {$gte : debut}},
-			//{'created_time' : {$lte : finale}},
-			//{'from.id' : {$ne : idFb}},
-			//{'user.id' : {$ne: idTw}}
 		]
 	};	
-	//classdb.buscarToArray(coleccion, criterio,{}, 'core/obtieneDesempenioDiario', function(total){
-
 	classdb.count(coleccion, criterio, 'core/obtieneDesempenioDiario', function(total){
 	    res.jsonp(total);
 	});
-//	console.log('\n\n');
 };

@@ -76,13 +76,9 @@ module.exports = function(app) {
 
     app.route('/respDM')
     .post(feeds.respDM);
-    
 
-    app.route('/regresarDescartado')
-    .post(feeds.regresarDescartado);
-
-    app.route('/regresarResuelto')
-    .post(feeds.regresarResuelto);
+    app.route('/regresarEntrada')
+    .post(feeds.regresarEntrada);
 
 /*    app.route('/getContenidos')
     .get(feeds.getContenidos);*/

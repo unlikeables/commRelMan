@@ -31,7 +31,7 @@ angular.module('accounts').filter('linksTwitter',['$filter', function($filter) {
 /*opciones para idioma general de highcharts*/	
 Highcharts.setOptions({
     lang: {
-        months: ["Enero","Febrero","Marzo","Abril","Mayo","Junio","Julio","Agosto","Septiembre","Octubre","Novimbre","Diciembre"],
+        months: ["Enero","Febrero","Marzo","Abril","Mayo","Junio","Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"],
         weekdays: ['Lunes', 'Martes', 'Miercoles', 'Jueves', 'Viernes', 'Sabado', 'Domingo'],
         shortMonths:["Ene","Feb","Mar","Abr","May","Jun","Jul","Ago","Sep","Oct","Nov","Dic"]
     }
@@ -464,6 +464,7 @@ $scope.clickSentiment = function (key,value){
 						verticalAlign: 'middle',
 						layout: 'vertical',
 						itemMarginBottom: 20,
+						x : -22,
 						labelFormatter: function () {
 							return this.name + ' ('+this.y+')';	
             			}
@@ -498,6 +499,7 @@ $scope.clickSentiment = function (key,value){
 					}
 					,exporting: { 
 						width:1500,
+						//scale : 1800,
 						buttons: { 
 							contextButton: {
 								//text: 'Exportar', 
@@ -652,7 +654,8 @@ $scope.clickSentiment = function (key,value){
 						align: 'right',
 						verticalAlign: 'middle',
 						layout: 'vertical',
-						itemMarginBottom: 20
+						itemMarginBottom: 20,
+						x : -22
 			    },
 			    plotOptions: {
 			        pie: {
@@ -690,7 +693,7 @@ $scope.clickSentiment = function (key,value){
 									var fecha2 = new Date($scope.dt2);
 									var fechaFinal = fecha1.getDate()+"_"+(nombreMeses[fecha1.getMonth()+1])+"_"+fecha1.getFullYear()+'__'+fecha2.getDate()+"_"+(nombreMeses[fecha2.getMonth()+1])+"_"+fecha2.getFullYear();
 									this.exportChart({
-										filename : $scope.account+'_'+nombreCorto+'_'+fechaFinal
+										filename : $scope.account+'_'+nombreCorto+'_'+fechaFinal,
 									}, {
 										title:{
 											//text:nombreCompleto
@@ -2146,6 +2149,20 @@ $http.post('/chartDesempenioHora',{nombreSistema : nombreSistema, fecha_inicial 
 	};
 
 	$scope.descargaArchivo = function(nombreSistema, opcion){
+		
+		function capitaliseFirstLetter(string){
+			if(typeof(string) !== 'undefined' && string !== null){
+		    	return string.charAt(0).toUpperCase() + string.slice(1);
+			}
+		}
+
+		function modificaAcentos(string){
+			if(typeof(string) !== 'undefined' && string !== null){
+		    	return string.replace(/Ã³/g,'ó').replace(/Ã©/g,'é').replace(/Ã¡/g,'á').replace(/Ã/g,'í').replace(/Â¡/g,'¡').replace(/Â¿/,'¿').replace('||' , '');
+				//return string.substring(0,string.length - 2);
+			}
+		}
+
 		//window.open($scope.archivo);
 		if(nombreSistema === undefined){
 			nombreSistema = Authentication.user.cuenta.marca;
@@ -2164,9 +2181,45 @@ $http.post('/chartDesempenioHora',{nombreSistema : nombreSistema, fecha_inicial 
 			console.log(items);
 			var items = items.data;
 			var data = new Array();
-			data.push(['Fecha de Entrada','Fecha de Respuesta','Tiempo de Respuesta','Status','Razón de Descartado','Nombre de Usuario','Fuente','Clase','Mensaje','Tema','Subtema','Sentimiento','Respuesta']);
+			
+			data.push([
+				'Fecha de Entrada',
+				'Fecha de Atención',
+				'Tiempo de Respuesta',
+				'Status',
+				'Razón de Descartado',
+				'Nombre de Usuario',
+				'Fuente',
+				'Clase',
+				'Link',
+				'Mensaje',
+				'Tema',
+				'Subtema',
+				'Sentimiento',
+				'Respuesta',
+				'Atendido Por'
+			]);
+			
 			for(var i in items){
-				data.push([items[i].fecha_llegada,items[i].fecha_respuesta,items[i].tiempo_respuesta,items[i].status,items[i].razon_desacartado,items[i].nombre_post,items[i].obj,items[i].tipo,items[i].mensaje,items[i].tema,items[i].subtema,items[i].sentiment,items[i].respuesta]);
+				
+				data.push([
+					items[i].fecha_llegada,
+					items[i].fecha_respuesta,
+					items[i].tiempo_respuesta,
+					capitaliseFirstLetter(items[i].status),
+					items[i].razon_descartado,
+					items[i].nombre_post,
+					capitaliseFirstLetter(items[i].obj),
+					capitaliseFirstLetter(items[i].tipo.replace('facebook_','')),
+					items[i].url,
+					items[i].mensaje,
+					items[i].tema,
+					items[i].subtema,
+					capitaliseFirstLetter(items[i].sentiment),
+					items[i].respuesta.replace('||' , ''),
+					capitaliseFirstLetter(items[i].atendidoPor)
+				]);
+
 			}
 			var dataString;
 			var csvContent = "";
@@ -2214,7 +2267,7 @@ $http.post('/chartDesempenioHora',{nombreSistema : nombreSistema, fecha_inicial 
 				}); 
 				var csvData;
 				var encodedUri = encodeURI(csvContent);
-				csvData = new Blob([csvContent], { type: 'text/csv' });
+				csvData = new Blob([csvContent], { type: 'text/csv; charset=UTF-8' });
 				var csvUrl = URL.createObjectURL(csvData);
 				var link = document.createElement("a");
 				//link.setAttribute("href", encodedUri);

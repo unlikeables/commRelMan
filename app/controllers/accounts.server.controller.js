@@ -1035,33 +1035,85 @@ exports.hasAuthorization = function(req, res, next) {
 };
 
 exports.dataUpload = function(req, res){
-    var multiparty = require('multiparty');
-    var form = new multiparty.Form();
-    form.parse(req, function(err, fields, files){
-	var fs = require('fs');
-	if (typeof files.file !== 'undefined') {
-	    var img = files.file[0];
-	    // hay que darle formato al nombre del archivo para que no haya espacios ni caracteres especiales
-	    fs.readFile(img.path,function(err,data){
-		var path = './public/images/account/'+img.originalFilename;
-		var src_imagen = 'images/account/'+img.originalFilename;
-		fs.writeFile(path,data,function(err){
-		    if(err){
-			console.log(err);
-		    }else{
-			var objeto = { nombreSistema: fields.nombre_corto[0], marca: fields.nombre[0], imagen_path: path, imagen_src: src_imagen,datosPage: '',datosTwitter:'', created_time: new Date()};
-			classdb.inserta('accounts', objeto, 'accounts/dataUpload', function(insertado){
-			    res.jsonp(insertado);
-			});
-		    }
-		});
+  var multiparty = require('multiparty');
+  var form = new multiparty.Form();
+  form.parse(req, function(err, fields, files){
+    var fs = require('fs');
+    if (typeof files.file !== 'undefined') {
+      var img = files.file[0];
+      // hay que darle formato al nombre del archivo para que no haya espacios ni caracteres especiales
+      fs.readFile(img.path,function(err,data){
+	var path = './public/images/account/'+img.originalFilename;
+	var src_imagen = 'images/account/'+img.originalFilename;
+        var nombreSistema = fields.nombre_corto[0];
+        var lacoleccion = nombreSistema+'_consolidada';
+        var marca = fields.nombre[0];
+        fs.writeFile(path,data,function(err){
+	  if(err){
+	    console.log(err);
+            res.jsonp('error en el archivo');
+	  }else{
+	    var objeto = { nombreSistema: nombreSistema, marca: marca, imagen_path: path, imagen_src: src_imagen,datosPage: '',datosTwitter:'', created_time: new Date()};
+	    classdb.inserta('accounts', objeto, 'accounts/dataUpload', function(insertado){
+              if (insertado === 'error') {
+                console.log('dataUpload.insert.error');
+                res.jsonp('error en el insert');
+              }
+              else {
+                var objetoInicial = {
+                  id : '0',
+                  from_user_id : '0',
+                  from_user_name: 'Sistema CRM',
+                  message :  'Este es el post inicial',
+                  created_time: new Date(),
+                  obj: 'crm',
+                  tipo: 'primer-mensaje',
+                  asignado: {},
+                  sentimiento: {},
+                  clasificacion: {tema: '', subtema:''},
+                  atendido: {}
+                };
+                classdb.inserta(lacoleccion, objetoInicial, 'accounts/dataUpload.primerPost', function(inserte) {
+                  if (inserte === 'error') {
+                    console.log('dataUpload.inserPrimerPost.error');
+                    res.jsonp('error en insert de primer post');
+                  }
+                  else {
+                    // creamos índices:
+                    classdb.creaIndexSinTexto(lacoleccion, {id:1}, 'accounts/dataUpload.index.id', function(indexid){
+                      classdb.creaIndexSinTexto(lacoleccion, {from_user_id:1}, 'accounts/dataUpload.index.from_user_id', function(indexfuid) {
+                        classdb.creaIndexSinTexto(lacoleccion, {from_user_name:1}, 'accounts/dataUpload.index.from_user_name', function(funm) {
+                          classdb.creaIndexSinTexto(lacoleccion, {created_time:1}, 'accounts/dataUpload.index.created_time', function(indexct) {
+                            classdb.creaIndexSinTexto(lacoleccion, {obj:1}, 'accounts/dataUpload.index.obj', function(indexobj) {
+                              classdb.creaIndexSinTexto(lacoleccion, {tipo:1}, 'accounts/dataUpload.index.tipo', function(indextipo) {
+                                classdb.creaIndexSinTexto(lacoleccion, {sentimiento:1}, 'accounts/dataUpload.index.sentimiento', function(indexsent) {
+                                  classdb.creaIndexSinTexto(lacoleccion, {'clasificacion.tema':1}, 'accounts/dataUpload.index.clasificacion.tema', function(indexctema) {
+                                    classdb.creaIndexSinTexto(lacoleccion, {'clasificacion.subtema':1}, 'accounts/dataUpload.index.clasificacion.subtema', function(indexcsub) {
+                                      classdb.creaIndexSinTexto(lacoleccion, {atendido:1}, 'accounts/dataUpload.index.atendido', function(indexatend) {
+	                                res.jsonp(insertado);                                      
+                                      });
+                                    });
+                                  });
+                                });
+                              });
+                            });
+                          });
+                        });
+                      });
+                    });
+                  }
+                });
+              }
 	    });
-	}
-	else {
-	    console.log('dataUpload error');
-	    res.jsonp('sin archivo');
-	}
-    });
+	  }
+	});
+      });
+    }
+    else {
+      console.log('dataUpload error');
+      res.jsonp('sin archivo');
+    }
+  });
 };
 
 exports.getInfoTwitter = function(req, res){

@@ -428,7 +428,6 @@ exports.respondeMailbox = function(req, res){
 
 	function respondeDM(idMensaje, cuenta, coleccion, mensaje, respuesta, idUsuario, nombreUsuario, imagenUsuario, callback ){
 		var obj = {};
-    	console.log('Respondiendo Direct MEssa');
     	var item_id = new ObjectID(idMensaje);
     	classdb.buscarToArray('accounts', {'_id' : cuenta}, {}, 'feeds/respondeDM', function(items){
 			if (items === 'error') {
@@ -455,7 +454,6 @@ exports.respondeMailbox = function(req, res){
 		    			console.log(obj);
 		    			return callback(obj);
 					}else{
-						console.log(comprueba.compruebaDescartado(item_id, coleccion));
 		    			var criteriou = {'_id' : item_id};
 		    			var addtosetu = {
 							respuestas : {
@@ -533,6 +531,9 @@ exports.respondeMailbox = function(req, res){
 	}
 
 	function respondeFacebook(coleccion, access_token, post_data, conv_id, mensaje, nombreUsuario, idUsuario, respuesta, imagenUsuario, callback){
+		console.log('La respuesta');
+		console.log(mensaje);
+		console.log(respuesta);
 		var parent = '';
 		if(mensaje.parent_comment === mensaje.parent_post){
 			parent =  mensaje.id;
@@ -541,6 +542,7 @@ exports.respondeMailbox = function(req, res){
 		}
 		var resp_sin_encode = respuesta;
 		respuesta = encodeURIComponent(respuesta);
+
 		var options = {
 			'hostname' : 'graph.facebook.com',
 		  	'port' : 443,
@@ -602,7 +604,7 @@ exports.respondeMailbox = function(req, res){
 			}
 		});
 	});
-
+ 
 	if(tipoRedSocial === 'facebook'){
 		if(tipoMensajeRedSocial === 'facebook_inbox'){
 			if(respuesta.length !== 0){
@@ -1046,7 +1048,7 @@ exports.insertaDescarte=function(req,res){
 					    	    'usuario' : username, 
 					    	    'idUsuario' : idUsuario, 
 					    	    'fecha' : new Date(),
-					    	    'imagenUsuario' : imagenUsuario,
+					    	    'usuario_foto' : imagenUsuario,
 					    	    razon_eliminar : razon_eliminar
 					    	},
 					    	eliminado : 1
@@ -1058,7 +1060,7 @@ exports.insertaDescarte=function(req,res){
 					    	    'usuario' : username, 
 					    	    'idUsuario' : idUsuario, 
 					    	    'fecha' : new Date(),
-						    'imagenUsuario' : imagenUsuario
+						    'usuario_foto' : imagenUsuario
 					    	},
 					    	eliminado:1
 					    };
@@ -1093,7 +1095,7 @@ exports.insertaDescarte=function(req,res){
 					    	    'usuario' : username, 
 					    	    'idUsuario' : idUsuario, 
 					    	    'fecha' : new Date(),
-					    	    'imagenUsuario' : imagenUsuario,
+					    	    'usuario_foto' : imagenUsuario,
 					    	    razon_eliminar : razon_eliminar
 					    	},
 					    	eliminado : 1
@@ -1105,7 +1107,7 @@ exports.insertaDescarte=function(req,res){
 					    	    'usuario' : username, 
 					    	    'idUsuario' : idUsuario, 
 					    	    'fecha' : new Date(),
-						    'imagenUsuario' : imagenUsuario
+						    'usuario_foto' : imagenUsuario
 					    	},
 					    	eliminado:1
 					    };
@@ -1138,17 +1140,44 @@ exports.insertaDescarte=function(req,res){
     			'usuario' : username, 
     			'idUsuario' : idUsuario, 
     			'fecha' : new Date(),
-				'imagenUsuario' : imagenUsuario
+				'usuario_foto' : imagenUsuario
     		}
     	};
-		classdb.actualiza(coleccion, elcriterio, elset, 'feeds/insertaDescarte', function(descartao){
+    	var eliminacion = {
+    		descartado : 1, 
+    		atendido : 1,
+    		sentiment : 1,
+    		sentiment_user_name : 1,
+    		sentiment_user_id : 1,
+    		sentiment_fecha : 1,
+    		sentiment_imagen_usuario : 1,
+    		sentimiento : 1,
+    		clasificacion : 1
+   		};
+
+	    classdb.actualizaUnsetDelete(coleccion, elcriterio, eliminacion, 'feeds/insertaDescarte/eliminaCampos', function(mensajeEliminado){
+	    	if(mensajeEliminado === 'error'){
+	    		console.log(mensajeEliminado);
+	    		res.jsonp(2);
+	    	}else{
+				classdb.actualiza(coleccion, elcriterio, elset, 'feeds/insertaDescarte', function(descartao){
+		    		if (descartao === 'error') {
+		    			console.log('Ocurrió un error al actualizar el Descarte');
+						res.jsonp(2);
+		    		}else {
+						res.jsonp(3);
+		    		}
+				});    	
+			}    	
+	    });
+		/*classdb.actualiza(coleccion, elcriterio, elset, 'feeds/insertaDescarte', function(descartao){
 	    	if (descartao === 'error') {
 	    		console.log('Ocurrió un error al actualizar el Descarte');
 				res.jsonp(2);
 	    	}else {
 				res.jsonp(3);
 	    	}
-		});
+		});*/
     }
 };
 
@@ -1226,94 +1255,34 @@ exports.activaBloqueo = function(req, res){
 
 };
 
-exports.regresarDescartado = function(req, res){
-	var id = new ObjectID(req.body.id);
-	var criterio = {'_id':id};
-    var elset = {descartado: 1, atendido:1,sentiment:1,sentiment_user_name:1,sentiment_user_id:1,clasificacion:1};
-    classdb.actualizaUnsetDelete(req.body.col, criterio, elset, 'feeds/regresarDescartado', function(actualizado){
+exports.regresarEntrada = function(req, res){
+	var id = new ObjectID(req.body.mensaje._id);
+	var coleccion = req.body.col;
+	var criterio = {'_id' : id};
+	var ellimit = 1;
+    var elset = {
+    	descartado : 1, 
+    	atendido : 1,
+    	sentiment : 1,
+    	sentiment_user_name : 1,
+    	sentiment_user_id : 1,
+    	sentiment_fecha : 1,
+    	sentiment_imagen_usuario : 1,
+    	sentimiento : 1,
+    	clasificacion : 1,
+    	respuestas : 1
+   	};
+
+    classdb.actualizaUnsetDelete(coleccion, criterio, elset, 'feeds/regresarEntrada', function(actualizado){
     	if(actualizado === 'error'){
     		console.log('error');
     		res.jsonp('error');
     	}else{
-    		res.jsonp({ok:'actualizado'});
+    		res.jsonp({ok : 'actualizado'});
     	}    	
     });
 };
 
-exports.regresarResuelto = function(req, res){
-
-	var id = new ObjectID(req.body.twit._id);
-	var objectId = new ObjectID();
-	var twit = req.body.twit;
-	var criterio = {'_id':id};
-    var elset = {atendido: 1,sentiment:1,sentiment_user_name:1,sentiment_user_id:1,clasificacion: 1, descartado:1};
-    var coleccion = req.body.col;
-    classdb.actualizaUnsetDelete(req.body.col, criterio, elset, 'feeds/regresarDescartado', function(actualizado){
-    	if(actualizado === 'error'){
-    		console.log('error');
-    		res.jsonp('error');
-    	}else{
-    		res.jsonp({ok:'actualizado'});
-    		/*var tipo;
-    		var obj;
-    		if(twit.type){
-    			tipo = twit.type;
-    		}else{
-    			tipo = twit.tipo;
-    		}
-    		var criteriof = {
-			$and : [
-			    {'from_user_id':twit.from_user_id}, 
-			    {'atendido': {$exists: true}}, 
-			    {'descartado': {$exists: false}}, 
-			    {'id': {$ne : twit._id}}, 
-			    {'type':tipo},
-			    {'created_time':{$lte: new Date(twit.created_time)}}
-			]
-		    };
-		    classdb.buscarToArray(coleccion, criteriof, {}, 'feeds/finalizar', function(items){
-			if(items === 'error'){
-			    obj = {'error': 'se actualizó correctamente pero no el historial'};
-			    res.jsonp('Error no tenia historial');
-			}
-			else {
-			    if (items.length > 0) {
-					procesaConversacion(coleccion, twit,objectId, items, 0, [], function(resp_pc){
-					    res.jsonp(resp_pc);
-					});
-			    }
-			    else {
-			    	console.log('No hay conversacion !!!!' +res);
-					obj = {'ok': 'se actualizó contenido, y no tenía historial'};
-					res.jsonp(obj);
-			    }
-			}
-		    });*/
-    	}	
-    });
-	/*function procesaConversacion(coleccion, contenido,objectId, contenidos, index, contenidosprocesados, callback){
-		var more = index+1;
-		var cuantos = contenidos.length;
-		if (more > cuantos) {
-		    return callback(contenidosprocesados);
-		}
-		else {
-			setImmediate(function(){
-				var criterio = {'_id':contenidos[index]._id};
-	    		var elset = {atendido: 1};
-				classdb.actualizaUnsetDelete(req.body.col, criterio, elset, 'feeds/regresarDescartado', function(conv){
-				    if(conv === 'error'){
-				    	console.log('error');
-				    	return procesaConversacion(coleccion, contenido,objectId, contenidos, more, contenidosprocesados, callback);
-				    }else{
-				    	contenidosprocesados.push(conv);
-				    	return procesaConversacion(coleccion, contenido,objectId, contenidos, more, contenidosprocesados, callback);
-				    }
-				});
-			});
-		}	
-    }*/
-};
 /*                ______        _ _ _                                             
              _   |  ___ \      (_) | |                       _               _    
   ____  ____| |_ | | _ | | ____ _| | | _   ___ _   _     ___| |_  ____  ____| |_  
@@ -2377,7 +2346,115 @@ exports.obtieneBuzon = function(req, res) {
 			return callback(updated);
 		});
     }
+    
+	function consultaTipoBuzon(eltipo, criteriopage, criterioobj, criteriotipo, criterioPalabra, idUsuario, elCreated){
+		var elcriterio = '';
+		switch(tipoBuzon){
+			case 'nuevos':
+				elcriterio = {
+					$and : [
+						{'retweeted_status': {$exists: false}},
+						{'descartado':{$exists: false}}, 
+						{'atendido':{$exists: false}}, 
+						{'eliminado':{$exists: false}},
+						{'sentiment' : {$exists : false}},
+						{'clasificacion' : {$exists : false}},
+						{'respuestas' : {$exists:false}},
+						criteriopage, 
+						criterioobj, 
+						criteriotipo,
+						criterioPalabra,
+						elCreated
+					] 
+				};	
+			break;
 
+			case 'atendidos':
+				elcriterio = {
+					$and:[ 
+						{'retweeted_status': {$exists: false}},
+						{'descartado':{$exists: false}}, 
+						{'atendido':{$exists: true}}, 
+						{'eliminado':{$exists: false}}, 
+						{$or: [
+							{'sentiment' : { $exists : true }}, 
+							{'clasificacion' : { $exists : true }},
+							{'respuestas' : { $exists: true }}				
+						]},
+						criteriopage, 
+						criterioobj, 
+						criteriotipo,
+						criterioPalabra,
+						elCreated
+					]
+				};
+			break;
+
+			case 'descartados':
+				elcriterio = {
+					$and:[
+						{'retweeted_status': {$exists: false}},
+						{'descartado':{$exists: true}}, 
+						criteriopage, 
+						criterioobj, 
+						criteriotipo,
+						criterioPalabra,
+						elCreated
+					]
+				};
+			break;
+
+			case 'asignados':
+				elcriterio ={
+					$and : [
+						{'retweeted_status': {$exists: false}},
+						{'eliminado':{$exists: false}},
+						{'asignado':{$exists:true}},
+						{'asignado.usuario_asignado_id':idUsuario},
+						{'atendido':{$exists: false}},
+						{'descartado':{$exists: false}},
+						{'sentiment' : { $exists : false }}, 
+						{'clasificacion' : { $exists : false }},
+						{'respuestas' : { $exists: false }},
+						criteriopage, 
+						criterioobj, 
+						criteriotipo,
+						criterioPalabra,
+						elCreated
+					]
+				}; 
+			break;
+
+			case 'todos':
+				elcriterio ={
+					$and : [
+						{'retweeted_status': {$exists: false}},
+						{'eliminado':{$exists: false}}, 
+						criteriopage, 
+						criterioobj, 
+			 			criteriotipo,
+						criterioPalabra,
+						elCreated
+					]
+				};
+			break;
+
+			default:
+				elcriterio ={
+					$and : [
+						{'retweeted_status': {$exists: false}},
+						{'eliminado':{$exists: false}}, 
+						criteriopage, 
+						criterioobj, 
+			 			criteriotipo,
+						criterioPalabra,
+						elCreated
+					]
+				};
+		}
+		return elcriterio;
+	}
+    
     function querybuzon (cole, fecha, page_id, eltipo, organizacion, tipoBuzon, palabra, callback) {
 		var criteriopage = { id : { $exists : true }};
 		var criteriotipo = { _id : {$exists : true }};
@@ -2397,156 +2474,54 @@ exports.obtieneBuzon = function(req, res) {
 		if (page_id) {
 			criteriopage  = {from_user_id : {$ne : page_id}};
 		}
+		
 		if (eltipo !== '') {
-			if(eltipo === 'facebook' || eltipo === 'twitter'){
-				criterioobj = { obj : eltipo };
-			}
-			else if(eltipo === 'direct_message'){
-				criterioobj = { obj : 'twitter' };
-				criteriotipo = { tipo : eltipo};
-			}
-			else if(eltipo === 'twitter_public'){
-				criterioobj = { obj : 'twitter' };
-				criteriotipo = {$and: [{ tipo : {$ne : 'direct_message'}},{ tipo : {$ne : 'tracker'}}]};
-			}
-			else if(eltipo === 'facebook_inbox'){
-				criterioobj = { obj : 'facebook' };
-				criteriotipo = { tipo : eltipo};
-			}
-			else if(eltipo === 'rating'){
-				criterioobj = { obj : 'facebook' };
-				criteriotipo = { tipo : eltipo};
-			}
-			else if(eltipo === 'facebook_public'){
-				criterioobj = { obj : 'facebook' };
-				criteriotipo = { tipo : {$ne : 'facebook_inbox'}};
-			}
-			else if(eltipo === 'tracker'){
-				criterioobj = { obj : 'twitter' };
-				criteriotipo = { tipo : eltipo};
+			switch(eltipo){
+				case 'facebook':
+					case 'twitter':
+					criterioobj = { obj : eltipo };
+				break;
+
+				case  'direct_message':
+					criterioobj = { obj : 'twitter' };
+					criteriotipo = { tipo : eltipo};	
+				break;
+
+				case 'twitter_public':
+					criterioobj = { obj : 'twitter' };
+					criteriotipo = {$and: [{ tipo : {$ne : 'direct_message'}},{ tipo : {$ne : 'tracker'}}]};
+				break;
+
+				case 'tracker':
+					criterioobj = { obj : 'twitter' };
+					criteriotipo = { tipo : eltipo};
+				break;
+
+				case 'facebook_inbox':
+					criterioobj = { obj : 'facebook' };
+					criteriotipo = { tipo : eltipo};
+				break;
+
+				case 'rating':
+					criterioobj = { obj : 'facebook' };
+					criteriotipo = { tipo : eltipo};
+				break;
+				case 'facebook_public':
+					criterioobj = { obj : 'facebook' };
+					criteriotipo = { tipo : {$ne : 'facebook_inbox'}};
+				break;
+				default:
+					console.log('Tipo Invalido en obtieneBuzon');
 			}
 		}
+
 		var elcriterio = '';
-
-		if(tipoBuzon === 'nuevos'){
-			//console.log('Buzon de Nuevos');
-			elcriterio ={
-				$and : [
-					{'retweeted_status': {$exists: false}},
-					{'descartado':{$exists: false}}, 
-					{'atendido':{$exists: false}}, 
-					{'eliminado':{$exists: false}},
-					{'sentiment' : {$exists : false}},
-					{'clasificacion' : {$exists : false}},
-					{'respuestas' : {$exists:false}},
-					criteriopage, 
-					criterioobj, 
-					criteriotipo,
-					criterioPalabra
-				] 
-			};	
-        /*}else if(tipoBuzon === 'proceso'){
-			console.log('Buzon de Proceso');
-			elcriterio = {
-				$and : [
-					{'retweeted_status': {$exists: false}},
-					{'descartado':{$exists: false}}, 
-					{'atendido':{$exists: false}}, 
-					{'eliminado':{$exists: false}},
-					{$or: [
-						{'sentiment' : { $exists : true }}, 
-						{'clasificacion' : { $exists : true }},
-						{'respuestas' : { $exists: true }},
-						
-					]},
-					criterioPalabra,
-					criteriopage, 
-					criterioobj, 
-					criteriotipo
-				]
-			};*/
-		}else if(tipoBuzon === 'atendidos'){
-			//console.log('Buzon de Atendidos');
-			elcriterio = {
-				$and:[ 
-					{'retweeted_status': {$exists: false}},
-					{'descartado':{$exists: false}}, 
-					{'atendido':{$exists: true}}, 
-					{'eliminado':{$exists: false}}, 
-					{$or: [
-
-						{'sentiment' : { $exists : true }}, 
-						{'clasificacion' : { $exists : true }},
-						{'respuestas' : { $exists: true }}
-						
-					]},
-					criteriopage, 
-					criterioobj, 
-					criteriotipo,
-					criterioPalabra
-
-				]
-			};
-        }else if(tipoBuzon === 'descartados'){
-			//console.log('Buzon de Descartados');
-			elcriterio = {
-				$and:[
-					{'retweeted_status': {$exists: false}},
-					{'descartado':{$exists: true}}, 
-					// {'atendido':{$exists: false}}, 
-					criteriopage, 
-					criterioobj, 
-					criteriotipo,
-					criterioPalabra
-				]
-			};
-		}else if(tipoBuzon === 'asignados'){
-			//console.log('Buzon de Asignados');
-			elcriterio ={
-				$and : [
-					{'retweeted_status': {$exists: false}},
-					{'eliminado':{$exists: false}},
-					criteriopage, 
-					criterioobj, 
-					criteriotipo,
-					{'asignado':{$exists:true}},
-					{'asignado.usuario_asignado_id':idUsuario},
-					{'atendido':{$exists: false}},
-					{'descartado':{$exists: false}},
-					{'sentiment' : { $exists : false }}, 
-					{'clasificacion' : { $exists : false }},
-					{'respuestas' : { $exists: false }},
-					criterioPalabra
-
-				]
-			};      
-		}else if(tipoBuzon === 'todos'){
-			//console.log('Buzon de Todos');
-			elcriterio ={
-				$and : [
-					{'retweeted_status': {$exists: false}},
-					{'eliminado':{$exists: false}}, 
-					criteriopage, 
-					criterioobj, 
-					criteriotipo,
-					criterioPalabra
- 
-				]
-			};
-		}else {
-			//console.log('Excepcion de Buzon');
-			elcriterio ={
-				$and : [
-					{'retweeted_status': {$exists: false}},
-					criteriopage, 
-					criterioobj, 
-					criteriotipo,
-					criterioPalabra
-				]
-			};              
-		}
 		var elsort = '';
 		var elCreated = '';
+
+		//Criterio sin fechas
+		elcriterio = consultaTipoBuzon(eltipo, criteriopage, criterioobj, criteriotipo, criterioPalabra, idUsuario, {});
+
 		if(organizacion === 'asc'){
 			elsort = {'created_time': 1};
 			elCreated = {'created_time': {$gt: fecha}};
@@ -2556,135 +2531,15 @@ exports.obtieneBuzon = function(req, res) {
 		}
 		var ellimit = 10;
 		if (fecha !== null) {
-			if(tipoBuzon === 'nuevos'){
-				//console.log('Scroll Entrada');
-				elcriterio = {
-					$and: [
-						{'retweeted_status': {$exists: false}},
-						{'descartado':{$exists: false}}, 
-						{'atendido':{$exists: false}}, 
-						{'eliminado': {$exists: false}}, 
-						{'sentiment' : {$exists : false}},
-						{'clasificacion' : {$exists : false}},
-						{'respuestas':{$exists:false}},
-						elCreated,
-						criteriopage, 
-						criterioobj, 
-						criteriotipo,
-						criterioPalabra 
-					]
-				};
-			/*}else if(tipoBuzon === 'proceso'){
-				console.log('Scroll de Proceso');
-				elcriterio = {
-					$and : [
-						{'retweeted_status': {$exists: false}},
-						{'descartado':{$exists: false}}, 
-						{'atendido':{$exists: false}}, 
-						{'eliminado': {$exists: false}}, 
-						elCreated,
-						{$or: [
-							{'sentiment': {$exists:true}}, 
-							{'clasificacion.tema':{$exists:true}},
-							{'respuestas' : {$exists: true}}
-						]},
-						criteriopage,
-						criterioobj, 
-						criteriotipo,
-						criterioPalabra
-					]
-				};*/
-			}else if(tipoBuzon === 'atendidos'){
-				//console.log('Scroll de Completos');
-				elcriterio = {
-					$and:[ 
-						{'retweeted_status': {$exists: false}},
-						{'descartado':{$exists: false}}, 
-						{'atendido':{$exists: true}}, 
-						{'eliminado':{$exists: false}}, 
-						{$or: [
-							{'sentiment' : { $exists : true }}, 
-							{'clasificacion' : { $exists : true }},
-							{'respuestas' : { $exists: true }},	
-						]},
-						elCreated,
-						criteriopage, 
-						criterioobj, 
-						criteriotipo,
-						criterioPalabra 
-					]
-				};
-			}else if(tipoBuzon === 'descartados'){
-				//console.log('Scroll de Descartados');
-				elcriterio = {
-					$and:[
-						{'retweeted_status': {$exists: false}},
-						{'descartado':{$exists: true}}, 
-						{'atendido':{$exists: false}}, 
-						elCreated,
-						criteriopage, 
-						criterioobj, 
-						criteriotipo,
-						criterioPalabra 
-					]
-				};
-
-			}else if(tipoBuzon === 'asignados'){
-				//console.log('Scroll de Asignados');  
-				elcriterio ={
-					$and : [
-						{'retweeted_status': {$exists: false}},
-						{'eliminado':{$exists: false}},
-						criteriopage, 
-						criterioobj, 
-						elCreated,
-						criteriotipo,
-						{'asignado':{$exists:true}},
-						{'asignado.usuario_asignado_id':idUsuario},
-						criterioPalabra
-
-					]
-				};      
-			}else if(tipoBuzon === 'todos'){
-				//console.log('Scroll de Todos');
-				elcriterio ={
-					$and : [
-						{'retweeted_status': {$exists: false}},
-						{'eliminado':{$exists: false}}, 
-						elCreated,
-						criteriopage, 
-						criterioobj, 
-						criteriotipo,
-						criterioPalabra 
-					]
-				};
-			}else {
-                //console.log('Excepcion de Scroll');
-				elcriterio ={ 
-					$and : [
-						{'retweeted_status': {$exists: false}},
-						elCreated,
-						criteriopage, 
-						criterioobj, 
-						criteriotipo,
-						criterioPalabra 
-					]
-				};              
-			}
+			elcriterio = consultaTipoBuzon(eltipo, criteriopage, criterioobj, criteriotipo, criterioPalabra, idUsuario, elCreated);
 		} 
 		classdb.buscarToStreamLimit(cole, elcriterio, elsort, ellimit, 'feeds/getMailbox/querybuzon', function(lositems){
 			for(var i=0;i<lositems.length;i++){
 				if(lositems[i].descartado){    
 					lositems[i].tipoMensaje = 'descartado';
-					//console.log('DESCARTADO');
-				//}else if(lositems[i].atendido && !lositems[i].descartado && !lositems[i].eliminado){
-					//console.log('COMPLETO');
-				//	lositems[i].tipoMensaje = 'completo';
                 }else if(!lositems[i].descartado && !lositems[i].eliminado && (lositems[i].respuestas || lositems[i].sentiment || lositems[i].clasificacion || lositems[i].atendido)){
-					//console.log('PROCESO');
 					lositems[i].tipoMensaje = 'atendido';
                 }else if(!lositems[i].descartado && !lositems[i].atendido && !lositems[i].eliminado && !lositems[i].sentiment && !lositems[i].clasificacion){
-					//console.log('ENTRADA');
 					lositems[i].tipoMensaje = 'nuevo';
 				}else{
 					console.log('No entro a un buzon valido');
@@ -2710,6 +2565,7 @@ exports.obtieneBuzon = function(req, res) {
 				}else if(lositems[i].obj==='facebook'){
 					var post = '';
 					var comentario = '';
+					var id = '';
 				    if (lositems[i].foto) {
 					var img = lositems[i].foto.replace('https', 'http');
 					lositems[i].imagen = img;
@@ -2724,7 +2580,7 @@ exports.obtieneBuzon = function(req, res) {
 					if (lositems[i].tipo === 'comment') {
 						if (lositems[i].parent_post === lositems[i].parent_comment) {
 							//si es un bucomentario
-							var id = lositems[i].id.split('_');
+							id = lositems[i].id.split('_');
 							post = lositems[i].parent_post.split('_');
 							comentario = lositems[i].parent_comment.split('_');
 							lositems[i].urlEnlace = 'https://www.facebook.com/'+page_id+'/posts/' + post[0] + '?comment_id=' + post[1] + '&reply_comment_id=' + id[1] + '';
@@ -2742,15 +2598,15 @@ exports.obtieneBuzon = function(req, res) {
 							    }
 							}
 						}
-    				        } else if (lositems[i].tipo == 'facebook_inbox') {
-					  lositems[i].urlEnlace = lositems[i].conversation_link;
-                                        } else if (lositems[i].tipo == 'post') {
-                                          //si es un post
-                                          var id = lositems[i].id.split('_');
-                                          lositems[i].urlEnlace = 'https://www.facebook.com/'+page_id+'/posts/'+id[1]; 
-				        }else{
-                                          lositems[i].urlEnlace = lositems[i].rating_link;
-				        }        
+    				} else if (lositems[i].tipo === 'facebook_inbox') {
+					  	lositems[i].urlEnlace = lositems[i].conversation_link;
+                    } else if (lositems[i].tipo === 'post') {
+						//si es un post
+						id = lositems[i].id.split('_');
+						lositems[i].urlEnlace = 'https://www.facebook.com/'+page_id+'/posts/'+id[1]; 
+					}else{
+						lositems[i].urlEnlace = lositems[i].rating_link;
+					}        
                 }                               
             }
 			return callback(lositems);
@@ -2996,11 +2852,6 @@ exports.obtieneBuzon = function(req, res) {
 	    	var request = https.get(mensaje.imagen_https, function (response) {
 	  			imagesize(response, function (err, result) {
 	  				if(err){
-				    	console.log(mensaje.imagen_https);
-	  					console.log('ERRORRRRRRRRRR');
-	  					console.log(mensaje.from_user_screen_name);
-	  					console.log(mensaje._id);
-	  					console.log('\n\n\n\n');
 	  					pideFotoTwitter(cuenta, mensaje, function(mensajeConFoto){
 	  						if(mensajeConFoto !== 'error'){
 	  							return callback(mensajeConFoto);
@@ -3069,37 +2920,6 @@ exports.obtieneBuzon = function(req, res) {
 							});
 						    }
 					    });
-						/*
-						querybuzon(coleccion, first_date, page_id, eltipo, organizacion, tipoBuzon, palabra, function(losmensajes) {
-						if (losmensajes === 'error' || losmensajes.length < 1) {
-							res.jsonp(obj);                 
-						}else {
-	 						//console.log(losmensajes[0].id+ ' ' + new Date());
-							fecha.firstdate = losmensajes[losmensajes.length-1].created_time;
-							obtenMensajesSecundarios(coleccion, losmensajes, [], 0, function(loscomentarios){
-								var ememasuno = 0;
-								var todoslosmensajes = '';
-								var arregloRetorno = [];
-								if(organizacion !== 'asc'){
-									todoslosmensajes = _.sortBy((loscomentarios), 'created_time').reverse();
-								}else{
-									todoslosmensajes = loscomentarios;
-								}
-								for(var i in todoslosmensajes){
-									validaImagenURL(datos_cuenta, todoslosmensajes[i], function(mensajeActualizado){
-										ememasuno++;
-										arregloRetorno.push(mensajeActualizado);
-										if (todoslosmensajes.length === (ememasuno)) {
-											obj.fecha = fecha;
-											arregloRetorno.push(obj);
-											res.jsonp(arregloRetorno); 
-										}
-									});
-								}
-							});
-						}
-					});
-					*/
 				}
 			}else {
 				// no había datos cuenta para este usuario
@@ -3108,7 +2928,7 @@ exports.obtieneBuzon = function(req, res) {
 			}
 		}
     });
-}
+};
 /*
                  _         _     _   _                 ____                       
                 | |       | |   | | (_)               |  _ \                      
@@ -3161,7 +2981,7 @@ exports.getCuentaNuevos = function(req, res, next ,id){
 				]
 			       };
 	 	classdb.count(cole, criterio, 'feeds/getCuentaNuevos/querybuzon', function(cuenta){
-	 		console.log(cuenta);
+	 		//console.log(cuenta);
 		    return callback(cuenta);
 		});
     }
@@ -3181,7 +3001,7 @@ exports.getCuentaNuevos = function(req, res, next ,id){
 	var obj = {};
 	if (datos_cuenta !== 'error' & datos_cuenta.length > 0) {
 	    var coleccion = datos_cuenta[0].nombreSistema+'_consolidada';
-	    console.log(coleccion +' '+ new Date());
+	    //console.log(coleccion +' '+ new Date());
 	    var page_id = '';
 	    if (typeof datos_cuenta[0].datosPage !== 'undefined' && typeof datos_cuenta[0].datosPage.id !== 'undefined' && datos_cuenta[0].datosPage.id !== -1) {
 		//console.log('tiene datosPage y es válido');
@@ -3547,6 +3367,93 @@ exports.getOneContent = function (req, res) {
     }
     //Termina QUerySecundario !
 
+    function actualizaMensaje(mensaje){
+		if (mensaje.obj === 'twitter') {
+			switch(mensaje.tipo) {
+
+				case 'direct_message':
+					mensaje.nombre = mensaje.sender_screen_name;
+					mensaje.imagen = mensaje.sender.profile_image_url;
+					mensaje.imagen_https = mensaje.sender.profile_image_url_https;
+					mensaje.texto = mensaje.text;
+					mensaje.urlEnlace = '#';
+					mensaje.urlUsuario = 'https://twitter.com/' + mensaje.sender.screen_name;
+				break;
+									
+				case 'twit':
+					mensaje.nombre = mensaje.user.screen_name;
+					mensaje.imagen = mensaje.user.profile_image_url;
+					mensaje.imagen_https = mensaje.user.profile_image_url_https;
+					mensaje.texto = mensaje.text;
+					mensaje.urlEnlace = mensaje.tw_url;
+					mensaje.urlUsuario = 'https://twitter.com/' + mensaje.user.screen_name;
+				break;
+
+				case 'tracker':
+					mensaje.nombre = mensaje.user.screen_name;
+					mensaje.imagen = mensaje.user.profile_image_url;
+					mensaje.imagen_https = mensaje.user.profile_image_url_https;
+					mensaje.texto = mensaje.text;
+					mensaje.urlEnlace = mensaje.tw_url;
+					mensaje.urlUsuario = 'https://twitter.com/' + mensaje.user.screen_name;
+				break;
+									
+				default:
+					console.log('Entro a una opcion invalida en switch twitter');
+					console.log('Tipo');
+					console.log(mensaje.tipo);
+			}//switch
+		}else if (mensaje.obj === 'facebook') {
+			switch(mensaje.tipo) {
+
+				case 'facebook_inbox':
+					mensaje.nombre = mensaje.from.name;
+					mensaje.imagen = mensaje.foto;
+					mensaje.imagen_https = mensaje.foto;
+					mensaje.texto = mensaje.message;
+					mensaje.urlEnlace = mensaje.conversation_link;
+					mensaje.urlUsuario = 'https://www.facebook.com/'+mensaje.from.id;
+				break;
+
+				case 'comment':
+					mensaje.nombre = mensaje.from.name;
+					mensaje.imagen = mensaje.foto;
+					mensaje.imagen_https = mensaje.foto;
+					mensaje.texto = mensaje.message;
+					mensaje.urlUsuario = 'https://www.facebook.com/'+mensaje.from.id;
+					var post = mensaje.parent_post.split('_');
+					var id = mensaje.id.split('_');
+					mensaje.urlEnlace = 'https://www.facebook.com/'+post[0]+'/posts/'+post[1]+'?comment_id='+id[1];
+				break;
+									
+				case 'post':
+					var idSeparado = mensaje.id.split('_');
+					mensaje.nombre = mensaje.from.name;
+					mensaje.imagen = mensaje.foto;
+					mensaje.imagen_https = mensaje.foto;
+					mensaje.texto = mensaje.message;
+                          console.log(mensaje.from.id);
+					mensaje.urlUsuario = 'https://www.facebook.com/'+mensaje.from.id;                                                          $
+					mensaje.urlEnlace = 'https://www.facebook.com/'+idSeparado[0]+'/post/'+idSeparado[1];
+				break;
+				
+				case 'rating':
+					mensaje.nombre = mensaje.from.name;
+					mensaje.imagen = mensaje.foto;
+					mensaje.imagen_https = mensaje.foto;
+					mensaje.texto = mensaje.message;
+					mensaje.urlUsuario = 'https://www.facebook.com/'+mensaje.from.id; 
+					mensaje.urlEnlace = mensaje.rating_link;
+				break;
+
+				default:
+					console.log('Entro a una opcion invalida en switch Faceboook');
+					console.log('Tipo');
+					console.log(mensaje.tipo);
+			}//switch
+		}//if facebook  
+		return mensaje;  	
+    }
     if (coleccion !== null && mongoid !== null) {
 	queryUno(coleccion, mongoid, function(datos){
 	    if (datos !== 'error' && datos.length > 0) {
@@ -3776,10 +3683,10 @@ var obj = {}, mensaje = '', respuesta = '', coleccion = '', conv_id = '', cuenta
     var solicitud = https.request(globales.options_graph, function(risposta) {
 	              var chunks = [];
 	              var chunks2 = '';
-	              console.log('REGISTRANDO setTimeout+++++++++++++++++++++++++++++++++++++++++++++');
+	              //console.log('REGISTRANDO setTimeout+++++++++++++++++++++++++++++++++++++++++++++');
 	              risposta.on('data', function(dati) {
-	    	        console.log('DATI !!!!!!!!!!!!!!!!!!!!!');
-	    	        console.log(dati);
+	    	        //console.log('DATI !!!!!!!!!!!!!!!!!!!!!');
+	    	        //console.log(dati);
 	    	        if(dati){
 	    	          chunks2 += dati;
 		          chunks.push(dati);
@@ -3788,11 +3695,11 @@ var obj = {}, mensaje = '', respuesta = '', coleccion = '', conv_id = '', cuenta
 	    	        var primero = chunks2.substr(0,1);
 		        if(primero === '{'){
 		          var contenido = JSON.parse(Buffer.concat(chunks));
-		          console.log('¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡ Respuesta de responde inbox !!!!!!!!!!!!!!!!!');
-		          console.log(contenido);
-		          console.log('feeds/respInbox/requestUserPages - obtenemos paginas del usuario');
+		          //console.log('¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡ Respuesta de responde inbox !!!!!!!!!!!!!!!!!');
+		          //console.log(contenido);
+		          //console.log('feeds/respInbox/requestUserPages - obtenemos paginas del usuario');
 		          if (typeof contenido.error !== 'undefined') {
-			    console.log('feeds/respInbox/requestUserPages - '+JSON.stringify(contenido.error));
+			    //console.log('feeds/respInbox/requestUserPages - '+JSON.stringify(contenido.error));
 			    return callback('error');
 		          }
 		          else {
@@ -4162,156 +4069,187 @@ exports.compruebaDescartado = function(id, coleccion){
 };
 
 exports.finalizar = function(req, res){
-	var imagenUsuario = req.body.twit.imagenUsuario;
-    function procesaConversaciones(coleccion, contenido, user_id, user_name, objectId, contenidos, index, contenidosprocesados, callback){
-	var more = index+1;
-	var cuantos = contenidos.length;
-	if (more > cuantos) {
-	    return callback(contenidosprocesados);
-	}
-	else {
-		setImmediate(function(){
-		    finalizaConversacion(coleccion, contenido, contenidos[index], user_id, user_name, objectId, function(conv){
-			if (conv === 'error'){
-			    return procesaConversaciones(coleccion, contenido, user_id, user_name, objectId, contenidos, more, contenidosprocesados, callback);
+
+    function finalizaConversacion(coleccion, twit, conversacion, user_id, user_name, objectId, imagenUsuario, sentimientoGeneral, clasificacionGeneral, cback){
+		var clasificacion = clasificacionGeneral;
+		var id = new ObjectID(conversacion._id);
+		if(!conversacion.sentiment) {
+	    	conversacion.sentiment = sentimientoGeneral.tipo;
+	    	conversacion.sentiment_fecha = sentimientoGeneral.fecha;
+	    	conversacion.sentiment_imagen_usuario = sentimientoGeneral.imagen_usuario;
+	    	conversacion.sentiment_user_id = sentimientoGeneral.user_id;
+	    	conversacion.sentiment_user_name = sentimientoGeneral.user_name;	
+		}
+		if (!conversacion.clasificacion) {
+	    	conversacion.clasificacion = clasificacion;
+		}
+		conversacion.clasificacion.imagen_usuario = imagenUsuario;
+		
+		if(!conversacion.descartado){
+			var criterious = {_id : id};
+			var setus = {
+	    		atendido : {
+					_id : objectId,
+					usuario_id : user_id,
+					usuario_nombre : user_name,
+					fecha : new Date(),
+					usuario_foto : imagenUsuario
+	    		}, 
+	    		clasificacion : conversacion.clasificacion, 
+	    		sentiment : conversacion.sentiment, 
+	    		sentiment_fecha : conversacion.sentiment_fecha,
+	    		sentiment_imagen_usuario : conversacion.sentiment_imagen_usuario,
+	    		sentiment_user_name : conversacion.sentiment_user_name, 
+	    		sentiment_user_id : conversacion.sentiment_user_id,
+	    		sentimiento : {
+	    			tipo : conversacion.sentiment,
+	    			user_name : conversacion.sentiment_user_name,
+	    			user_id : conversacion.sentiment_user_id,
+	    			fecha : conversacion.sentiment_fecha,
+	    			imagen_usuario : conversacion.sentiment_imagen_usuario
+	    		}
+			};
+			classdb.actualizacresult(coleccion, criterious, setus, 'feeds/finalizar/finalizaConversacion', function(updated){
+		    	if(updated === 'error'){
+		    		return cback('error');
+		    	}else if(updated === 1){
+					var cuenta = coleccion.split('_');
+					if(twit.influencers || twit.asignado){
+						var socketio = req.app.get('socketio'); // take out socket instance from the app container
+						socketio.sockets.emit('auxiliarNotificacion',{_id:id,cuenta:cuenta[0]});
+					}
+		    		return cback(conversacion._id);
+		    	}else{
+		    		return cback('error');
+		    	}
+			});
+		}else{
+			return cback(conversacion._id);
+		}
+    }
+
+    function procesaConversaciones(coleccion, contenido, user_id, user_name, objectId, contenidos, index, contenidosprocesados, imagenUsuario, sentimientoGeneral, clasificacionGeneral, callback){
+		var more = index+1;
+		var cuantos = contenidos.length;
+		if (more > cuantos) {
+	    	return callback(contenidosprocesados);
+		}else {
+			setImmediate(function(){
+		    	finalizaConversacion(coleccion, contenido, contenidos[index], user_id, user_name, objectId, imagenUsuario, sentimientoGeneral, clasificacionGeneral, function(conv){
+					if (conv === 'error'){
+			    		return procesaConversaciones(coleccion, contenido, user_id, user_name, objectId, contenidos, more, contenidosprocesados, imagenUsuario, sentimientoGeneral, clasificacionGeneral, callback);
+					}else{
+			    		contenidosprocesados.push(conv);
+			    		return procesaConversaciones(coleccion, contenido, user_id, user_name, objectId, contenidos, more, contenidosprocesados, imagenUsuario, sentimientoGeneral, clasificacionGeneral, callback);
+					}
+		    	});
+			});
+		}	
+    }
+
+    function mensajeActualizado(coleccion, idMensaje, callback){
+    	var mensajeId = new ObjectID(idMensaje);
+    	classdb.buscarToArray(coleccion, {'_id' : mensajeId}, {}, 'feeds/respondeMailbox/mensajeActualizado', function(mensaje){
+			if (mensaje === 'error') {
+	    		obj = {'error': 'feed/respondeMailbox/mensajeActualizado - error al pedir mensajeActualizado'};
+	    		return callback(obj);
 			}
-			else{
-			    contenidosprocesados.push(conv);
-			    return procesaConversaciones(coleccion, contenido, user_id, user_name, objectId, contenidos, more, contenidosprocesados, callback);
+			else {
+				return callback(mensaje);
 			}
-		    });
 		});
-	}	
-    }
+  	}
 
-    function finalizaConversacion(coleccion, twit, conversacion, user_id, user_name, objectId, cback){
-	var sentiment = twit.sentiment;
-	var clasificacion = twit.clasificacion;
-	var id = new ObjectID(conversacion._id);
-	if(!conversacion.sentiment) {
-	    conversacion.sentiment = sentiment;
-	    conversacion.sentiment_user_id = twit.sentiment_user_id;
-	    conversacion.sentiment_user_name = twit.sentiment_user_name;
-	}
-	if (!conversacion.clasificacion) {
-	    conversacion.clasificacion = clasificacion;
-	}
-	conversacion.clasificacion.imagen_usuario = imagenUsuario;
-	var criterious = {_id : id};
-	var setus = {
-	    atendido : {
-		_id : objectId,
-		usuario_id : user_id,
-		usuario_nombre : user_name,
-		fecha : new Date()
-	    }, 
-	    clasificacion : conversacion.clasificacion, 
-	    sentiment : conversacion.sentiment, 
-	    sentiment_user_name : conversacion.sentiment_user_name, 
-	    sentiment_user_id : conversacion.sentiment_user_id
-	};
-	classdb.actualizacresult(coleccion, criterious, setus, 'feeds/finalizar/finalizaConversacion', function(updated){
-	    console.log('IMPRIMIENDO EL ACTUALIZA !!!!');
-	    console.log(updated);
-	    if(updated === 'error'){
-	    	return cback('error');
-	    }else if(updated === 1){
-			var cuenta = coleccion.split('_');
-			console.log(cuenta);
-			var socketio = req.app.get('socketio'); // take out socket instance from the app container
-			socketio.sockets.emit('auxiliarNotificacion',{_id:id,cuenta:cuenta[0]});
-	    	return cback(conversacion._id);
-	    }else{
-	    	return cback('error');
-	    }
-	});
-    }
-
+	var imagenUsuario = req.body.twit.imagenUsuario;
     var obj = {};
     var conversaciones = [];
     var objectId = new ObjectID();
     var twit = req.body.twit;
     var user_id  = req.body.user_id;
-    var user_name =req.body.user_name;
+    var user_name = req.body.user_name;
     var twit_id = new ObjectID(req.body.twit._id);
-    var clasificacion = req.body.twit.clasificacion;
     var coleccion = req.body.coleccion;
-
-    var criteriou = {_id:twit_id};
+    var criteriou = {_id : twit_id};
     var setu = {
-	atendido:{
-	    _id : objectId,
-	    usuario_id : user_id,
-	    usuario_nombre : user_name,
-	    fecha : new Date()
-	}
+		atendido:{
+	    	_id : objectId,
+	    	usuario_id : user_id,
+	    	usuario_nombre : user_name,
+	    	fecha : new Date(),
+			usuario_foto : imagenUsuario
+		}
     };
+
     classdb.actualiza(coleccion, criteriou, setu, 'feeds/finalizar', function(updated){
-	if (updated === 'error') {
-	    obj = {'error': 'no pudimos finalizar la conversacion'};
-	    res.jsonp(obj);
-	}
-	else {
-
-
-		var tipo;
-		if(twit.obj === 'facebook'){
-			console.log('Es tipo facebook !!!');
-			if(twit.tipo !== 'facebook_inbox'){
-				tipo = { $or: [ { tipo:{$eq:'comment'} }, { tipo:{$eq:'post' }} ] };
-			}else{
-				tipo = {tipo:{$eq:'facebook_inbox'}};
-			}
-		}else{
-			console.log('Es tipo twitter');
-			if(twit.tipo === 'direct_message'){
-				tipo = {tipo:{$eq:'direct_message'}};
-			}else{
-				tipo = {tipo: {$eq:'twit'}};
-			}
-		}
-		console.log(tipo);
-
-
-	    var criteriof = {
-		$and : [
-		    {'from_user_id':twit.from_user_id}, 
-		    {'atendido': {$exists: false}}, 
-		    //{'descartado': {$exists: false}}, 
-		    {'id': {$ne : twit.id}}, 
-		    {'eliminado':{$exists:false}},
-		    tipo,
-		    //{'type':twit.type},
-		    {'created_time':{$lt: new Date(twit.created_time)}}
-		]
-	    };
-	    console.log('JSON');
-	    console.log(JSON.stringify(criteriof));
-	    classdb.buscarToArray(coleccion, criteriof, {}, 'feeds/finalizar', function(items){
-		if(items === 'error'){
-			console.log(obj);
-		    obj = {'error': 'se actualizó correctamente pero no el historial'};
+		if (updated === 'error') {
+		    obj = {'error': 'no pudimos finalizar la conversacion'};
 		    res.jsonp(obj);
-		}
-		else {
-		    if (items.length > 0) {
-		    	console.log('++++++++++++   Items a resolver !!!!!!');
-		    	console.log(items);
-		    	console.log('NUMERO !!!');
-		    	console.log(items.length);
-			procesaConversaciones(coleccion, twit, user_id, user_name, objectId, items, 0, [], function(resp_pc){
-			    console.log('Imprimiendo el resultado de finalizaConversacion !!!! +++++++++++');
-			    console.log(resp_pc);
-			    res.jsonp(resp_pc);
+		}else {
+			mensajeActualizado(coleccion, twit_id, function(mensajeActualizado){
+				if(mensajeActualizado === 'error'){
+					obj = {'error': 'no pudimos pedir el mensaje actualizado'};
+		    		res.jsonp(obj);
+				}else{
+					mensajeActualizado = mensajeActualizado[0];
+					var clasificacionGeneral = mensajeActualizado.clasificacion;
+    				var sentimientoGeneral = mensajeActualizado.sentimiento;
+					var tipo = {};
+					if(mensajeActualizado.obj === 'facebook'){
+						if(mensajeActualizado.tipo !== 'facebook_inbox'){
+							tipo = { 
+								$or: [ 
+									{tipo : {$eq : 'comment'}},
+									{tipo : {$eq : 'post' }} 
+								] 
+							};
+						}else{
+							tipo = {
+								tipo : {$eq : 'facebook_inbox'}
+							};
+						}
+					}else{
+						if(mensajeActualizado.tipo === 'direct_message'){
+							tipo = {
+								tipo : {$eq:'direct_message'}
+							};
+						}else{
+							tipo = {
+								tipo: {$eq:'twit'}
+							};
+						}
+					}
+
+					var criteriof = {
+						$and : [
+					    	{'from_user_id' : mensajeActualizado.from_user_id}, 
+					    	{'atendido' : {$exists : false}}, 
+					    	{'descartado': {$exists : false}}, 
+					    	{'id' : {$ne : mensajeActualizado.id}}, 
+					    	{'eliminado' : {$exists : false}},
+					    	tipo,
+					    	{'created_time':{$lt : new Date(mensajeActualizado.created_time)}}
+						]
+				    };
+				    
+				    classdb.buscarToArray(coleccion, criteriof, {}, 'feeds/finalizar', function(items){
+						if(items === 'error'){
+							console.log(obj);
+					    	obj = {'error': 'se actualizó correctamente pero no el historial'};
+					    	res.jsonp(obj);
+						}else {
+					    	if (items.length > 0) {
+								procesaConversaciones(coleccion, mensajeActualizado, user_id, user_name, objectId, items, 0, [], imagenUsuario, sentimientoGeneral, clasificacionGeneral, function(resp_pc){
+						    		res.jsonp(resp_pc);
+								});
+					    	}else {
+								obj = {'ok': 'se actualizó contenido, y no tenía historial'};
+								res.jsonp(obj);
+					    	}
+						}
+				    });
+				}
 			});
-		    }
-		    else {
-			obj = {'ok': 'se actualizó contenido, y no tenía historial'};
-			res.jsonp(obj);
-		    }
 		}
-	    });
-	}
     });
 };
 
@@ -4350,6 +4288,9 @@ exports.follow = function(req, res){
 	});
 };
 exports.totalPendientes = function(req,res){
+	console.log('METODO VACIO TOTAL PENDIENTES ');
+}
+exports.totalPendientesEscondido = function(req,res){
 	var coleccion = req.body.coleccion;
 	var id_cuenta = req.body.id_cuenta;
 	var criteriopage = { id : { $exists : true }};
@@ -4357,11 +4298,6 @@ exports.totalPendientes = function(req,res){
 	var criterioobj = { _id : {$exists : true }};
 	var tipo = req.body.filtro;
 	var criterio_filtro = {};
-	console.log('Pidiendo mas pendientes !!!!!!');
-	console.log(req.body.filtro);
-	console.log(req.body);
-
-
 
 	switch(tipo){
 		case 'facebook':
@@ -4482,12 +4418,12 @@ exports.totalPendientes = function(req,res){
 			//criterio = {$and : [{{'from_user_id' : {$ne : datosCuenta[0].datosPage.id}},'descartado':{$exists: false}}, {'atendido':{$exists: false}}, {'eliminado':{$exists: false}},{'clasificacion.tema':{$exists:false}},{'clasificacion.tema':{$ne:'Tema'}},{sentiment:{$exists:false}},criteriopage, criterioobj, criteriotipo ]};
 		}
 	    // console.log('Imprimiento query');
-		console.log('Criterio de busqueda');
+		//console.log('Criterio de busqueda');
 		//console.log();
-		 console.log(JSON.stringify(criterio));
+		 //console.log(JSON.stringify(criterio));
 	    classdb.count(coleccion,criterio,{},function(count){
-		 console.log('count !!!!!!!!!');
-		 console.log(count);
+		 //console.log('count !!!!!!!!!');
+		 //console.log(count);
 		if(count === 'error'){
 		    console.log('error');
 		}else{
@@ -4751,7 +4687,7 @@ exports.asignaMensaje = function(req, res){
 		    //{'id': {$ne : twit.id}}, 
 		    {'eliminado':{$exists:false}},
 		    //{'type':twit.type},
-		    {'created_time':{$lt: new Date(obj.created_time)}},
+		    //{'created_time':{$lt: new Date(obj.created_time)}},
 			 tipo
 		]
 	    };
@@ -5179,8 +5115,8 @@ exports.nuevosPosts = function(req, res){
 };
 
 exports.nuevosPostsFiltered = function(req, res){
-	console.log('PIDIENDO LOS NUEVOS FILTRADOS');
-	console.log(req.query);
+	//console.log('PIDIENDO LOS NUEVOS FILTRADOS');
+	//console.log(req.query);
 	var last_ct = null;
     var tipo = null;
     var obj = null;

@@ -40,24 +40,7 @@
                             <div class="mensaje-cont limpiar">
                                 <div class="usuario">
                                     <div class="notificacion" data-ng-show="twit.influencers"></div>
-                                    <a ng-switch on="twit.obj">
-                                        <!--fotos twitter-->
-                                        <img data-ng-if="twit.obj == 'twitter' && twit.tipo == 'twit'" src="{{(twit.user.profile_image_url_https)?twit.user.profile_image_url_https:'/modules/core/img/usuario-sem-imagem.png'}}" style="width:44px; height:44px; border:solid 2px #404040 !important; cursor: default !important;" class="circular"/>
-
-                                        <img data-ng-if="twit.obj == 'twitter' && twit.tipo == 'direct_message'" src="{{(twit.sender.profile_image_url_https)?twit.sender.profile_image_url_https:'/modules/core/img/usuario-sem-imagem.png'}}" style="width:44px; height:44px; border:solid 2px #404040 !important; cursor: default !important;" class="circular"/>
-                                       
-                                        <!--fotos twitter-->
-                                        <img ng-switch-when="twitter_dm" src="{{(twit.user.profile_image_url_https)?twit.user.profile_image_url_https:'/modules/core/img/usuario-sem-imagem.png'}}" style="width:44px; height:44px; border:solid 2px #404040 !important; cursor: default !important;" class="circular"/>
-                                        <img data-ng-if="twit.obj == 'facebook' && twit.tipo != 'facebook_inbox' " src="{{(twit.foto)?twit.foto:'/modules/core/img/usuario-sem-imagem.png'}}" style="width:44px; height:44px; border:solid 2px #404040 !important; cursor: default !important;" class="circular"/>
-
-                                  	<!--imagen trackers-->  
-                                   <img data-ng-if="twit.obj === 'twitter' && twit.tipo === 'tracker'" data-ng-src="{{twit.user.profile_image_url_https}}" fallback-image="/modules/core/img/usuario-sem-imagem.png" style="width:44px; height:44px; border:solid 2px #404040 !important; cursor: default !important;" class="circular" />
-                                   <!--imagen trackers-->      
-                                        
-                                    </a>
-                                    <a data-ng-if ="twit.tipo == 'facebook_inbox'">
-                                         <img src="https://graph.facebook.com/{{twit.from.id}}/picture" style="width:44px; height:44px; border:solid 2px #404040 !important; cursor: default !important;" class="circular"/>
-                                    </a>
+                                    <img ng-src="{{twit.imagen_https}}" fallback-src="/modules/core/img/usuario-sem-imagem.png" style="width:44px; height:44px; border:solid 2px #404040 !important; cursor: default !important;" class="circular"/>
                                 </div>
                                 <!--datos-->
                                 <div class="datos" ng-switch on="twit.obj">
@@ -95,6 +78,7 @@
                                                 <p class="comentario txt-gris3" style="line-height:17px;"   data-ng-if="twit.message.length < 300" data-ng-bind-html="twit.message | linky"></p>
                                                 <p class="comentario txt-gris3" style="line-height:17px;"   data-ng-if="twit.message.length > 300" data-ng-bind-html="twit.message | limitTo:300 | linky"></p>
                                                 <p class="comentario" data-ng-show="twit.image_attachment">
+                                                <img ng-src="{{twit.image_attachment}}" style="width:50px!important; height:50px !important;">
                                                     <a href="{{twit.image_attachment}}" target="_blank"><i class="fa fa-image"></i>&nbsp;Imagen Adjunta</a>
                                                 </p>
                                             </div>
@@ -148,19 +132,20 @@
                                 <div class="iconos-lateral">
                                 <ul>
                                 	<li class="descartado-usuario" data-ng-show="twit.tipoMensaje === 'descartado'">
-                                		<p><img ng-src="{{twit.descartado.usuario_foto}}" fallback-image="/modules/core/img/usuario-sem-imagem.png" class="circular-ligero" /><a title="{{twit.descartado.usuario}}" style="padding: 4px 5px; color:#0DBEC8; min-width:190px;">Descartado por {{twit.descartado.usuario}}</a></p>
+                                		<p><img ng-src="{{twit.descartado.usuario_foto}}" fallback-src="/modules/core/img/usuario-sem-imagem.png" class="circular-ligero" /><a title="{{twit.descartado.usuario}}" style="padding: 4px 5px; color:#0DBEC8; min-width:190px;">Descartado por {{twit.descartado.usuario}}</a></p>
                                 	</li>                                  	
                                 	<li class="atendido-usuario" data-ng-show="twit.tipoMensaje === 'completo'">
                                 		<p><img src="/modules/core/img/usuario-sem-imagem.png" class="circular-ligero" /><a title="{{twit.atendido.user_name}}" style="padding: 4px 5px; color:#0DBEC8; min-width:190px;">Atendido por {{twit.atendido.user_name}}</a></p>
                                 	</li>                                	
                                 	<li class="atendido-usuario" data-ng-show="twit.tipoMensaje === 'atendido'">
-                                		<p><img src="/modules/core/img/usuario-sem-imagem.png" class="circular-ligero" /><a title="{{twit.atendido.user_name}}" style="padding: 4px 5px; display: block; color:#0DBEC8; min-width:190px;">Atendido por Hola {{twit.atendido.user_name}}</a></p>
+                                		<p><img src="/modules/core/img/usuario-sem-imagem.png" class="circular-ligero" /><a title="{{twit.atendido.user_name}}" style="padding: 4px 5px; display: block; color:#0DBEC8; min-width:190px;">Atendido por  {{twit.atendido.user_name}}</a></p>
                                 	</li>
                                     <li class="asignado-usuario" ng-show="(twit.asignado && !evalua_ocupado(twit._id)) && (twit.tipoMensaje !== 'proceso' && twit.tipoMensaje !== 'completo' && twit.tipoMensaje !== 'descartado')">
                                         <p><img src="{{twit.asignado.usuario_asignado_image}}" class="circular-ligero" /><a class="muestra_ocupado_por" title="{{twit.asignado.usuario_asignado_displayName}}" style="padding: 4px 5px; display: block; color:#0DBEC8; min-width:190px;">Asignado a : {{twit.asignado.usuario_asignado_displayName}}</a></p>
                                     </li>
                                     <li class="ocupado-usuario" ng-show="evalua_ocupado(twit._id)">
-                                        <p><img src="{{ocupados[eval(twit._id)].user_image}}" class="circular-ligero" /><a class="muestra_ocupado_por" title="{{ocupados[eval(twit._id)].user}}" style="padding: 4px 5px; display: block; color:#FFA500; min-width:190px;">Ocupado por : {{ocupados[eval(twit._id)].user}}</a></p>
+                                        <p>
+                                            <img src="{{ocupados[eval(twit._id)].user_image}}" fallback-src="/modules/core/img/usuario-sem-imagem.png" class="circular-ligero" /><a class="muestra_ocupado_por" title="{{ocupados[eval(twit._id)].user}}" style="padding: 4px 5px; display: block; color:#FFA500; min-width:190px;">Ocupado por : {{ocupados[eval(twit._id)].user}}</a></p>
                                     </li>
                                     <!--<li class="correcto" ng-show="!evalua_ocupado(twit._id)" ng-class="{'flecha-activo': evalua_clasificacion(twit)}" data-ng-click="finalizar(twit)" >    
                                             <li  data-ng-click="finalizar(twit)" translate>Complete</li>
@@ -229,7 +214,8 @@
                 <div class="combo-mamon" >
                     <label data-ng-click="seleccionarBandeja()"  id="comboBandeja" data-ng-bind-html="textoSelectorBandeja"></label>
                     <ul data-ng-show="mostrarSelectorBandeja">
-                        <li data-ng-click="cambioBuzon('nuevos')">Nuevos ({{pendientes}})</li>
+                       <!-- <li data-ng-click="cambioBuzon('nuevos')">Nuevos ({{pendientes}})</li>-->
+                       <li data-ng-click="cambioBuzon('nuevos')">Nuevos</li>
                     <li data-ng-click="cambioBuzon('asignados')">Asignados</li>
                         <li data-ng-click="cambioBuzon('atendidos')">Atendidos</li>
                         <li data-ng-click="cambioBuzon('descartados')">Descartados</li>
@@ -285,7 +271,7 @@
                                 <!--Imagen -->
 				<!--<img src="{{twit.imagen_https}}" style="width:44px; height:44px; border:solid 2px #404040 !important; cursor: default !important;" class="circular"/>-->
 				
-                                    <img src="{{twit.imagen_https}}" ng-if = "twit.obj === 'twitter'" ng-click ="actualizaImgTwitter(twit)" style="width:44px; height:44px; border:solid 2px #404040 !important; cursor: pointer !important;" class="circular" title = "Click para actualizar la foto" /> 
+                                    <img ng-src="{{twit.imagen_https}}" fallback-src="/modules/core/img/usuario-sem-imagem.png" ng-if = "twit.obj === 'twitter'" ng-click ="actualizaImgTwitter(twit)" style="width:44px; height:44px; border:solid 2px #404040 !important; cursor: pointer !important;" class="circular" title = "Click para actualizar la foto" /> 
                                     <img ng-src="{{twit | validaImgFacebook}}" ng-if = "twit.obj === 'facebook'" style="width:44px; height:44px; border:solid 2px #404040 !important; cursor: default !important;" class="circular"/> 
 				    
 
@@ -314,10 +300,18 @@
                                             <!--Rating-->
                                             <a href="{{twit.rating_link}}" target="_blank" class="etiqueta-facebook izq" data-ng-if="twit.tipo == 'rating'" style="margin-left: 10px;" title="{{ 'Rating' | translate }}">Facebook</a>
                                             <label class="etiqueta-facebook izq" data-ng-if="twit.tipo == 'rating'" style="width: 30px; margin-left: 5px;"><i class="fa fa-star" style="font-size: 10px !important;">{{twit.rating}}</i></label>
-                                            <!--Rating-->                                            <!--etiquetas dependiendo del buzón-->
+                                            
+                                            <!--Picture-->
+                                            <a href="{{twit.link}}" target="_blank" class="etiqueta-facebook izq" data-ng-if="twit.type == 'photo'" style="margin-left: 10px;" title="Foto">Facebook</a>
+                                            <!--Picture-->                                           
+
+                                            <!--etiquetas dependiendo del buzón-->
 					    <div class="grupo-etiquetas-hora" data-ng-bind-html="twit.created_time | etiquetasFecha"></div>
 					    <label class="etiqueta-{{twit.tipoMensaje}} izq"  style="margin-left: 5px; text-transform:lowercase; text-transform: capitalize;">{{twit.tipoMensaje}}</label>
 					    <label data-ng-show="twit.descartado" class="etiqueta-{{twit.descartado.motivo}} izq" style="margin-top:0px; float: right; margin-left: 5px; border-radius: 3px; font-size: 9px;font-weight: 300;text-transform: capitalize;">{{twit.descartado.motivo | translate}}</label>
+                        
+                        <label class="etiqueta-gris izq"  style="margin-left: 5px; background-color: #465769 !important; cursor:pointer;" data-ng-show="twit.clasificacion.tema" title="{{twit.clasificacion.tema}}">Tema</label>
+                        <label class="etiqueta-gris izq"  style="margin-left: 5px; background-color: #465769 !important; cursor:pointer;" data-ng-show="twit.clasificacion.subtema" title="{{twit.clasificacion.subtema}}">Subtema</label>
 					    <!--etiquetas dependiendo del buzón-->
                                         </p>    
                                     </div>
@@ -327,13 +321,29 @@
                                             <p class="comentario txt-gris3" style="line-height:17px;"   data-ng-if="twit.message.length > 300" data-ng-bind-html="twit.message | facebookMentions | limitTo:300"></p>
                                             <!--imagenes facebook-->
                                             <p class="comentario" data-ng-show="twit.image_attachment">
-                                                <a href="{{twit.image_attachment}}" target="_blank"><i class="fa fa-image"></i>&nbsp;Imagen Adjunta</a>
+                                                <img ng-src="{{twit.image_attachment}}" style="width:50px!important; height:50px!important;" fallback-att="{{twit._id}}">
+                                                <p class="mensajeErrorIMG_{{twit._id}}" style="color:#CC0000 !important:"></p>
+                                                <!--<a href="{{twit.image_attachment}}" target="_blank"><i class="fa fa-image"></i>&nbsp;Imagen Adjunta</a>-->
                                             </p>
-                                            <p class="comentario" data-ng-show="twit.attachments.data[0].image_data.url">
+
+                                             <p class="comentario" data-ng-show="twit.image_sticker">
+                                                <img ng-src="{{twit.image_sticker}}" style="width:50px!important; height:50px!important;">
+                                                <!--<a href="{{twit.image_attachment}}" target="_blank"><i class="fa fa-image"></i>&nbsp;Imagen Adjunta</a>-->
+                                            </p>
+                                             
+                                             <p class="comentario" data-ng-show="twit.shares.data[0].link && !twit.image_sticker">
+                                                <img ng-src="{{twit.shares.data[0].link}}" style="width:50px!important; height:50px!important;">
+                                                <!--<a href="{{twit.image_attachment}}" target="_blank"><i class="fa fa-image"></i>&nbsp;Imagen Adjunta</a>-->
+                                            </p>
+                                            <!--<p class="comentario" data-ng-show="twit.attachments.data[0].image_data.url">
+                                                <img ng-src="{{twit.attachments.data[0].image_data.url}}" style="width:50px!important; height:50px!important;">
                                                 <a href="{{twit.attachments.data[0].image_data.url}}" target="_blank"><i class="fa fa-image"></i>&nbsp;Imagen Adjunta</a>
-                                            </p>
+                                            </p>-->
                                             <p class="comentario" data-ng-show="twit.picture">
-                                                <a href="{{twit.link}}" target="_blank"><i class="fa fa-image"></i>&nbsp;Imagen Adjunta</a>
+                                                <a href="{{twit.link}}" target="_blank">
+                                                    <img ng-src="{{twit.picture}}" style="width:50px!important; height:50px!important;">
+                                                </a>
+                                                <!--<a href="{{twit.link}}" target="_blank"><i class="fa fa-image"></i>&nbsp;Imagen Adjunta</a>-->
                                             </p> 
                                             <!--imagenes facebook-->                                          
                                         </div>
@@ -367,8 +377,9 @@
 <div class="grupo-etiquetas-hora" data-ng-bind-html="twit.created_time | etiquetasFecha"></div>
                                            
                                            <label class="etiqueta-{{twit.tipoMensaje}} izq"  style="margin-left: 5px;text-transform: capitalize;">{{twit.tipoMensaje}}</label>
-										   <label data-ng-show="twit.descartado" class="etiqueta-{{twit.descartado.motivo}} izq" style="margin-top:0px; float: right; margin-left: 5px; border-radius: 3px; font-size: 9px;font-weight: 300;text-transform: capitalize;">{{twit.descartado.motivo | translate}}</label>
-                                           
+										   <label data-ng-show="twit.descartado" class="etiqueta-{{twit.descartado.motivo}} izq" style="margin-top:0px; float: right; margin-left: 5px; border-radius: 3px; font-size: 9px;font-weight: 300;text-transform: capitalize;">{{twit.descartado.motivo | translate}}</label>        
+                                            <label class="etiqueta-gris izq"  style="margin-left: 5px; background-color: #465769 !important; cursor:pointer;" data-ng-show="twit.clasificacion.tema" title="{{twit.clasificacion.tema}}">Tema</label>
+                                            <label class="etiqueta-gris izq"  style="margin-left: 5px; background-color: #465769 !important; cursor:pointer;" data-ng-show="twit.clasificacion.subtema" title="{{twit.clasificacion.subtema}}">Subtema</label>                              
                                         </p> 
                                     </div>
                                     <div class="izq" style="clear: both;">
@@ -394,19 +405,22 @@
                             <div class="iconos-lateral">
                                 <ul>
                                 	<li class="descartado-usuario" data-ng-show="twit.tipoMensaje === 'descartado'">
-                                		<p><img ng-src="{{twit.descartado.imagenUsuario | validaImagenDescartado}}" class="circular-ligero" /><a title="{{twit.descartado.usuario}}" style="padding: 4px 5px; color:#0DBEC8; min-width:190px;">Descartado por {{twit.descartado.usuario | capitalize}}</a></p>
+                                		<p><img ng-src="{{twit.descartado.usuario_foto | validaImagenDescartado}}" fallback-src="/modules/core/img/usuario-sem-imagem.png" class="circular-ligero" /><a title="{{twit.descartado.usuario}}" style="padding: 4px 5px; color:#0DBEC8; min-width:190px;">Descartado por {{twit.descartado.usuario | capitalize}}</a></p>
                                 	</li>                                  	
                                 	<li class="atendido-usuario" data-ng-show="twit.tipoMensaje === 'completo'">
-                                		<p><img ng-src="{{twit.clasificacion.imagen_usuario}}" fallback-image="/modules/core/img/usuario-sem-imagem.png" class="circular-ligero" /><a title="{{twit.atendido.user_name}}" style="padding: 4px 5px; color:#0DBEC8; min-width:190px;">Atendido por {{twit.atendido.usuario_nombre | capitalize}}</a></p>
+                                		<p><img ng-src="{{twit.clasificacion.imagen_usuario}}" fallback-src="/modules/core/img/usuario-sem-imagem.png" class="circular-ligero" /><a title="{{twit.atendido.user_name}}" style="padding: 4px 5px; color:#0DBEC8; min-width:190px;">Atendido por {{twit.atendido.usuario_nombre | capitalize}}</a></p>
                                 	</li>                                	
                                 	<li class="atendido-usuario" data-ng-show="twit.tipoMensaje === 'atendido'">
-                                		<p><img ng-src="{{twit | searchResultImg}}" class="circular-ligero" /><a title="{{twit.clasificacion.user_name}}" style="padding: 4px 5px; display: block; color:#0DBEC8; min-width:190px;">Atendido por {{twit.atendido.usuario_nombre | capitalize}}</a></p>
+                                		<p><img ng-src="{{twit | searchResultImg}}" fallback-src="/modules/core/img/usuario-sem-imagem.png" class="circular-ligero" /><a title="{{twit.clasificacion.user_name}}" style="padding: 4px 5px; display: block; color:#0DBEC8; min-width:190px;" >Atendido por {{twit | validaAtendido | capitalize }}</a></p>
                                 	</li>
                                     <li class="asignado-usuario" ng-show="(twit.asignado && !evalua_ocupado(twit._id)) && (twit.tipoMensaje !== 'proceso' && twit.tipoMensaje !== 'completo' && twit.tipoMensaje !== 'descartado' && !twit.clasificacion)">
-                                        <p><img src="{{twit.asignado.usuario_asignado_image}}" class="circular-ligero" /><a class="muestra_ocupado_por" title="{{twit.asignado.usuario_asignado_displayName}}" style="padding: 4px 5px; display: block; color:#0DBEC8; min-width:190px;">Asignado a : {{twit.asignado.usuario_asignado_displayName}}</a></p>
+                                        <p><img ng-src="{{twit.asignado.usuario_asignado_image}}" class="circular-ligero" fallback-src="/modules/core/img/usuario-sem-imagem.png" /><a class="muestra_ocupado_por" title="{{twit.asignado.usuario_asignado_displayName}}" style="padding: 4px 5px; display: block; color:#0DBEC8; min-width:190px;">Asignado a : {{twit.asignado.usuario_asignado_displayName}}</a></p>
                                     </li>
                                     <li class="ocupado-usuario" ng-show="evalua_ocupado(twit._id)">
-                                        <p><img ng-src="{{ocupados[eval(twit._id)].user_image}}" fallback-image="/modules/core/img/usuario-sem-imagem.png" class="circular-ligero" /><a class="muestra_ocupado_por" title="{{ocupados[eval(twit._id)].user}}" style="padding: 4px 5px; display: block; color:#FFA500; min-width:190px;">Ocupado por : {{ocupados[eval(twit._id)].user}}</a></p>
+                                        <p>
+                                            <img ng-src="{{ocupados[eval(twit._id)].user_image}}" fallback-src="/modules/core/img/usuario-sem-imagem.png" class="circular-ligero" />
+                                            <a class="muestra_ocupado_por" title="{{ocupados[eval(twit._id)].user}}" style="padding: 4px 5px; display: block; color:#FFA500; min-width:190px;">Ocupado por : {{ocupados[eval(twit._id)].user}}</a>
+                                        </p>
                                     </li>
                                     <!--<li class="correcto" ng-show="!evalua_ocupado(twit._id)" ng-class="{'flecha-activo': evalua_clasificacion(twit)}" data-ng-click="finalizar(twit)" >    
                                             <li  data-ng-click="finalizar(twit)" translate>Complete</li>
@@ -479,9 +493,9 @@
                             <li>
                                 <div class="respuesta-cont">
                                     <div class="foto">
-                                        <img src="{{items[0].imagen_https}}" class="circular" style="width:44px; height: 44px; max-width: 1000px;"/>
+                                        <img ng-src="{{items[0].imagen_https}}" fallback-src="/modules/core/img/usuario-sem-imagem.png" class="circular" style="width:44px; height: 44px; max-width: 1000px;"/>
                                         <!--<img data-ng-if ="items[0].tipo != 'facebook_inbox'" src="{{(items[0].foto)?items[0].foto:'/modules/core/img/usuario-sem-imagem.png'}}" class="circular" style="width:44px; height: 44px; max-width: 1000px;" />
-                                        <img data-ng-if ="items[0].tipo == 'facebook_inbox'" src="https://graph.facebook.com/{{items[0].from.id}}/picture" class="circular" style="width:44px; height: 44px; max-width: 1000px;"/>-->
+                                        <img data-ng-if ="items[0].tipo == 'facebook_inbox'" ng-src="{{items[0].imagen_https}}" fallback-src="/modules/core/img/usuario-sem-imagem.png" class="circular" style="width:44px; height: 44px; max-width: 1000px;"/>-->
                                     </div>
                                     <div class="contenido">
                                         <div class="pure-u-md-1-1">
@@ -513,7 +527,7 @@
                                             <!--etiquetas dependiendo del buzón-->
 					    <label class="etiqueta-{{items[0].tipoMensaje}} izq"  style="margin-left: 5px; margin-top: 14px; text-transform: capitalize;">{{items[0].tipoMensaje}}</label>
 					    <label data-ng-show="items[0].descartado" class="etiqueta-{{items[0].descartado.motivo}} izq" style="margin-top:14px; float: right; margin-left: 5px; border-radius: 3px; font-size: 9px;font-weight: 300;text-transform: capitalize;">{{items[0].descartado.motivo | translate}}</label>
-                                            <!--etiquetas dependiendo del buzón-->
+                        <!--etiquetas dependiendo del buzón-->
                                             </p>    
                                         </div>
                                         <div class="pure-u-md-1-1">
@@ -545,6 +559,10 @@
                                             <li class="neutro {{clase_neu}} {{(actual_sentiment == 'neutro' )?'neutro-activo':'no'}}" data-ng-click="sentiment('neutro',items[0]._id,items[0].coleccion)" id="neutro-{{items[0]._id}}"></li>
                                             <li class="negativo {{clase_neg}} {{(actual_sentiment == 'negativo' )?'negativo-activo':'no'}}" data-ng-click="sentiment('negativo',items[0]._id,items[0].coleccion)" id="negativo-{{items[0]._id}}"></li> 
                                         </ul>
+                                        <div style="margin-top: 5px;clear: both;float: left; margin-left:7px;">
+                                            <label class="etiqueta-gris izq" style="margin-left: 5px; cursor:pointer;" data-ng-show="items[0].clasificacion.tema" title="{{items[0].clasificacion.tema}}">Tema</label>
+                                            <label class="etiqueta-gris izq" style="margin-left: 5px; cursor:pointer;" data-ng-show="items[0].clasificacion.subtema" title="{{items[0].clasificacion.subtema}}">Subtema</label> 
+                                        </div>
                                     </div>            
                                 </div>
                                 <div class="respuesta-cont respuesta-mensaje" data-ng-repeat="respuesta in items[0].respuestas">
@@ -645,6 +663,10 @@
                                         <li class="neutro {{clase_neu}} {{(conversacion.sentiment == 'neutro' )?'neutro-activo':'no'}}" data-ng-click="sentiment('neutro',conversacion._id,items[0].coleccion,'real')" id="neutro-{{conversacion._id}}"></li>
                                         <li class="negativo {{clase_neg}} {{(conversacion.sentiment == 'negativo' )?'negativo-activo':'no'}}" data-ng-click="sentiment('negativo',conversacion._id,items[0].coleccion,'real')" id="negativo-{{conversacion._id}}"></li>
                                     </ul>
+                                    <div style="margin-top: 5px;margin-left:7px;clear: both;float: left;">
+                                        <label class="etiqueta-gris izq" style="margin-left: 5px; cursor:pointer;" data-ng-show="conversacion.clasificacion.tema" title="{{conversacion.clasificacion.tema}}">Tema</label>
+                                        <label class="etiqueta-gris izq" style="margin-left: 5px; cursor:pointer;" data-ng-show="conversacion.clasificacion.subtema" title="{{conversacion.clasificacion.subtema}}">Subtema</label> 
+                                    </div>
                                 </div>
                                 <div class="respuesta-cont respuesta-mensaje" data-ng-repeat="respuesta in conversacion.respuestas">
                                     <div class="foto">
@@ -705,7 +727,7 @@
                                 <div class="respuesta-cont">
                                     <div class="foto">
                                         <!--fotos twitter-->
-                                        <img src="{{items[0].imagen_https}}" style="width:44px; height:44px; border:solid 2px #404040 !important; cursor: default !important;" class="circular"/>
+                                        <img ng-src="{{items[0].imagen_https}}" fallback-src="/modules/core/img/usuario-sem-imagem.png" style="width:44px; height:44px; border:solid 2px #404040 !important; cursor: default !important;" class="circular"/>
                                     </div>
                                     <div class="contenido">
                                         <div class="pure-u-md-1-1">
@@ -757,11 +779,15 @@
                                             <li class="neutro {{clase_neu}} {{(actual_sentiment == 'neutro' )?'neutro-activo':'no'}}" data-ng-click="sentiment('neutro',items[0]._id,items[0].coleccion)" id="neutro-{{items[0]._id}}"></li>
                                             <li class="negativo {{clase_neg}} {{(actual_sentiment == 'negativo' )?'negativo-activo':'no'}}" data-ng-click="sentiment('negativo',items[0]._id,items[0].coleccion)" id="negativo-{{items[0]._id}}"></li>
                                         </ul>
+                                        <div style="margin-top: 5px;clear: both;float: left; margin-left:7px;">
+                                            <label class="etiqueta-gris izq" style="margin-left: 5px; cursor:pointer;" data-ng-show="items[0].clasificacion.tema" title="{{items[0].clasificacion.tema}}">Tema</label>
+                                            <label class="etiqueta-gris izq" style="margin-left: 5px; cursor:pointer;" data-ng-show="items[0].clasificacion.subtema" title="{{items[0].clasificacion.subtema}}">Subtema</label> 
+                                        </div>
                                     </div>                  
                                 </div>        
                                 <div class="respuesta-cont respuesta-mensaje" data-ng-repeat="respuesta in items[0].respuestas">
                                     <div class="foto">
-                                        <img src="{{respuesta.foto}}" class="circular" style="width:44px; height: 44px; max-width: 1000px;" />
+                                        <img ng-src="{{respuesta.foto}}" fallback-src="/modules/core/img/usuario-sem-imagem.png" class="circular" style="width:44px; height: 44px; max-width: 1000px;" />
                                     </div>
                                     <div class="contenido">
                                         <div class="pure-u-md-1-1">
@@ -853,7 +879,10 @@
                                             <li class="negativo" data-ng-class="{ 'negativo-activo' : conversacion.sentiment == 'negativo' }" data-ng-click="sentiment('negativo',conversacion._id,items[0].coleccion,'real')" id="negativo-{{conversacion._id}}">
                                             </li>
                                         </ul>
-                                    </div>
+                                        <div style="margin-top: 5px;clear: both;float: left; margin-left:7px;">
+                                            <label class="etiqueta-gris izq" style="margin-left: 5px; cursor:pointer;" data-ng-show="conversacion.clasificacion.tema" title="{{conversacion.clasificacion.tema}}">Tema</label>
+                                            <label class="etiqueta-gris izq" style="margin-left: 5px; cursor:pointer;" data-ng-show="conversacion.clasificacion.subtema" title="{{conversacion.clasificacion.subtema}}">Subtema</label> 
+                                        </div>                                    </div>
                                 </div>
                             </li> 
                             <li ng-show="carga" style="padding: 0px;">
@@ -900,7 +929,10 @@
                                             <li class="neutro {{clase_neu}} {{(actual_sentiment == 'neutro' )?'neutro-activo':'no'}}" data-ng-click="sentiment('neutro',items[0]._id,items[0].coleccion)" id="neutro-{{items[0]._id}}"></li>
                                             <li class="negativo {{clase_neg}} {{(actual_sentiment == 'negativo' )?'negativo-activo':'no'}}" data-ng-click="sentiment('negativo',items[0]._id,items[0].coleccion)" id="negativo-{{items[0]._id}}"></li>
                                         </ul>
-                                    </div>          
+                                        <div style="margin-top: 5px;clear: both;float: left; margin-left:7px;">
+                                            <label class="etiqueta-gris izq" style="margin-left: 5px; cursor:pointer;" data-ng-show="items[0].clasificacion.tema" title="{{items[0].clasificacion.tema}}">Tema</label>
+                                            <label class="etiqueta-gris izq" style="margin-left: 5px; cursor:pointer;" data-ng-show="items[0].clasificacion.subtema" title="{{items[0].clasificacion.subtema}}">Subtema</label> 
+                                        </div>                                    </div>          
                                 </div>    
                                 <div class="respuesta-cont respuesta mensaje" data-ng-repeat="respuesta in items[0].respuestas">
                                     <div class="foto">
@@ -963,6 +995,10 @@
                                         <li class="neutro" data-ng-class="{ 'neutro-activo' : conversacion.sentiment == 'neutro' }" data-ng-click="sentiment('neutro',items[0].conversacion[0]._id,items[0].coleccion,'real')" id="neutro-{{items[0].conversacion[0]._id}}"></li>
                                         <li class="negativo" data-ng-class="{ 'negativo-activo' : conversacion.sentiment == 'negativo' }" data-ng-click="sentiment('negativo',items[0].conversacion[0]._id,items[0].coleccion,'real')" id="negativo-{{items[0].conversacion[0]._id}}"></li>
                                     </ul>
+                                        <div style="margin-top: 5px;clear: both;float: left; margin-left:7px;">
+                                            <label class="etiqueta-gris izq" style="margin-left: 5px; cursor:pointer;" data-ng-show="items[0].clasificacion.tema" title="{{items[0].clasificacion.tema}}">Tema</label>
+                                            <label class="etiqueta-gris izq" style="margin-left: 5px; cursor:pointer;" data-ng-show="items[0].clasificacion.subtema" title="{{items[0].clasificacion.subtema}}">Subtema</label> 
+                                        </div>
                                 </div>
                             </li> 
                             <li ng-show="carga" style="padding: 0px;">
@@ -1456,7 +1492,8 @@
             <li ng-class="{'activo seleccionado':evaluaActivo(usuario._id)}" data-ng-repeat="usuario in usuarios_cuenta.data" ng-click="asignaMensaje(usuario)">
                 <table style="width: 100%; display:block;float:left;">
                 <tr>
-                <td style="width: 50px; text-align: center; "><img src="{{usuario.imagen_src}}" class="circular-ligero" style="width: 40px; height: 40px; max-width: 1000px;"/></td>
+                <td style="width: 50px; text-align: center; ">
+                    <img ng-src="{{usuario | validaImgUser}}" fallback-src="/modules/core/img/usuario-sem-imagem.png" class="circular-ligero" style="width: 40px; height: 40px; max-width: 1000px;"/></td>
                 <td style=""><p>{{usuario.displayName}}</p></td>
                 </tr>
                 </table>

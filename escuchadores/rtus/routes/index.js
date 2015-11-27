@@ -359,7 +359,7 @@ router.post('/', function(req, res){
 		    var eldisplayname = los_usuarios[index].displayName;
 		    var path = globales.fbapiversion+'oauth/access_token_info?client_id='+globales.fb_app_id+'&access_token='+eltoken;
 		    requestGraph2(path, function(validacion){
-			if (validacion === 'error' || validacion === 'invalid') {
+			if (validacion === 'error') {
 			    return tokensDeUsuarios(los_usuarios, more, validTokens, callback);
 			}
 			else if(validacion === 'invalid') {
@@ -385,7 +385,7 @@ router.post('/', function(req, res){
 	var critere = {'nombre_cta': 'todos'};
 	var lesort = {created_time: -1};
 	var lostokensvalidos = [];
-	classdb.buscarToArray('verifica_auto_uat', critere, {}, 'rtus/index/getCtaATs', function(items){
+	classdb.buscarToArray('verifica_auto_uat', critere, {}, 'rtus/index/obtieneAccessTokensValidosDeTodos', function(items){
 	    if (items === 'error') {
 		return callback(lostokensvalidos);
 	    }
@@ -409,7 +409,7 @@ router.post('/', function(req, res){
 					valid_tokens: validtokens
 				    };
 				    lostokensvalidos = validtokens;
-				    classdb.inserta('verifica_auto_uat', objeto, 'solicitudes/getautocp/getCtaATs', function(insertao){
+				    classdb.inserta('verifica_auto_uat', objeto, 'solicitudes/getautocp/obtieneAccessTokensValidosDeTodos', function(insertao){
 					return callback(lostokensvalidos);
 				    });
 				}
@@ -439,7 +439,7 @@ router.post('/', function(req, res){
 					    valid_tokens: validtokens
 					};
 					lostokensvalidos = validtokens;
-					classdb.inserta('verifica_auto_uat', objeto, 'solicitudes/getautocp/getCtaATs', function(insertao){
+					classdb.inserta('verifica_auto_uat', objeto, 'solicitudes/getautocp/obtieneAccessTokensValidosDeTodos', function(insertao){
 					    return callback(lostokensvalidos);
 					});
 				    }
@@ -777,601 +777,6 @@ router.post('/', function(req, res){
 	    });
 	}
     }
-    
-    // obtenemos comment con todo y para llevar de facebook usando método requestGraph
-    function obtenerComment (token, comment_raw, callback) {
-	var pageId = comment_raw.page_id;
-	var created_time = comment_raw.created_time;
-	var tipo = comment_raw.item;
-	var objeto = {};
-	var basicpath = globales.fbapiversion+comment_raw.comment_id+globales.path_comment_query;
-	var fotopath = globales.fbapiversion+comment_raw.sender_id+'/picture?redirect=false';
-	requestGraph(token, basicpath, function(error_orig, response_orig) {
-	    if (error_orig) {
-		console.log('rtus/index/obtenerComment - ni siquiera hubo comment: '+JSON.stringify(error_orig));
-		objeto.error = error_orig;
-		return callback(objeto);
-	    }
-	    else {
-		// no hubo error, asignamos comment y seguimos pidiendo cosas
-		objeto.comment = response_orig;
-		objeto.comment.page_id = comment_raw.page_id;
-		objeto.comment.created_old = comment_raw.tstamp;
-		objeto.comment.created_time = new Date(comment_raw.tstamp * 1000);
-		objeto.comment.parent_post = comment_raw.post_id;
-		objeto.comment.from.id = ''+response_orig.from.id;
-		if (typeof response_orig.parent !== 'undefined' && 
-		    typeof response_orig.parent.id !== 'undefined') {
-		    objeto.comment.parent_comment = response_orig.parent.id;
-		}
-		else {
-		    objeto.comment.parent_comment = comment_raw.parent_id;
-		}
-		if (typeof response_orig.attachment !== 'undefined' &&
-		    typeof response_orig.attachment.media !== 'undefined' &&
-		    typeof response_orig.attachment.media.image !== 'undefined' &&
-		    typeof response_orig.attachment.media.image.src !== 'undefined') {
-		    objeto.comment.image_attachment = response_orig.attachment.media.image.src;
-		}
-		if (typeof response_orig.attachment !== 'undefined' &&
-		    typeof response_orig.attachment.target !== 'undefined' &&
-		    typeof response_orig.attachment.target.url) {
-		    objeto.comment.link_attachment = response_orig.attachment.target.url;
-		}
-		requestGraph('not', fotopath, function(error_foto, response_foto){
-		    if (error_foto) {
-			// no tenemos foto, mandamos así
-			objeto.comment.foto = '';
-			console.log('rtus/index/obtenerComment - error en  foto '+error_foto);
-			objeto.comment.photo_error = error_foto;
-			return callback(objeto);
-		    }
-		    else {
-			objeto.comment.foto = response_foto.data.url;
-			return callback(objeto);
-		    }
-		});		    
-	    }
-	});
-    }
-    
-    // obtenemos siblings de comments nuestros, para ver cuales no tienen respuesta
-    function obtenerIdsDeSiblings (token, parent_comment, callback) {
-	var pathsiblings = globales.fbapiversion+parent_comment+globales.path_siblings;
-	requestGraph(token, pathsiblings, function(error_sib, response_sib) {
-	    if (error_sib) {
-		console.log('rtus/index/obtenerIdsDeSiblings.error');
-		return callback('error');
-	    }
-	    else if(typeof response_sib.comments === 'undefined' ) {
-		console.log('rtus/index/obtenerIdsDeSiblings.vacio');
-		return callback('empty');
-	    }
-	    else {
-		return callback(response_sib.comments.data);
-	    }
-	});
-    }
-
-    // vemos a qué sibling se le está respondiendo, para editarlo en el mongo
-    function procesaSiblings (page_id, account, eltexto, siblings, index, newsiblings, callback) {
-	var more = index+1;
-	var cuantossib = siblings.length;
-	if (more > cuantossib) {
-	    return callback('', newsiblings);
-	}
-	else {
-	    setImmediate(function(){
-		if (typeof siblings[index] !== 'undefined') {
-		    if (siblings[index].from.id === page_id) {
-			// son de la cuenta en cuestión, no deben responderse
-			return procesaSiblings(page_id, account, eltexto, siblings, more, newsiblings, callback);
-		    }
-		    else {
-			var critere = { id : siblings[index].id };
-			// vemos si sibling existe en colección
-			classdb.existefind(account+'_consolidada', critere, 'rtus/index/procesaSiblings', function(existens){
-			    if (existens === 'error' || existens === 'noexiste') {
-				return procesaSiblings(page_id, account, eltexto, siblings, more, newsiblings, callback);
-			    }
-			    else {
-				// sí existe, lo obtenemos para revisarlo
-				classdb.buscarToArray(account+'_consolidada', critere, {}, 'rtus/index/procesaSiblings', function(items){
-				    if (items === 'error') {
-					// error, no hacemos nada
-					return procesaSiblings(page_id, account, eltexto, siblings, more, newsiblings, callback);
-				    }
-				    else {
-					if (typeof items[0].respuestas === 'undefined') {
-					    // comment no tiene respuestas, sumémoslo
-					    newsiblings.push(siblings[index]);
-					    return procesaSiblings(page_id, account, eltexto, siblings, more, newsiblings, callback);
-					}
-					else {
-					    // comment tiene respuestas, revisamos si la que tenemos ya está entre ellas
-					    var las_respuestas = items[0].respuestas;
-					    var existerespu = _.findIndex(las_respuestas, function(chr) {
-						return chr.texto === eltexto;
-					    });
-					    if (existerespu !== -1) {
-						// la respuesta ya está en un comment, a otra cosa mariposa
-						return callback('respondido: comment '+siblings[index]+' ya recibió esa respuesta', newsiblings);
-					    }
-					    else {
-						// no está esta respuesta en este sibling, sumémoslo
-						newsiblings.push(siblings[index]);
-						return procesaSiblings(page_id, account, eltexto, siblings, more, newsiblings, callback);
-					    }
-					}
-				    }
-				});
-			    }
-			});
-		    }
-		}
-		else {
-		    return procesaSiblings(page_id, account, eltexto, siblings, more, newsiblings, callback);
-		}
-	    });
-	}
-    }
-
-    // si es nuestro, verificamos si no es una respuesta a algún comment y si esa respuesta fue hecha directamente en facebook
-    function verificaRespuesta (token, comentario_raw, comentario_procesado, callback) {
-	if (typeof comentario_procesado.message !== 'undefined' && comentario_procesado.message !== '') {
-	    var pcom = comentario_procesado.parent_comment, ppos = comentario_procesado.parent_post,
-		vcuenta = comentario_raw.cuenta, colezione = vcuenta+'_consolidada', pa_id = comentario_raw.page_id,
-		co_id = comentario_procesado.id, ctexto = comentario_procesado.message;
-	    // el comentario tiene mensaje, empezamos
-	    if (pcom === ppos) {
-		 console.log('es respuesta a un post');
-		var criteriopp = { id : ppos };	
-		classdb.existefind(colezione, criteriopp, 'rtus/index/verificaRespuesta.post', function(exists) {
-		    if (exists === 'error' || exists === 'noexiste') {
-			console.log('Error: el post en el que va este comment '+co_id+' no existe en la colección');
-			callback(exists);
-		    }
-		    else {
-			classdb.buscarToArray(colezione, criteriopp, {}, 'rtus/index/verificaRespuesta.post', function(unpost){
-			    if (unpost === 'error') { callback(unpost); }
-			    else {
-				if (unpost.length < 1) {
-				    console.log('arreglo con el parent post de '+co_id+' llegó vacío');
-				    callback('error');
-				}
-				else {
-				    if (typeof unpost[0].respuestas === 'undefined') {
-					// parent_post aun no tiene respuestas, insertamos
-					var dieantwort = {
-					    user_name: 'facebook',
-					    user_id: 'direct-facebook',
-					    texto: ctexto,
-					    timestamp : new Date(),
-					    id_str: co_id
-					};
-					classdb.actualizaAddToSet(colezione, criteriopp, { respuestas : dieantwort }, '/rtus/index/verificaRespuesta.post', function(answered) {
-					    callback(answered);
-					});
-				    }
-				    else {
-					// parent_post tiene respuestas en db
-					var reponses = unpost[0].respuestas;				    
-					var existeresp = _.findIndex(reponses, function(chr) {
-					    return chr.texto === ctexto;
-					});
-					if (existeresp !== -1) {
-					    console.log('Error: comentario de respuesta '+co_id+' ya estaba en el post');
-					    callback('error');
-					}
-					else {
-					    // esta respuesta no existe dentro de las demás respuestas, la insertamos
-					    var larespuesta = {
-						user_name: 'facebook',
-						user_id: 'direct-facebook',
-						texto: ctexto,
-						timestamp : new Date(),
-						id_str: co_id
-					    };
-					    classdb.actualizaAddToSet(colezione, criteriopp, { respuestas : larespuesta }, '/rtus/index/verificaRespuesta.post', function(respondido) {
-						callback(respondido);
-					    });
-					}
-				    }
-				}
-			    }
-			});
-		    }
-		});
-	    }
-	    else {
-		 console.log('es respuesta a un comment');
-		var criteriopc = { id : pcom };
-		classdb.existefind(colezione, criteriopc, 'rtus/index/verificaRespuesta.comment', function(existia){
-		    if (existia === 'error' || existia === 'noexiste') {
-			console.log('Error: el comment en el que va este otro comment '+co_id+' no existe en la colección');
-			callback(existia);
-		    }
-		    else {
-			classdb.buscarToArray(colezione, criteriopc, {}, 'rtus/index/verificaRespuesta.comment', function(uncomment){
-			    if (uncomment === 'error') { callback(uncomment); }
-			    else {
-				if (uncomment.length < 1) {
-				    console.log('arreglo con el parent comment de '+co_id+' llegó vacío');
-				    callback('error');
-				}
-				else {
-				    if (typeof uncomment[0].respuestas === 'undefined') {
-					// parent comment todavía no tiene respuestas
-					var theanswer = {
-					    user_name: 'facebook',
-					    user_id: 'direct-facebook',
-					    texto: ctexto,
-					    timestamp : new Date(),
-					    id_str: co_id
-					};
-					classdb.actualizaAddToSet(colezione, criteriopc, {respuestas: theanswer}, '/rtus/index/verificaRespuesta.post', function(answered) {
-					    callback(answered);
-					});
-				    }
-				    else {
-					// parent_comment tiene respuestas en db
-					var las_respuestas = uncomment[0].respuestas; 
-					var existerespu = _.findIndex(las_respuestas, function(chr) {
-					    return chr.texto === comentario_procesado.message;
-					});
-					if (existerespu !== -1) {
-					    console.log('Error: este comment de respuesta '+co_id+' ya estaba entre las respuestas al comment');
-					    callback('error');
-					}
-					else {
-					    obtenerIdsDeSiblings(token, pcom, function(comments_ids){
-						if (comments_ids === 'error') {
-						    console.log('no conseguimos siblings para: '+co_id);
-						    callback('error');
-						}
-						else if (comments_ids === 'empty') {
-						    var la_respuesta = {
-							user_name: 'facebook',
-							user_id: 'direct-facebook',
-							texto: ctexto,
-							timestamp : new Date(),
-							id_str: co_id
-						    };
-						    classdb.actualizaAddToSet(colezione, criteriopc, { respuestas: la_respuesta }, '/rtus/index/verificaRespuesta.comment', function(respondido) {
-							callback(respondido);
-						    });
-						}
-						else {
-						    // ya hay comments en el comment
-						    var siblings = _(comments_ids).reverse().value();
-						    procesaSiblings(pa_id, vcuenta, ctexto, siblings, 0, [], function(sib_str, sib_arr){
-							if (sib_str !== ''){
-							    console.log(sib_str);
-							    callback('ok');
-							}
-							else {
-							    if (sib_arr.length < 1) {
-								console.log('no había comments...');
-								callback('error');
-							    }
-							    else  {
-								// añadimos la respuesta al primer sibling sin respuestas
-								var la_reponse = { 
-								    user_name : 'facebook', 
-								    user_id : 'direct-facebook', 
-								    texto : ctexto, 
-								    timestamp : new Date(), 
-								    id_str : co_id 
-								};
-								var criteres = { id : sib_arr[0].id };
-								var eladdts = { respuestas : la_reponse };
-								classdb.actualizaAddToSet(colezione, criteres, eladdts, '/rtus/index/verificaRespuesta.comment', function(repondu){
-								    callback(repondu);
-								});
-							    }
-							}
-							
-						    });
-						}
-
-						if (typeof comments_ids.comments !== 'undefined') {
-						}
-						else {
-						}
-					    });
-					}	    
-				    }
-				}
-			    }
-			});
-		    }
-		});
-	    }
-	}
-	else {
-	    // comentario no tiene mensaje, mandamos error
-	    console.log('Error: comentario venía vacío, no hay nada que insertar');
-	    callback('error');
-	}
-    }
-
-    // procesamos el comment
-    function procesaComment (token, comment_raw, callback) {
- 	// Declaramos variables necesarias
-	var ctnm = comment_raw.cuenta, pageId = comment_raw.page_id, tipo = comment_raw.item, comment_id = comment_raw.comment_id;
-	var coleccion_raw = ctnm+'_fb_comment_raw', coleccion_comment = ctnm+'_fb_comment', 
-	    coleccion_pending = ctnm+'_fb_comment_pending', coleccion_mongoerror = ctnm+'_fb_comment_merror';
-	var created_time = new Date(comment_raw.tstamp * 1000);
-
-	comment_raw.id = comment_id;
-	if (comment_raw.verb === 'add') {
-	    verificaExistencia(coleccion_comment, comment_raw.id, function(comentariomongo) {
-		if (comentariomongo === 'error' || comentariomongo === 'existe') {
-		    return callback('rtus/index/procesaComment.add/verificaExistencia '+comment_id+' '+comentariomongo);
-		}
-		else {
-		    obtenerComment(token, comment_raw, function(comentario) {
-			if (typeof comentario.error !== 'undefined') {
-
-			    comentario.comment = comment_raw;
-			    comentario.comment.error = comentario.error;
-			    comentario.comment.created_old = comment_raw.tstamp;
-			    comentario.comment.created_time = created_time;
-			    comentario.comment.from_user_id = ''+comment_raw.sender_id;
-			    comentario.comment.from_user_name = comment_raw.sender_name;
-			    insertaBaseError(coleccion_pending, comentario.comment, function(respo) {
-				return callback('rtus/index/procesaComment.add/obtenerComment.error '+ctnm+' - '+comment_id+' - '+respo);
-			    });
-			}
-			else {
-			    if (typeof comentario.comment === 'undefined') {
-				return callback('rtus/index/procesaComment.add/obtenerComment.ok '+ctnm+' - '+comment_id+' - venía vacío');
-			    }
-			    else {
-				// aquí está el comment, usémoslo.
-				comentario.comment.created_old = comentario.comment.created_time;
-				comentario.comment.created_time = created_time;
-				if (typeof comentario.comment.from !== 'undefined') {
-				    comentario.comment.from_user_id = ''+comentario.comment.from.id;
-				    comentario.comment.from_user_name = comentario.comment.from.name;
-				    if (pageId === comentario.comment.from.id)  {
-					verificaRespuesta(token, comment_raw, comentario.comment, function(esrespuesta){
-					    console.log('verificaRespuesta '+esrespuesta);
-					});
-				    }
-				}
-				else {
-				    comentario.comment.from_user_id = 'not_available';
-				}
-				insertaBase(coleccion_comment, comentario.comment, tipo, coleccion_mongoerror, function(respcom){
-				    if (comentario.comment.from && pageId !== comentario.comment.from.id) {
-					nueMens(created_time, 'comment', ctnm);
-				    }
-				    return callback('rtus/index/procesaComment.add/obtenerComment.ok - cta: '+ctnm+' - comment: '+comment_id+' - insert: '+respcom);
-				});
-			    }
-			}
-		    });
-		}
-	    });
-	}
-	else if (comment_raw.verb === 'edited') {
-	    verificaExistencia(coleccion_comment, comment_raw.id, function(comentariomongo) {
-		if (comentariomongo === 'error' || comentariomongo === 'noexiste') {
-		    return callback('rtus/index/procesaComment.edited/verificaExistencia '+comment_id+' '+comentariomongo);
-		}
-		else {
-		    obtenerComment(token, comment_raw, function(comentario) {
-			if (typeof comentario.error !== 'undefined') {
-			    comentario.comment = comment_raw;
-			    comentario.comment.error = comentario.error;
-			    comentario.comment.created_old = comment_raw.tstamp;
-			    comentario.comment.created_time = created_time;
-			    comentario.comment.from_user_id = ''+comment_raw.sender_id;
-			    comentario.comment.from_user_name = comment_raw.sender_name;
-			    insertaBaseError(coleccion_pending, comentario.comment, function(respo) {
-				return callback('rtus/index/procesaComment.edited/obtenerComment.error '+ctnm+' - '+comment_id+' - '+respo);
-			    });
-			}
-			else {
-			    if (typeof comentario.comment === 'undefined') {
-				return callback('rtus/index/procesaComment.edited/obtenerComment.ok '+ctnm+' - '+comment_id+' - venía vacío');
-			    }
-			    else {
-				// aquí está el comment, usémoslo.
-				comentario.comment.created_old = comentario.comment.created_time;
-				comentario.comment.created_time = created_time;
-				if (typeof comentario.comment.from !== 'undefined') {
-				    comentario.comment.from_user_id = ''+comentario.comment.from.id;
-				    comentario.comment.from_user_name = comentario.comment.from.name;
-				    if (pageId === comentario.comment.from.id)  {
-					verificaRespuesta(token, comment_raw, comentario.comment, function(esrespuesta){
-					    console.log('verificaRespuesta '+esrespuesta);
-					});
-				    }
-				}
-				else {
-				    comentario.comment.from_user_id = 'not_available';
-				}
-				insertaBase(coleccion_comment, comentario.comment, tipo, coleccion_mongoerror, function(respcom){
-				    return callback('rtus/index/procesaComment.edited/obtenerComment.ok - cta: '+ctnm+' - comment: '+comment_id+' - insert: '+respcom);
-				});
-			    }
-			}
-		    });
-		}
-	    });
-	}
-	else if (comment_raw.verb === 'remove'){
-	    var comentario_id = comment_raw.id;
-	    verificaExistencia(coleccion_comment, comentario_id, function(comentariomongo) {
-		if (comentariomongo === 'error' || comentariomongo === 'noexiste') {
-		    verificaExistencia(coleccion_pending, comentario_id, function(comentariopending) {
-			if (comentariopending === 'error' || comentariopending === 'noexiste') {
-			    return callback('rtus/index/procesaComment.remove/verificaExistencia '+comentario_id+' '+comentariopending);			    
-			}
-			else {
-			    eliminaEntrada(coleccion_pending, comentario_id, function(bbborrar){
-				return callback('rtus/index/procesaComment.remove/pending.verificaExistencia.ok/objetoEliminado: '+comentario_id+' eliminado '+bbborrar);				
-			    });
-			}
-		    });
-		}
-		else {
-		    objetoEliminado(coleccion_comment, comentario_id, function(eliminar){
-			return callback('rtus/index/procesaComment.remove/verificaExistencia.ok/objetoEliminado: '+comentario_id+' eliminado '+eliminar);
-		    });	
-		}
-	    });
-	}
-	else if (comment_raw.verb === 'hide') {
-	    verificaExistencia(coleccion_comment, comment_raw.id, function(comentariomongo){
-		if (comentariomongo === 'error' || comentariomongo === 'noexiste') {
-		    return callback('rtus/index/procesaComment.hide/verificaExistencia '+comment_id+' '+comentariomongo);
-		}
-		else {
-		    objetoEscondido(coleccion_comment, comment_raw.id, function(esconder){
-			return callback('rtus/index/procesaComment.hide/verificaExistencia.ok/objetoEscondido: '+comment_id+' escondido '+esconder);
-		    });
-		}
-	    });
-	}
-	else if (comment_raw.verb === 'unhide') {
-	    verificaExistencia(coleccion_comment, comment_raw.id, function(comentariomongo){
-		if (comentariomongo === 'error' || comentariomongo === 'noexiste') {
-		    return callback('rtus/index/procesaComment.unhide/verificaExistencia '+comment_id+' '+comentariomongo);
-		}
-		else {
-		    objetoDesEscondido(coleccion_comment, comment_raw.id, function(desesconder){
-			return callback('rtus/index/procesaComment.unhide/verificaExistencia.ok/objetoDesEscondido: '+comment_id+' des-escondido '+desesconder);
-		    });
-		}
-	    });
-
-	}
-	else {
-	    console.log(comment_raw);
-	    return callback('rtus/index/procesaComment.unknown verb: '+comment_raw.verb);
-	}
-    }
-		
-    // procesamos el post
-    function procesaPost (token, post_raw, callback) {
-	var coleccion_post_raw = post_raw.cuenta+'_fb_post_raw';
-	var coleccion_post = post_raw.cuenta+'_fb_post';
-	var coleccion_post_pending = post_raw.cuenta+'_fb_post_pending';
-	var coleccion_post_mongoerror = post_raw.cuenta+'_fb_post_merror';
-	var pageId = post_raw.page_id;
-	var created_time = new Date(post_raw.tstamp * 1000);
-	var tipo = 'post';
-	var subtipo = post_raw.item;
-	var objeto = {};
-	post_raw.id = post_raw.post_id;
-	// procesa post si se está añadiendo
-	if (post_raw.verb === 'add') {
-	    verificaExistencia(coleccion_post, post_raw.id, function(postmongo) {
-		if (postmongo === 'error' || postmongo === 'existe') {
-		    return callback('rtus/index/procesaPost.add/verificaExistencia - ' + post_raw.id + ' ' + postmongo);
-		}
-		else {
-		    var basicpath = globales.fbapiversion+post_raw.post_id+globales.path_post_query;
-		    var fotopath = globales.fbapiversion+post_raw.sender_id+'/picture?redirect=false';
-		    requestGraph(token, basicpath, function(error_post, response_post){
-			if(error_post) {
-			    post_raw.error = error_post;
-			    insertaBaseError(coleccion_post_pending, post_raw, function(resp){
-				return callback('rtus/index/procesaPost.add/insertaBaseError ' +post_raw.id+ ' ' +resp);
-			    });
-			}
-			else {
-			    objeto.post = response_post;
-			    if (post_raw.photo_id) {
-				objeto.post.photo_id = post_raw.photo_id;
-			    }
-			    if (post_raw.share_id) {
-				objeto.post.share_id = post_raw.share_id;
-			    }
-			    if (post_raw.video_id) {
-				objeto.post.video_id = post_raw.video_id;
-			    }
-			    objeto.post.created_old = response_post.created_time;
-			    objeto.post.created_time = created_time;
-			    if (typeof response_post.from === 'undefined') {
-				objeto.post.from = {};
-				objeto.post.from.id = post_raw.sender_id;
-				objeto.post.from.name = post_raw.sender_name;
-				objeto.post.from_user_id = ''+post_raw.sender_id;
-				objeto.post.from_user_name = post_raw.sender_name;
-			    }
-			    else {
-				objeto.post.from_user_id = ''+response_post.from.id;
-				objeto.post.from_user_name = response_post.from.name;
-			    }
-			    if (typeof response_post.attachments !== 'undefined' &&
-				typeof response_post.attachments.data !== 'undefined' &&
-				response_post.attachments.data[0].length > 0 &&
-				typeof response_post.attachments.data[0].media !== 'undefined' &&
-				typeof response_post.attachments.data[0].media.image !== 'undefined' &&
-				typeof response_post.attachments.data[0].media.image.src !== 'undefined') {
-				objeto.post.image_attachment = response_post.attachments.data[0].media.image.src;
-			    }
-			    if (typeof response_post.attachments !== 'undefined' &&
-				typeof response_post.attachments.data !== 'undefined' &&
-				response_post.attachments.data[0].length > 0 &&
-				typeof response_post.attachments.data[0].target !== 'undefined' &&
-				typeof response_post.attachments.data[0].target.url !== 'undefined') {
-				objeto.post.link_attachment = response_post.attachments.data[0].target.url;
-			    }
-			    requestGraph('not', fotopath, function(error_foto, response_foto){
-				if (error_foto) {
-				    objeto.post.foto = '';
-				    objeto.post.photo_error = error_foto;
-				    insertaBase(coleccion_post, objeto.post, tipo, coleccion_post_mongoerror, function(respo){
-					return callback('rtus/index/procesaPost.add/requestGraph.fotopath' + objeto.post.id+ ' ' +respo);
-				    });
-				}
-				else {
-				    objeto.post.foto = response_foto.data.url;
-				    insertaBase(coleccion_post, objeto.post, tipo, coleccion_post_mongoerror, function(respo){
-					if (objeto.post.from && pageId !== objeto.post.from.id) {
-					    nueMens(created_time, 'post', post_raw.cuenta);
-					}
-					return callback('rtus/index/procesaPost.add/requestGraph.fotopath' + objeto.post.id+ ' ' +respo);
-				    });
-				}
-			    });
-			}
-		    });
-		}
-	    });
-	}
-	else if (post_raw.verb === 'remove') {
-	    var elpostid = post_raw.id;
-	    verificaExistencia(coleccion_post, elpostid, function(postmongo) {
-		if (postmongo === 'error' || postmongo === 'noexiste') {
-		    verificaExistencia(coleccion_post_pending, elpostid, function(postpending) {
-			if (postpending === 'error' || postpending === 'noexiste') {
-			    return callback('rtus/index/procesaPost.remove.pending/verificaExistencia '+elpostid+' '+postpending);			    
-			}
-			else {
-			    eliminaEntrada(coleccion_post_pending, elpostid, function(bbborrar){
-				return callback('rtus/index/procesaPost.remove.pending/verificaExistencia.ok/objetoEliminado: '+elpostid+' eliminado '+bbborrar);				
-			    });
-			}
-		    });
-		}
-		else {
-		    objetoEliminado(coleccion_post, post_raw.id, function(eliminar){
-			return callback('rtus/index/procesaPost.remove - post: '+post_raw.id+' eliminado: '+eliminar);
-		    });
-		}
-	    });
-	}
-	else {
-	    console.log(post_raw);
-	    return callback('rtus/index/procesaPost.unknown verb: '+post_raw.verb);
-	}
-    }
 
     function encuentraCuentaCorrespondiente (pid, pages, index, callback) {
 	var more = index+1;
@@ -1502,6 +907,683 @@ router.post('/', function(req, res){
 		}
 	    }
 	});
+    }
+    
+    // obtenemos comment con todo y para llevar de facebook usando método requestGraph
+    function obtenerComment (token, comment_raw, callback) {
+	var pageId = comment_raw.page_id;
+	var created_time = comment_raw.created_time;
+	var tipo = comment_raw.item;
+	var objeto = {};
+	var basicpath = globales.fbapiversion+comment_raw.comment_id+globales.path_comment_query;
+	var fotopath = globales.fbapiversion+comment_raw.sender_id+'/picture?redirect=false';
+	requestGraph(token, basicpath, function(error_orig, response_orig) {
+	    if (error_orig) {
+		console.log('rtus/index/obtenerComment - ni siquiera hubo comment: '+JSON.stringify(error_orig));
+		objeto.error = error_orig;
+		return callback(objeto);
+	    }
+	    else {
+		// no hubo error, asignamos comment y seguimos pidiendo cosas
+		objeto.comment = response_orig;
+		objeto.comment.page_id = comment_raw.page_id;
+		objeto.comment.created_old = comment_raw.tstamp;
+		objeto.comment.created_time = new Date(comment_raw.tstamp * 1000);
+		objeto.comment.parent_post = comment_raw.post_id;
+		objeto.comment.from.id = ''+response_orig.from.id;
+		if (typeof response_orig.parent !== 'undefined' && 
+		    typeof response_orig.parent.id !== 'undefined') {
+		    objeto.comment.parent_comment = response_orig.parent.id;
+		}
+		else {
+		    objeto.comment.parent_comment = comment_raw.parent_id;
+		}
+		if (typeof response_orig.attachment !== 'undefined' &&
+		    typeof response_orig.attachment.media !== 'undefined' &&
+		    typeof response_orig.attachment.media.image !== 'undefined' &&
+		    typeof response_orig.attachment.media.image.src !== 'undefined') {
+		    objeto.comment.image_attachment = response_orig.attachment.media.image.src;
+		}
+		if (typeof response_orig.attachment !== 'undefined' &&
+		    typeof response_orig.attachment.target !== 'undefined' &&
+		    typeof response_orig.attachment.target.url) {
+		    objeto.comment.link_attachment = response_orig.attachment.target.url;
+		}
+		requestGraph('not', fotopath, function(error_foto, response_foto){
+		    if (error_foto) {
+			// no tenemos foto, mandamos así
+			objeto.comment.foto = '';
+			console.log('rtus/index/obtenerComment - error en  foto '+error_foto);
+			objeto.comment.photo_error = error_foto;
+			return callback(objeto);
+		    }
+		    else {
+			objeto.comment.foto = response_foto.data.url;
+			return callback(objeto);
+		    }
+		});		    
+	    }
+	});
+    }
+
+
+    
+    // obtenemos siblings de comments nuestros, para ver cuales no tienen respuesta
+    function obtenerIdsDeSiblings (token, parent_comment, callback) {
+	var pathsiblings = globales.fbapiversion+parent_comment+globales.path_siblings;
+	requestGraph(token, pathsiblings, function(error_sib, response_sib) {
+	    if (error_sib) {
+		console.log('rtus/index/obtenerIdsDeSiblings.error');
+		return callback('error');
+	    }
+	    else if(typeof response_sib.comments === 'undefined' ) {
+		console.log('rtus/index/obtenerIdsDeSiblings.vacio');
+		return callback('empty');
+	    }
+	    else {
+		return callback(response_sib.comments.data);
+	    }
+	});
+    }
+
+    // vemos a qué sibling se le está respondiendo, para editarlo en el mongo
+    function procesaSiblings (page_id, account, eltexto, siblings, index, newsiblings, callback) {
+	var more = index+1;
+	var cuantossib = siblings.length;
+	if (more > cuantossib) {
+	    return callback('', newsiblings);
+	}
+	else {
+	    setImmediate(function(){
+		if (typeof siblings[index] !== 'undefined') {
+		    if (siblings[index].from.id === page_id) {
+			// son de la cuenta en cuestión, no deben responderse
+			return procesaSiblings(page_id, account, eltexto, siblings, more, newsiblings, callback);
+		    }
+		    else {
+			var critere = { id : siblings[index].id };
+			// vemos si sibling existe en colección
+			classdb.existefind(account+'_consolidada', critere, 'rtus/index/procesaSiblings', function(existens){
+			    if (existens === 'error' || existens === 'noexiste') {
+				return procesaSiblings(page_id, account, eltexto, siblings, more, newsiblings, callback);
+			    }
+			    else {
+				// sí existe, lo obtenemos para revisarlo
+				classdb.buscarToArray(account+'_consolidada', critere, {}, 'rtus/index/procesaSiblings', function(items){
+				    if (items === 'error') {
+					// error, no hacemos nada
+					return procesaSiblings(page_id, account, eltexto, siblings, more, newsiblings, callback);
+				    }
+				    else {
+					if (typeof items[0].respuestas === 'undefined') {
+					    // comment no tiene respuestas, sumémoslo
+					    newsiblings.push(siblings[index]);
+					    return procesaSiblings(page_id, account, eltexto, siblings, more, newsiblings, callback);
+					}
+					else {
+					    // comment tiene respuestas, revisamos si la que tenemos ya está entre ellas
+					    var las_respuestas = items[0].respuestas;
+					    var existerespu = _.findIndex(las_respuestas, function(chr) {
+						return chr.texto === eltexto;
+					    });
+					    if (existerespu !== -1) {
+						// la respuesta ya está en un comment, a otra cosa mariposa
+						return callback('respondido: comment '+siblings[index]+' ya recibió esa respuesta', newsiblings);
+					    }
+					    else {
+						// no está esta respuesta en este sibling, sumémoslo
+						newsiblings.push(siblings[index]);
+						return procesaSiblings(page_id, account, eltexto, siblings, more, newsiblings, callback);
+					    }
+					}
+				    }
+				});
+			    }
+			});
+		    }
+		}
+		else {
+		    return procesaSiblings(page_id, account, eltexto, siblings, more, newsiblings, callback);
+		}
+	    });
+	}
+    }
+
+  // si es nuestro, verificamos si no es una respuesta a algún comment y si esa respuesta fue hecha directamente en facebook
+  function verificaRespuesta (token, comentario_raw, comentario_procesado, callback) {
+    if (typeof comentario_procesado.message !== 'undefined' && comentario_procesado.message !== '') {
+      var pcom = comentario_procesado.parent_comment, ppos = comentario_procesado.parent_post,
+	  vcuenta = comentario_raw.cuenta, colezione = vcuenta+'_consolidada', pa_id = comentario_raw.page_id,
+	  co_id = comentario_procesado.id, ctexto = comentario_procesado.message;
+      // el comentario tiene mensaje, empezamos
+      if (pcom === ppos) {
+	console.log('es respuesta a un post');
+	var criteriopp = { id : ppos };	
+	classdb.existefind(colezione, criteriopp, 'rtus/index/verificaRespuesta.post', function(exists) {
+	      if (exists === 'error' || exists === 'noexiste') {
+		console.log('Error: el post en el que va este comment '+co_id+' no existe en la colección');
+		callback(exists);
+	      }
+	  else {
+	    classdb.buscarToArray(colezione, criteriopp, {}, 'rtus/index/verificaRespuesta.post', function(unpost){
+	      if (unpost === 'error') { callback(unpost); }
+	      else {
+		if (unpost.length < 1) {
+		  console.log('arreglo con el parent post de '+co_id+' llegó vacío');
+		  callback('error');
+		}
+		else {
+		  if (typeof unpost[0].respuestas === 'undefined') {
+		    // parent_post aun no tiene respuestas, insertamos
+		    var dieantwort = {
+		      user_name: 'facebook',
+		      user_id: 'direct-facebook',
+		      texto: ctexto,
+		      timestamp : new Date(),
+		      id_str: co_id
+		    };
+                    var dieatentionen = {
+                      '_id' : new ObjectID(),
+                      'usuario_id' : vcuenta+'_facebook',
+                      'usuario_nombre': vcuenta,
+                      fecha: new Date()
+                    };
+		    classdb.actualizaAddToSet(colezione, criteriopp, { respuestas : dieantwort }, '/rtus/index/verificaRespuesta.post', function(answered) {
+                      if (answered !== 'error') {
+                        classdb.actualiza(colezione, criteriopp, {atendido: dieatentionen}, '/rtus/index/verificaRespuesta.post', function(atended) {
+                          callback(answered+' - '+atended);
+                        });
+                      } else {
+			callback(answered);
+                      }
+		    });
+		  }
+		  else {
+		    // parent_post tiene respuestas en db
+		    var reponses = unpost[0].respuestas;				    
+		    var existeresp = _.findIndex(reponses, function(chr) {
+				       return chr.texto === ctexto;
+				     });
+		    if (existeresp !== -1) {
+		      console.log('Error: comentario de respuesta '+co_id+' ya estaba en el post');
+		      callback('error');
+		    }
+		    else {
+		      // esta respuesta no existe dentro de las demás respuestas, la insertamos
+		      var larespuesta = {
+			user_name: 'facebook',
+			user_id: 'direct-facebook',
+			texto: ctexto,
+			timestamp : new Date(),
+			id_str: co_id
+		      };
+                      var laatencion = {
+                        '_id' : new ObjectID(),
+                        'usuario_id' : vcuenta+'_facebook',
+                        'usuario_nombre': vcuenta,
+                        fecha: new Date()
+                      };
+		      classdb.actualizaAddToSet(colezione, criteriopp, { respuestas : larespuesta }, '/rtus/index/verificaRespuesta.post', function(respondido) {
+                        if (respondido !== 'error') {
+                          classdb.actualiza(colezione, criteriopp, {atendido: laatencion}, '/rtus/index/verificaRespuesta.post', function(atendidu) {
+                            callback(respondido+' - '+atendidu);
+                          });
+                        } else {
+			  callback(respondido);
+                        }
+		      });
+		    }
+		  }
+		}
+	      }
+	    });
+	  }
+	});
+      }
+      else {
+	console.log('es respuesta a un comment');
+	var criteriopc = { id : pcom };
+	classdb.existefind(colezione, criteriopc, 'rtus/index/verificaRespuesta.comment', function(existia){
+	   if (existia === 'error' || existia === 'noexiste') {
+	     console.log('Error: el comment en el que va este otro comment '+co_id+' no existe en la colección');
+	     callback(existia);
+	   }
+	  else {
+	    classdb.buscarToArray(colezione, criteriopc, {}, 'rtus/index/verificaRespuesta.comment', function(uncomment){
+	      if (uncomment === 'error') { callback(uncomment); }
+	      else {
+		if (uncomment.length < 1) {
+		  console.log('arreglo con el parent comment de '+co_id+' llegó vacío');
+		  callback('error');
+		}
+		else {
+		  if (typeof uncomment[0].respuestas === 'undefined') {
+		    // parent comment todavía no tiene respuestas
+		    var theanswer = {
+			user_name: 'facebook',
+			user_id: 'direct-facebook',
+		      texto: ctexto,
+		      timestamp : new Date(),
+		      id_str: co_id
+		    };
+                    var theattention = {
+                      '_id' : new ObjectID(),
+                      'usuario_id' : vcuenta+'_facebook',
+                      'usuario_nombre': vcuenta,
+                      fecha: new Date()
+                    };
+		    classdb.actualizaAddToSet(colezione, criteriopc, {respuestas: theanswer}, '/rtus/index/verificaRespuesta.comment', function(answered) {
+                      if (answered !== 'error') {
+                        classdb.actualiza(colezione, criteriopc, {atendido: theattention}, '/rtus/index/verificaRespuesta.comment', function(tendedto) {
+                          callback(answered+' - '+tendedto);
+                        });
+                      } else {
+			callback(answered);
+                      }
+		    });
+		  }
+		  else {
+		    // parent_comment tiene respuestas en db
+		    var las_respuestas = uncomment[0].respuestas; 
+		    var existerespu = _.findIndex(las_respuestas, function(chr) {
+				        return chr.texto === comentario_procesado.message;
+				      });
+		    if (existerespu !== -1) {
+		      console.log('Error: este comment de respuesta '+co_id+' ya estaba entre las respuestas al comment');
+		      callback('error');
+		    }
+		    else {
+		      obtenerIdsDeSiblings(token, pcom, function(comments_ids){
+			if (comments_ids === 'error') {
+			  console.log('no conseguimos siblings para: '+co_id);
+			  callback('error');
+			}
+			else if (comments_ids === 'empty') {
+			  var la_respuesta = {
+			    user_name: 'facebook',
+			    user_id: 'direct-facebook',
+			    texto: ctexto,
+			    timestamp : new Date(),
+			    id_str: co_id
+			  };
+                          var la_atencion = {
+                            '_id' : new ObjectID(),
+                            'usuario_id' : vcuenta+'_facebook',
+                            'usuario_nombre': vcuenta,
+                            fecha: new Date()
+                          };
+			  classdb.actualizaAddToSet(colezione, criteriopc, { respuestas: la_respuesta }, '/rtus/index/verificaRespuesta.comment', function(respondido) {
+                            if (respondido !== 'error') {
+                              classdb.actualiza(colezione, criteriopc, {atendido: la_atencion}, '/rtus/index/verificaRespuesta.comment', function(atendidito) {
+                                callback(respondido+' - '+atendidito);
+                              });
+                            } else {
+			      callback(respondido);
+                            }
+			  });
+			}
+			else {
+			  // ya hay comments en el comment
+			  var siblings = _(comments_ids).reverse().value();
+			  procesaSiblings(pa_id, vcuenta, ctexto, siblings, 0, [], function(sib_str, sib_arr){
+			    if (sib_str !== ''){
+			      console.log(sib_str);
+			      callback('ok');
+			    }
+			    else {
+			      if (sib_arr.length < 1) {
+				console.log('no había comments...');
+				callback('error');
+			      }
+			      else  {
+				// añadimos la respuesta al primer sibling sin respuestas
+				var la_reponse = { 
+				  user_name : 'facebook', 
+				  user_id : 'direct-facebook', 
+				  texto : ctexto, 
+				  timestamp : new Date(), 
+				  id_str : co_id 
+				};
+                                var la_atention = {
+                                  '_id' : new ObjectID(),
+                                  'usuario_id' : vcuenta+'_facebook',
+                                  'usuario_nombre': vcuenta,
+                                  fecha: new Date()
+                                };
+				var criteres = { id : sib_arr[0].id };
+				var eladdts = { respuestas : la_reponse };
+				classdb.actualizaAddToSet(colezione, criteres, eladdts, '/rtus/index/verificaRespuesta.comment', function(repondu){
+                                  if (repondu !== 'error') {
+                                    classdb.actualiza(colezione, criteres, {atendido: la_atention}, '/rtus/index/verificaRespuesta.comment', function(atendu) {
+                                      callback(repondu+' - '+atendu);
+                                    });
+                                  } else {
+				    callback(repondu);
+                                  }
+				});
+			      }
+			    }
+			  });
+			}
+			if (typeof comments_ids.comments !== 'undefined') {
+			}
+			else {
+			}
+		      });
+		    }	    
+		  }
+		}
+	      }
+	    });
+	  }
+	});
+      }
+    }
+    else {
+      // comentario no tiene mensaje, mandamos error
+      console.log('Error: comentario venía vacío, no hay nada que insertar');
+      callback('error');
+    }
+  }
+
+    // procesamos el comment
+  function procesaComment (token, comment_raw, callback) {
+    var at_elegido = token;
+    var nombrecta = comment_raw.cuenta;
+    var page_id = comment_raw.page_id;
+    var criterium = {
+      $and: [
+	{ 'cuenta.marca' : nombrecta}, 
+	{'additionalProvidersData.facebook': { $exists: true }}
+      ]
+    };
+    var usersfields = {
+      '_id' : '', 
+      'displayName' : '', 
+      'cuenta.marca': '',
+      'additionalProvidersData.facebook.accessToken' : '',
+      'additionalProvidersData.facebook.name': ''
+    };
+    classdb.buscarToArrayFields('users', criterium, usersfields, {}, 'rtus/index/obtieneUsuariosDeCta', function(dieusern){
+      if (dieusern === 'error') {
+	return callback(dieusern);
+      }
+      else {
+	getCtaATs(nombrecta, page_id, dieusern, function(tdc){
+          if (tdc.length > 0) {
+            var el_at_elegido = tdc[Math.floor(Math.random()*tdc.length)];
+	    at_elegido = 'access_token='+el_at_elegido.access_token;
+          }
+ 	  // Declaramos variables necesarias
+	  var ctnm = comment_raw.cuenta, pageId = comment_raw.page_id, tipo = comment_raw.item, comment_id = comment_raw.comment_id;
+	  var coleccion_raw = ctnm+'_fb_comment_raw', coleccion_comment = ctnm+'_fb_comment', coleccion_pending = ctnm+'_fb_comment_pending', coleccion_mongoerror = ctnm+'_fb_comment_merror';
+	  var created_time = new Date(comment_raw.tstamp * 1000);
+	  comment_raw.id = comment_id;
+	  if (comment_raw.verb === 'add') {
+	    verificaExistencia(coleccion_comment, comment_raw.id, function(comentariomongo) {
+	      if (comentariomongo === 'error' || comentariomongo === 'existe') {
+		return callback('rtus/index/procesaComment.add/verificaExistencia '+comment_id+' '+comentariomongo);
+	      }
+	      else {
+		obtenerComment(at_elegido, comment_raw, function(comentario) {
+		  if (typeof comentario.error !== 'undefined') {
+		    comentario.comment = comment_raw;
+		    comentario.comment.error = comentario.error;
+		    comentario.comment.created_old = comment_raw.tstamp;
+		    comentario.comment.created_time = created_time;
+		    comentario.comment.from_user_id = ''+comment_raw.sender_id;
+		    comentario.comment.from_user_name = comment_raw.sender_name;
+		    insertaBaseError(coleccion_pending, comentario.comment, function(respo) {
+		      return callback('rtus/index/procesaComment.add/obtenerComment.error '+ctnm+' - '+comment_id+' - '+respo);
+		    });
+		  }
+		  else {
+		    if (typeof comentario.comment === 'undefined') {
+		      return callback('rtus/index/procesaComment.add/obtenerComment.ok '+ctnm+' - '+comment_id+' - venía vacío');
+		    }
+		    else {
+		      // aquí está el comment, usémoslo.
+		      comentario.comment.created_old = comentario.comment.created_time;
+		      comentario.comment.created_time = created_time;
+		      if (typeof comentario.comment.from !== 'undefined') {
+			comentario.comment.from_user_id = ''+comentario.comment.from.id;
+			comentario.comment.from_user_name = comentario.comment.from.name;
+			if (pageId === comentario.comment.from.id)  {
+			  verificaRespuesta(at_elegido, comment_raw, comentario.comment, function(esrespuesta){
+			    console.log('verificaRespuesta '+esrespuesta);
+			  });
+			}
+		      }
+		      else {
+			comentario.comment.from_user_id = 'not_available';
+		      }
+		      insertaBase(coleccion_comment, comentario.comment, tipo, coleccion_mongoerror, function(respcom){
+			if (comentario.comment.from && pageId !== comentario.comment.from.id) {
+			  nueMens(created_time, 'comment', ctnm);
+			}
+			return callback('rtus/index/procesaComment.add/obtenerComment.ok - cta: '+ctnm+' - comment: '+comment_id+' - insert: '+respcom);
+		      });
+		    }
+		  }
+		});
+	      }
+	    });
+	  }
+	  else if (comment_raw.verb === 'edited') {
+	    verificaExistencia(coleccion_comment, comment_raw.id, function(comentariomongo) {
+	      if (comentariomongo === 'error' || comentariomongo === 'noexiste') {
+		return callback('rtus/index/procesaComment.edited/verificaExistencia '+comment_id+' '+comentariomongo);
+	      }
+	      else {
+		obtenerComment(at_elegido, comment_raw, function(comentario) {
+		  if (typeof comentario.error !== 'undefined') {
+		    comentario.comment = comment_raw;
+		    comentario.comment.error = comentario.error;
+		    comentario.comment.created_old = comment_raw.tstamp;
+		    comentario.comment.created_time = created_time;
+		    comentario.comment.from_user_id = ''+comment_raw.sender_id;
+		    comentario.comment.from_user_name = comment_raw.sender_name;
+		    insertaBaseError(coleccion_pending, comentario.comment, function(respo) {
+		      return callback('rtus/index/procesaComment.edited/obtenerComment.error '+ctnm+' - '+comment_id+' - '+respo);
+		    });
+		  }
+		  else {
+		    if (typeof comentario.comment === 'undefined') {
+		      return callback('rtus/index/procesaComment.edited/obtenerComment.ok '+ctnm+' - '+comment_id+' - venía vacío');
+		    }
+		    else {
+		      // aquí está el comment, usémoslo.
+		      comentario.comment.created_old = comentario.comment.created_time;
+		      comentario.comment.created_time = created_time;
+		      if (typeof comentario.comment.from !== 'undefined') {
+			comentario.comment.from_user_id = ''+comentario.comment.from.id;
+			comentario.comment.from_user_name = comentario.comment.from.name;
+			if (pageId === comentario.comment.from.id)  {
+			  verificaRespuesta(at_elegido, comment_raw, comentario.comment, function(esrespuesta){
+			    console.log('verificaRespuesta '+esrespuesta);
+			  });
+			}
+		      }
+		      else {
+			comentario.comment.from_user_id = 'not_available';
+		      }
+		      insertaBase(coleccion_comment, comentario.comment, tipo, coleccion_mongoerror, function(respcom){
+			return callback('rtus/index/procesaComment.edited/obtenerComment.ok - cta: '+ctnm+' - comment: '+comment_id+' - insert: '+respcom);
+		      });
+		    }
+		  }
+		});
+	      }
+	    });
+	  }
+	  else if (comment_raw.verb === 'remove'){
+	    verificaExistencia(coleccion_comment, comment_raw.id, function(comentariomongo) {
+	      if (comentariomongo === 'error' || comentariomongo === 'noexiste') {
+		verificaExistencia(coleccion_pending, comentario_id, function(comentariopending) {
+		  if (comentariopending === 'error' || comentariopending === 'noexiste') {
+		    return callback('rtus/index/procesaComment.remove/verificaExistencia '+comentario_id+' '+comentariopending);			    
+		  }
+		  else {
+		    eliminaEntrada(coleccion_pending, comentario_id, function(bbborrar){
+		      return callback('rtus/index/procesaComment.remove/pending.verificaExistencia.ok/objetoEliminado: '+comentario_id+' eliminado '+bbborrar);				
+		    });
+		  }
+		});
+	      }
+	      else {
+		objetoEliminado(coleccion_comment, comentario_id, function(eliminar){
+		  return callback('rtus/index/procesaComment.remove/verificaExistencia.ok/objetoEliminado: '+comentario_id+' eliminado '+eliminar);
+		});	
+	      }
+	    });
+	  }
+	  else if (comment_raw.verb === 'hide') {
+	    verificaExistencia(coleccion_comment, comment_raw.id, function(comentariomongo){
+	      if (comentariomongo === 'error' || comentariomongo === 'noexiste') {
+		return callback('rtus/index/procesaComment.hide/verificaExistencia '+comment_id+' '+comentariomongo);
+	      }
+	      else {
+		objetoEscondido(coleccion_comment, comment_raw.id, function(esconder){
+		  return callback('rtus/index/procesaComment.hide/verificaExistencia.ok/objetoEscondido: '+comment_id+' escondido '+esconder);
+		});
+	      }
+	    });
+	  }
+	  else if (comment_raw.verb === 'unhide') {
+	    verificaExistencia(coleccion_comment, comment_raw.id, function(comentariomongo){
+	      if (comentariomongo === 'error' || comentariomongo === 'noexiste') {
+		return callback('rtus/index/procesaComment.unhide/verificaExistencia '+comment_id+' '+comentariomongo);
+	      }
+	      else {
+		objetoDesEscondido(coleccion_comment, comment_raw.id, function(desesconder){
+		  return callback('rtus/index/procesaComment.unhide/verificaExistencia.ok/objetoDesEscondido: '+comment_id+' des-escondido '+desesconder);
+		});
+	      }
+	    });
+	  }
+	  else {
+	    console.log(comment_raw);
+	    return callback('rtus/index/procesaComment.unknown verb: '+comment_raw.verb);
+	  }
+	});		
+      }
+    });	
+  }
+		
+    // procesamos el post
+    function procesaPost (token, post_raw, callback) {
+	var coleccion_post_raw = post_raw.cuenta+'_fb_post_raw';
+	var coleccion_post = post_raw.cuenta+'_fb_post';
+	var coleccion_post_pending = post_raw.cuenta+'_fb_post_pending';
+	var coleccion_post_mongoerror = post_raw.cuenta+'_fb_post_merror';
+	var pageId = post_raw.page_id;
+	var created_time = new Date(post_raw.tstamp * 1000);
+	var tipo = 'post';
+	var subtipo = post_raw.item;
+	var objeto = {};
+	post_raw.id = post_raw.post_id;
+	// procesa post si se está añadiendo
+	if (post_raw.verb === 'add') {
+	    verificaExistencia(coleccion_post, post_raw.id, function(postmongo) {
+		if (postmongo === 'error' || postmongo === 'existe') {
+		    return callback('rtus/index/procesaPost.add/verificaExistencia - ' + post_raw.id + ' ' + postmongo);
+		}
+		else {
+		    var basicpath = globales.fbapiversion+post_raw.post_id+globales.path_post_query;
+		    var fotopath = globales.fbapiversion+post_raw.sender_id+'/picture?redirect=false';
+		    requestGraph(token, basicpath, function(error_post, response_post){
+			if(error_post) {
+			    post_raw.error = error_post;
+			    insertaBaseError(coleccion_post_pending, post_raw, function(resp){
+				return callback('rtus/index/procesaPost.add/insertaBaseError ' +post_raw.id+ ' ' +resp);
+			    });
+			}
+			else {
+			    objeto.post = response_post;
+			    if (post_raw.photo_id) {
+				objeto.post.photo_id = post_raw.photo_id;
+			    }
+			    if (post_raw.share_id) {
+				objeto.post.share_id = post_raw.share_id;
+			    }
+			    if (post_raw.video_id) {
+				objeto.post.video_id = post_raw.video_id;
+			    }
+			    objeto.post.created_old = response_post.created_time;
+			    objeto.post.created_time = created_time;
+			    if (typeof response_post.from === 'undefined') {
+				objeto.post.from = {};
+				objeto.post.from.id = post_raw.sender_id;
+				objeto.post.from.name = post_raw.sender_name;
+				objeto.post.from_user_id = ''+post_raw.sender_id;
+				objeto.post.from_user_name = post_raw.sender_name;
+			    }
+			    else {
+				objeto.post.from_user_id = ''+response_post.from.id;
+				objeto.post.from_user_name = response_post.from.name;
+			    }
+			    if (typeof response_post.attachments !== 'undefined' &&
+				typeof response_post.attachments.data !== 'undefined' &&
+				typeof response_post.attachments.data[0].media !== 'undefined' &&
+				typeof response_post.attachments.data[0].media.image !== 'undefined' &&
+				typeof response_post.attachments.data[0].media.image.src !== 'undefined') {
+				objeto.post.image_attachment = response_post.attachments.data[0].media.image.src;
+			    }
+			    if (typeof response_post.attachments !== 'undefined' &&
+				typeof response_post.attachments.data !== 'undefined' &&
+				typeof response_post.attachments.data[0].target !== 'undefined' &&
+				typeof response_post.attachments.data[0].target.url !== 'undefined') {
+				objeto.post.link_attachment = response_post.attachments.data[0].target.url;
+			    }
+			    requestGraph('not', fotopath, function(error_foto, response_foto){
+				if (error_foto) {
+				    objeto.post.foto = '';
+				    objeto.post.photo_error = error_foto;
+				    insertaBase(coleccion_post, objeto.post, tipo, coleccion_post_mongoerror, function(respo){
+					return callback('rtus/index/procesaPost.add/requestGraph.fotopath' + objeto.post.id+ ' ' +respo);
+				    });
+				}
+				else {
+				    objeto.post.foto = response_foto.data.url;
+				    insertaBase(coleccion_post, objeto.post, tipo, coleccion_post_mongoerror, function(respo){
+					if (objeto.post.from && pageId !== objeto.post.from.id) {
+					    nueMens(created_time, 'post', post_raw.cuenta);
+					}
+					return callback('rtus/index/procesaPost.add/requestGraph.fotopath' + objeto.post.id+ ' ' +respo);
+				    });
+				}
+			    });
+			}
+		    });
+		}
+	    });
+	}
+	else if (post_raw.verb === 'remove') {
+	    var elpostid = post_raw.id;
+	    verificaExistencia(coleccion_post, elpostid, function(postmongo) {
+		if (postmongo === 'error' || postmongo === 'noexiste') {
+		    verificaExistencia(coleccion_post_pending, elpostid, function(postpending) {
+			if (postpending === 'error' || postpending === 'noexiste') {
+			    return callback('rtus/index/procesaPost.remove.pending/verificaExistencia '+elpostid+' '+postpending);			    
+			}
+			else {
+			    eliminaEntrada(coleccion_post_pending, elpostid, function(bbborrar){
+				return callback('rtus/index/procesaPost.remove.pending/verificaExistencia.ok/objetoEliminado: '+elpostid+' eliminado '+bbborrar);				
+			    });
+			}
+		    });
+		}
+		else {
+		    objetoEliminado(coleccion_post, post_raw.id, function(eliminar){
+			return callback('rtus/index/procesaPost.remove - post: '+post_raw.id+' eliminado: '+eliminar);
+		    });
+		}
+	    });
+	}
+	else {
+	    console.log(post_raw);
+	    return callback('rtus/index/procesaPost.unknown verb: '+post_raw.verb);
+	}
     }
 
     function revisaMensajesAnteriores (mensajesp, page_id, mensaje, index, mant, callback) {
@@ -1664,42 +1746,118 @@ router.post('/', function(req, res){
 	}
     }
 
-    function procesaMensajes (nombreSistema, updated_time, conv_id, conv_link, mensajes, index, mensajesarray, cback) {
-	if (index !== parseInt(index, 10) || typeof index === 'undefined' || index === null) {
-	    index = 0;
-	}
-	var more = index+1;
-	var cuantosm = mensajes.length;
-	if (more > cuantosm) {
-	    return cback(mensajesarray);
+  function procesaAttachments (mensaje, index, arregloimgs, callback) {
+    var more = index+1;
+    var attacharray = mensaje.attachments.data;
+    var cuantosatt = attacharray.length;
+    if (more > cuantosatt) {
+      return callback(arregloimgs);
+    }
+    else {
+      setImmediate(function() {
+        if (typeof attacharray[index] !== 'undefined') {
+          if (attacharray[index].image_data ) {
+            arregloimgs.push(attacharray[index].image_data.url);
+            return procesaAttachments(mensaje, more, arregloimgs, callback);
+          }
+          else {
+            return procesaAttachments(mensaje, more, arregloimgs, callback);
+          }
+        }
+        else {
+          return procesaAttachments(mensaje, more, arregloimgs, callback);
+        }
+      });
+    }
+  }
+
+  function procesaShares (mensaje, index, arreglolinks, callback) {
+    var more = index+1;
+    var sharearray = mensaje.shares.data;
+    var cuantosshares = sharearray.length;
+    if (more > cuantosshares) {
+      return callback(arreglolinks);
+    }
+    else {
+      setImmediate(function() {
+        if (typeof sharearray[index] !== 'undefined') {
+          arreglolinks.push(sharearray[index].link);
+          return procesaShares(mensaje, more, arreglolinks, callback);
+        }
+        else {
+          return procesaShares(mensaje, more, arreglolinks, callback);
+        }
+      });
+    }
+  }
+
+
+  function procesaMensajes (nombreSistema, updated_time, conv_id, conv_link, mensajes, index, mensajesarray, cback) {
+    if (index !== parseInt(index, 10) || typeof index === 'undefined' || index === null) {
+      index = 0;
+    }
+    var more = index+1;
+    var cuantosm = mensajes.length;
+    if (more > cuantosm) {
+      return cback(mensajesarray);
+    }
+    else {
+      setImmediate(function() {
+	if (typeof mensajes[index] !== 'undefined') {
+	  mensajes[index].update_time = updated_time;
+	  mensajes[index].conversation_id = conv_id;
+	  mensajes[index].conversation_link = conv_link;
+	  mensajes[index].created_time = new Date(mensajes[index].created_time.replace('+','.'));
+	  mensajes[index].obj = 'facebook';
+	  mensajes[index].coleccion = nombreSistema+'_consolidada';
+	  mensajes[index].tipo = 'facebook_inbox';
+	  mensajes[index].from_user_id = ''+mensajes[index].from.id;
+	  mensajes[index].from_user_name = mensajes[index].from.name;
+	  if (typeof mensajes[index].attachments !== 'undefined' &&
+              typeof mensajes[index].attachments.data !== 'undefined' &&
+              typeof mensajes[index].attachments.data[0].image_data !== 'undefined') {
+	    mensajes[index].image_attachment = mensajes[index].attachments.data[0].image_data.url;
+            procesaAttachments(mensajes[index], 0, [], function(arregloattachments) {
+              mensajes[index].arregloattachments = arregloattachments;
+              if (typeof mensajes[index].shares !== 'undefined' &&
+                  typeof mensajes[index].shares.data !== 'undefined' &&
+                  typeof mensajes[index].shares.data[0].link !== 'undefined') {
+                mensajes[index].image_sticker = mensajes[index].shares.data[0].link;
+                procesaShares(mensajes[index], 0, [], function(arregloshares){
+                  mensajes[index].arregloshares = arregloshares;
+		  mensajesarray.push(mensajes[index]);
+		  return procesaMensajes(nombreSistema, updated_time, conv_id, conv_link, mensajes, more, mensajesarray, cback);
+                });
+              }
+              else {
+		mensajesarray.push(mensajes[index]);
+		return procesaMensajes(nombreSistema, updated_time, conv_id, conv_link, mensajes, more, mensajesarray, cback);                      
+              }
+            });
+	  }
+          else {
+            if (typeof mensajes[index].shares !== 'undefined' &&
+                typeof mensajes[index].shares.data !== 'undefined' &&
+                typeof mensajes[index].shares.data[0].link !== 'undefined') {
+              mensajes[index].image_sticker = mensajes[index].shares.data[0].link;
+              procesaShares(mensajes[index], 0, [], function(arregloshares){
+                mensajes[index].arregloshares = arregloshares;
+		mensajesarray.push(mensajes[index]);
+		return procesaMensajes(nombreSistema, updated_time, conv_id, conv_link, mensajes, more, mensajesarray, cback);
+              });
+            }
+            else {
+              mensajesarray.push(mensajes[index]);
+	      return procesaMensajes(nombreSistema, updated_time, conv_id, conv_link, mensajes, more, mensajesarray, cback);
+            }
+          }
 	}
 	else {
-	    setImmediate(function() {
-		if (typeof mensajes[index] !== 'undefined') {
-		    mensajes[index].update_time = updated_time;
-		    mensajes[index].conversation_id = conv_id;
-		    mensajes[index].conversation_link = conv_link;
-		    mensajes[index].created_time = new Date(mensajes[index].created_time.replace('+','.'));
-		    mensajes[index].obj = 'facebook';
-		    mensajes[index].coleccion = nombreSistema+'_consolidada';
-		    mensajes[index].tipo = 'facebook_inbox';
-		    mensajes[index].from_user_id = ''+mensajes[index].from.id;
-		    mensajes[index].from_user_name = mensajes[index].from.name;
-		    if (typeof mensajes[index].attachments !== 'undefined' && 
-			typeof mensajes[index].attachments.data !== 'undefined' &&
-			mensajes[index].attachments.data[0].length > 0 && 
-		        typeof mensajes[index].attachments.data[0].image_data !== 'undefined') {
-			mensajes[index].image_attachment = mensajes[index].attachments.data[0].image_data.url;
-		    }
-		    mensajesarray.push(mensajes[index]);
-		    return procesaMensajes(nombreSistema, updated_time, conv_id, conv_link, mensajes, more, mensajesarray, cback);
-		}
-		else {
-		    return procesaMensajes(nombreSistema, updated_time, conv_id, conv_link, mensajes, more, mensajesarray, cback);
-		}
-	    });
+	  return procesaMensajes(nombreSistema, updated_time, conv_id, conv_link, mensajes, more, mensajesarray, cback);
 	}
+      });
     }
+  }
 
     function mensajesDeConversacion (nsys, pag_id, a_ctime, conversacion, cback) {
 	var updated_time = new Date(conversacion.updated_time.replace('+','.'));
@@ -1923,6 +2081,9 @@ router.post('/', function(req, res){
 		else {
 		    // console.log(JSON.stringify(entradas));
 		    estandarizaEntradas (entradas, 0, [], function(cambios) {
+
+                      console.log(cambios);
+
 			getAppAT (function(token){
 			    if (token === 'error') {
 				console.log('rtus/index.main/ sin access_token');

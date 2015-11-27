@@ -107,138 +107,343 @@ exports.generaCsv = function(req, res){
     var criterio;
     
     function getdatoscuenta(nombreSistema,cback) {
-	var criterio = {'nombreSistema': nombreSistema};
-	classdb.buscarToStream('accounts', criterio, {}, 'feeds/getMailboxDescartados/querySecundario', function(datos){
-	    if(datos.length > 0){
-		if(datos[0].datosPage){
-		    return cback(datos[0].datosPage.id);
-		}
-	    }else{
-		return cback('error');
-	    }
-	});
+		var criterio = {'nombreSistema': nombreSistema};
+		classdb.buscarToStream('accounts', criterio, {}, 'feeds/getMailboxDescartados/querySecundario', function(datos){
+	    	if(datos.length > 0){
+				if(datos[0].datosPage){
+		    		return cback(datos[0].datosPage.id);
+				}
+	    	}else{
+				return cback('error');
+	    	}
+		});
     }
 
     function quitaEspeciales(string){
-	if (string) {
+		if (string) {
     	    return string.replace(/,/g,'-').replace(/"/g,'&34').replace(/\n/g,' ');
-	} 
+		} 
     }
-    getdatoscuenta(req.body.nombreSistema, function(page_id){
-	
-	if(page_id === 'error'){
-	    criterio = {
-		$and:[
-		    {'created_time' : {$gte : fecha_inicial}},
-		    {'created_time' : {$lte : fecha_final}},
-		    {'tipo':{$exists:true}}
-		]
-	    };
-	    classdb.buscarToArray(col, criterio, {}, 'generaCSV/buscar', function(items){
-		if(items === 'error'){
-		    res.jsonp('error');
-		}else{
-		    if(items.length > 0){
-			var index = 0;
-			procesaItemCsv(items, index, [], function(data){
-			    res.jsonp(data);
-			});
-		    }else{
-			res.jsonp('error');
-		    }
+
+    function obtieneTiempo(promedio){
+    	var objetoTiempos = {};
+		var horas = 0;
+		var minutos = 0;
+		var segundos = 0;
+		var horasMenos = 0;
+		//Validaciones para convertir los segundos a horas, minutos o segundos
+		if(promedio>=3600){
+			horas = Math.floor(promedio/3600);
+			if(horas < 10){
+				horas = '0'+horas;
+			}
+			promedio = promedio - (horas * 3600);
 		}
-	    });
-	}else{
-	    criterio = {
-		$and:[
-		    {'created_time' : {$gte : fecha_inicial}},
-		    {'created_time' : {$lte : fecha_final}},
-		    {'tipo':{$exists:true}},
-		    {'from_user_id' : {$ne : page_id}}
-		]
-	    };
-	    classdb.buscarToArray(col,criterio,{},'generaCSV/buscar', function(items){
-		if(items === 'error'){
-		    res.jsonp('error');
-		}else{
-		    if(items.length > 0){
-			var index = 0;
-			procesaItemCsv(items, index, [], function(data){
-			    res.jsonp(data);
-			});
-		    }else{
-			res.jsonp('error');
-		    }
-		}
-	    });
-	}
-    });
-	
-    function procesaItemCsv(items,index,resultado,cback){
-	var more = index +1;
-	var n = items.length;
-	console.log('Cargando '+index+' de '+n);
-	if(more > n){
-	    return cback(resultado);
-	}else{
-	    setImmediate(function(){
-		var obj = {
-		    tipo: items[index].tipo,
-		    obj: items[index].obj,
-		    fecha_llegada: new Date(items[index].created_time),
-		    respuesta: ''
-		};
-		/* Obteniendo respuesta o respuestas */
-		if(items[index].respuestas){
-		    for(var i in items[index].respuestas){
-			obj.respuesta += quitaEspeciales(items[index].respuestas[i].texto)+'||';
-		    }
-		    obj.status = 'Respondido';
-		    obj.fecha_respuesta = new Date(items[index].respuestas[0].timestamp);
-		    var resta = obj.fecha_respuesta.getTime() - obj.fecha_llegada.getTime();
-		    obj.tiempo_respuesta = ( resta * 0.001 );
-		}
-		/*Obteniendo el status */
-		if(items[index].clasificacion && items[index].sentiment){
-		    obj.tema = items[index].clasificacion.tema;
-		    obj.subtema = items[index].clasificacion.subtema;
-		    obj.sentiment = items[index].sentiment;
-		    obj.status = 'Clasificado';
-		}
-		if(items[index].clasificacion && items[index].sentiment && items[index].respuestas){
-		    obj.status = 'Respondido y Clasificado';
-		}
-		if(items[index].descartado){
-		    obj.razon_descartado = items[index].descartado.motivo;
-		    obj.status = 'Descartado';
-		}
-		if(items[index].atendido){
-		    obj.status = 'atendido';
-		}
-		/*Obteniendo datos de usuario por tipo de mensaje*/
-		if(items[index].obj === 'facebook'){
-			if(items[index].from){
-			    obj.nombre_post = items[index].from.name;
-			    obj.mensaje = quitaEspeciales(items[index].message);
+
+		if(promedio>=60){
+			minutos = Math.floor(promedio/60);
+			promedio = promedio - (minutos * 60);
+			if(minutos<10){
+				minutos = '0'+minutos;
 			}
 		}
-		if(items[index].obj === 'twitter'){
-		    if(items[index].tipo === 'direct_message'){
-				obj.nombre_post = items[index].sender.name;
-		    }else{
-				obj.nombre_post = items[index].user.name;
-		    }
-		    obj.mensaje = quitaEspeciales(items[index].text);
+
+		if(promedio<60){
+			segundos = promedio;
+			if(segundos <10){
+				segundos = '0'+segundos;
+			}
 		}
-		
-		if(!obj.status){
-		    obj.status = 'Sin atender';
-		}
-		resultado.push(obj);
-		return procesaItemCsv(items,more,resultado,cback);
-	    });
-	}
+
+		if(horas !== 0){
+			//objetoTiempos.promedio=horas+':'+minutos+':'+segundos;
+			objetoTiempos.promedio=horas+':'+minutos;
+			objetoTiempos.tipo='hrs';
+			return objetoTiempos;
+		}else{
+			if(minutos !== 0){
+				objetoTiempos.promedio=minutos+':'+segundos;
+				objetoTiempos.tipo='min';
+				return objetoTiempos;
+			}else{
+				objetoTiempos.promedio=segundos;
+				objetoTiempos.tipo='seg';
+				return objetoTiempos;
+			}
+		}    	
     }
+    
+	function traduceDescartados(razon){
+
+		switch(razon){
+			case 'answered':
+				razon = 'Respondido';
+				//return 'Respondido';
+			break;
+
+			case  'spam':
+				razon = 'Spam';
+				//(return 'Spam';
+			break;
+
+			case 'insult':
+				razon = 'Insulto';
+				//return 'Insulto';
+			break;
+
+			case 'otro':
+				razon = 'Otro';
+				//return 'Otro';
+			break;
+
+			case 'troll':
+				razon = 'Troll';
+				//return 'Troll';
+			break ;
+
+			case 'not-related':
+				razon = 'No Relacionado';
+				//return 'No Relacionado';
+			break;
+
+			case 'campaign':
+				razon = 'Campaña';
+				//return 'Campaña';
+			break;
+
+			case 'other_comments':
+				razon = 'Mediático'; 
+				//return 'Mediático';
+			break;
+			default:
+				//return razon;
+		}
+		return razon;
+
+	} 
+
+	function corrigeFormatoFecha(fecha){
+		if(typeof(fecha) === 'undefined' || fecha === null || fecha === ''){
+			return '';
+		}else{
+			var fechaDate = new Date(fecha);
+			var meses = [];
+			meses[0] = 'Enero';
+			meses[1] = 'Febrero';
+			meses[2] = 'Marzo';
+			meses[3] = 'Abril';
+			meses[4] = 'Mayo';
+			meses[5] = 'Junio';
+			meses[6] = 'Julio';
+			meses[7] = 'Agosto';
+			meses[8] = 'Septiembre';
+			meses[9] = 'Octubre';
+			meses[10] = 'Noviembre';
+			meses[11] = 'Diciembre';
+
+			var obtieneMes = '';
+			var obtieneDia = '';
+			var obtieneAnio = '';
+			var obtieneHora = '';
+			var obtieneMinutos = '';
+			var obtieneSegundos = '';
+			obtieneDia = fechaDate.getDate();
+			obtieneMes = fechaDate.getMonth();
+			obtieneAnio = fechaDate.getFullYear();
+			obtieneHora = fechaDate.getHours();
+			obtieneMinutos = fechaDate.getMinutes();
+			obtieneSegundos = fechaDate.getSeconds();
+			var mes = meses[obtieneMes];
+			if(obtieneDia < 10){
+				obtieneDia = '0'+obtieneDia;
+			}
+
+			if(mes < 10){
+				mes = '0'+mes;
+			}
+			
+			if(obtieneHora < 10){
+				obtieneHora = '0'+obtieneHora;
+			}
+
+			if(obtieneMinutos < 10){
+				obtieneMinutos = '0'+obtieneMinutos;
+			}
+
+			if(obtieneSegundos < 10){
+				obtieneSegundos = '0'+obtieneSegundos;
+			}
+
+			return obtieneDia+'/'+meses[obtieneMes]+'/'+obtieneAnio+' - '+obtieneHora+':'+obtieneMinutos+':'+obtieneSegundos;
+		}
+	}
+
+    function procesaItemCsv(items,index,resultado,cback){
+		var more = index +1;
+		var n = items.length;
+		console.log('Cargando '+index+' de '+n);
+		if(more > n){
+	    	return cback(resultado);
+		}else{
+	    	setImmediate(function(){
+				var obj = {
+		    		tipo: items[index].tipo,
+		    		obj: items[index].obj,
+		    		fecha_llegada: new Date(items[index].created_time),
+		    		respuesta: ''
+				};
+				/* Obteniendo respuesta o respuestas */
+				if(items[index].respuestas){
+		    		for(var i in items[index].respuestas){
+						obj.respuesta += quitaEspeciales(items[index].respuestas[i].texto)+'||';
+		    		}
+		    		obj.status = 'Respondido';
+		    		obj.fecha_respuesta = new Date(items[index].respuestas[0].timestamp);
+		    		var resta = obj.fecha_respuesta.getTime() - obj.fecha_llegada.getTime();
+		    		obj.tiempo_respuesta = ( resta * 0.001 );
+		    		var respuesta = '';
+		    		respuesta = obtieneTiempo(parseInt(obj.tiempo_respuesta));
+		    		obj.tiempo_respuesta = respuesta.promedio+' '+respuesta.tipo; 
+				}
+				/*Obteniendo el status */
+				if(items[index].clasificacion && items[index].sentiment){
+		    		obj.tema = items[index].clasificacion.tema;
+		    		obj.subtema = items[index].clasificacion.subtema;
+		    		obj.sentiment = items[index].sentiment;
+		    		obj.status = 'Clasificado';
+				}
+				if(items[index].clasificacion && items[index].sentiment && items[index].respuestas){
+		    		obj.status = 'Respondido y Clasificado';
+				}
+				if(items[index].descartado){
+		    		obj.razon_descartado = traduceDescartados(items[index].descartado.motivo);
+		    		obj.status = 'Descartado';
+				}
+				if(items[index].atendido){
+		    		obj.status = 'atendido';
+				}
+				/*Obteniendo datos de usuario por tipo de mensaje*/
+				if(items[index].obj === 'facebook'){
+					if(items[index].from){
+			    		obj.nombre_post = items[index].from.name;
+			    		obj.mensaje = quitaEspeciales(items[index].message);
+					}
+					if(items[index].tipo === 'facebook_inbox'){
+						obj.url = 'https://www.facebook.com/'+items[index].from.id;
+					}else if(items[index].tipo === 'comment'){
+						var post = items[index].parent_post.split('_');
+						var id = items[index].id.split('_');
+						obj.url = 'https://www.facebook.com/'+post[0]+'/posts/'+post[1]+'?comment_id='+id[1];
+					}else if(items[index].tipo === 'post'){
+						var idSeparado = items[index].id.split('_');
+						obj.url = 'https://www.facebook.com/'+idSeparado[0]+'/post/'+idSeparado[1];
+					}
+				}
+				if(items[index].obj === 'twitter'){
+		    		if(items[index].tipo === 'direct_message'){
+						obj.nombre_post = items[index].sender.name;
+						obj.url = 'https://twitter.com/' + items[index].sender.screen_name;
+		    		}else{
+						obj.nombre_post = items[index].user.name;
+						obj.url = 'https://twitter.com/' + items[index].user.screen_name;
+		    		}
+		    		obj.mensaje = quitaEspeciales(items[index].text);
+				}
+		
+				if(!obj.status){
+		    		obj.status = 'Sin atender';
+				}
+
+
+				var fechaLlegadaCorregida = corrigeFormatoFecha(obj.fecha_llegada);
+				var fechaRespuestaCorregida = corrigeFormatoFecha(obj.fecha_respuesta);
+				obj.fecha_llegada = fechaLlegadaCorregida;
+				obj.fecha_respuesta = fechaRespuestaCorregida;
+
+				if(obj.fecha_respuesta.length === 0 && items[index].atendido && !items[index].descartado){
+					console.log(items[index].atendido.fecha);
+					obj.fecha_respuesta = new Date(items[index].atendido.fecha);
+					obj.fecha_respuesta = corrigeFormatoFecha(obj.fecha_respuesta);
+					//console.log('No hay fecha de respuesta pero hay clasificacion');
+				}else if(obj.fecha_respuesta.length === 0 && !items[index].atendido && items[index].descartado){
+					console.log(items[index].descartado.fecha);
+					obj.fecha_respuesta = new Date(items[index].descartado.fecha);
+					obj.fecha_respuesta = corrigeFormatoFecha(obj.fecha_respuesta);
+				}else if(obj.fecha_respuesta.length === 0 && items[index].atendido && items[index].descartado){
+					console.log(items[index].atendido.fecha);
+					obj.fecha_respuesta = new Date(items[index].atendido.fecha);
+					obj.fecha_respuesta = corrigeFormatoFecha(obj.fecha_respuesta);
+				}
+				//console.log(obj.fecha_respuesta);
+				//Validación para saber quien atendio
+				if(items[index].atendido){
+					if(items[index].atendido.usuario_nombre){
+						obj.atendidoPor = items[index].atendido.usuario_nombre;
+					}else{
+						if(items[index].clasificacion.user_name){
+							obj.atendidoPor = items[index].clasificacion.user_name;
+						}
+					}
+				}else if(items[index].descartado){
+					obj.atendidoPor  = items[index].descartado.usuario;
+				}
+
+				resultado.push(obj);
+				return procesaItemCsv(items,more,resultado,cback);
+	    	});
+		}
+    }
+
+    getdatoscuenta(req.body.nombreSistema, function(page_id){
+		if(page_id === 'error'){
+	    	criterio = {
+				$and:[
+		    		{'created_time' : {$gte : fecha_inicial}},
+		    		{'created_time' : {$lte : fecha_final}},
+		    		{'tipo':{$exists:true}}
+				]	
+	    	};
+	    	
+	    	classdb.buscarToArray(col, criterio, {}, 'generaCSV/buscar', function(items){
+				if(items === 'error'){
+		    		res.jsonp('error');
+				}else{
+		    		if(items.length > 0){
+						var index = 0;
+						procesaItemCsv(items, index, [], function(data){
+			    			res.jsonp(data);
+						});
+		    		}else{
+						res.jsonp('error');
+		    		}
+				}
+	    	});
+		
+		}else{
+	    	criterio = {
+				$and:[
+		    		{'created_time' : {$gte : fecha_inicial}},
+		    		{'created_time' : {$lte : fecha_final}},
+		    		{'tipo':{$exists:true}},
+		    		{'from_user_id' : {$ne : page_id}}
+				]
+	    	};
+	    	classdb.buscarToArray(col,criterio,{},'generaCSV/buscar', function(items){
+				if(items === 'error'){
+		    		res.jsonp('error');
+				}else{
+		    		if(items.length > 0){
+						var index = 0;
+						procesaItemCsv(items, index, [], function(data){
+			    			res.jsonp(data);
+						});
+		    		}else{
+						res.jsonp('error');
+		    		}
+				}
+	    	});
+		}
+    });
 };
 
 exports.generaArchivo = function(req,res){

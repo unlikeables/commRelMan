@@ -13,92 +13,96 @@ var options_get = {
 };
 
 function condensaLCSs(LCSs, index, suma, callback){
-    var mais = index+1;
-    var cuantoslcs = LCSs.length;
-    if (mais > cuantoslcs) {
-	callback(suma);
-    }
-    else {
-	if (typeof LCSs[index].comments !== 'undefined' && typeof LCSs[index].comments.count !== 'undefined' && LCSs[index].comments.count !== 0) {
-	    suma.comments += LCSs[index].comments.count;
-	    if (typeof LCSs[index].likes !== 'undefined' && typeof LCSs[index].likes.count !== 'undefined' && LCSs[index].likes.count !== 0) {
-		suma.likes += LCSs[index].likes.count;
-		if (typeof LCSs[index].shares !== 'undefined' && typeof LCSs[index].shares.count !== 'undefined' && LCSs[index].shares.count !== 0) {
-		    suma.shares += LCSs[index].shares.count;
-		    return condensaLCSs(LCSs, mais, suma, callback);
-		}
-		else {
-		    // no hacemos nada
-		    return condensaLCSs(LCSs, mais, suma, callback);
-		}
-	    }
-	    else {
-		if (typeof LCSs[index].shares !== 'undefined' && typeof LCSs[index].shares.count !== 'undefined' && LCSs[index].shares.count !== 0) {
-		    suma.shares += LCSs[index].shares.count;
-		    return condensaLCSs(LCSs, mais, suma, callback);
-		}
-		else {
-		    // no hacemos nada
-		    return condensaLCSs(LCSs, mais, suma, callback);
-		}
-	    }
+  var mais = index+1;
+  var cuantoslcs = LCSs.length;
+  if (mais > cuantoslcs) {
+    callback(suma);
+  }
+  else {
+    setImmediate(function(){
+      if (typeof LCSs[index].comments !== 'undefined' && typeof LCSs[index].comments.count !== 'undefined' && LCSs[index].comments.count !== 0) {
+	suma.comments += LCSs[index].comments.count;
+	if (typeof LCSs[index].likes !== 'undefined' && typeof LCSs[index].likes.count !== 'undefined' && LCSs[index].likes.count !== 0) {
+	  suma.likes += LCSs[index].likes.count;
+	  if (typeof LCSs[index].shares !== 'undefined' && typeof LCSs[index].shares.count !== 'undefined' && LCSs[index].shares.count !== 0) {
+	    suma.shares += LCSs[index].shares.count;
+	    return condensaLCSs(LCSs, mais, suma, callback);
+	  }
+	  else {
+	    // no hacemos nada
+	    return condensaLCSs(LCSs, mais, suma, callback);
+	  }
 	}
 	else {
-	    if (typeof LCSs[index].likes !== 'undefined' && typeof LCSs[index].likes.count !== 'undefined' && LCSs[index].likes.count !== 0) {
-		suma.likes += LCSs[index].likes.count;
-		if (typeof LCSs[index].shares !== 'undefined' && typeof LCSs[index].shares.count !== 'undefined' && LCSs[index].shares.count !== 0) {
-		    suma.shares += LCSs[index].shares.count;
-		    return condensaLCSs(LCSs, mais, suma, callback);
-		}
-		else {
-		    // no hacemos nada
-		    return condensaLCSs(LCSs, mais, suma, callback);
-		}
-	    }
-	    else {
-		if (typeof LCSs[index].shares !== 'undefined' && typeof LCSs[index].shares.count !== 'undefined' && LCSs[index].shares.count !== 0) {
-		    suma.shares += LCSs[index].shares.count;
-		    return condensaLCSs(LCSs, mais, suma, callback);
-		}
-		else {
-		    // no hacemos nada
-		    return condensaLCSs(LCSs, mais, suma, callback);
-		}
-	    }
+	  if (typeof LCSs[index].shares !== 'undefined' && typeof LCSs[index].shares.count !== 'undefined' && LCSs[index].shares.count !== 0) {
+	    suma.shares += LCSs[index].shares.count;
+	    return condensaLCSs(LCSs, mais, suma, callback);
+	  }
+	  else {
+	    // no hacemos nada
+	    return condensaLCSs(LCSs, mais, suma, callback);
+	  }
 	}
-    }
+      }
+      else {
+	if (typeof LCSs[index].likes !== 'undefined' && typeof LCSs[index].likes.count !== 'undefined' && LCSs[index].likes.count !== 0) {
+	  suma.likes += LCSs[index].likes.count;
+	  if (typeof LCSs[index].shares !== 'undefined' && typeof LCSs[index].shares.count !== 'undefined' && LCSs[index].shares.count !== 0) {
+	    suma.shares += LCSs[index].shares.count;
+	    return condensaLCSs(LCSs, mais, suma, callback);
+	  }
+	  else {
+	    // no hacemos nada
+	    return condensaLCSs(LCSs, mais, suma, callback);
+	  }
+	}
+	else {
+	  if (typeof LCSs[index].shares !== 'undefined' && typeof LCSs[index].shares.count !== 'undefined' && LCSs[index].shares.count !== 0) {
+	    suma.shares += LCSs[index].shares.count;
+	    return condensaLCSs(LCSs, mais, suma, callback);
+	  }
+	  else {
+	    // no hacemos nada
+	    return condensaLCSs(LCSs, mais, suma, callback);
+	  }
+	}
+      }
+    });
+  }
 };
 
 function condensaRcFcs(RcFcs, index, suma, callback) {
-    var mais = index+1;
-    var cuantosrcfcs = RcFcs.length;
-    if (mais > cuantosrcfcs) {
-	callback(suma);
-    }
-    else {
-	if (typeof RcFcs[index].retweet_count !== 'undefined' && RcFcs[index].retweet_count !== 0) {
-	    suma.rt_count += RcFcs[index].retweet_count;
-	    if (typeof RcFcs[index].favorite_count !== 'undefined' && RcFcs[index].favorite_count !== 0) {
-		suma.fv_count += RcFcs[index].favorite_count;
-		return condensaRcFcs(RcFcs, mais, suma, callback);
-	    }
-	    else {
-		// no hacemos nada
-		return condensaRcFcs(RcFcs, mais, suma, callback);
-	    }
+  var mais = index+1;
+  var cuantosrcfcs = RcFcs.length;
+  if (mais > cuantosrcfcs) {
+    callback(suma);
+  }
+  else {
+    setImmediate(function(){
+      if (typeof RcFcs[index].retweet_count !== 'undefined' && RcFcs[index].retweet_count !== 0) {
+	suma.rt_count += RcFcs[index].retweet_count;
+	if (typeof RcFcs[index].favorite_count !== 'undefined' && RcFcs[index].favorite_count !== 0) {
+	  suma.fv_count += RcFcs[index].favorite_count;
+	  return condensaRcFcs(RcFcs, mais, suma, callback);
 	}
 	else {
-	    // no tiene retweet_count
-	    if (typeof RcFcs[index].favorite_count !== 'undefined' && RcFcs[index].favorite_count !== 0) {
-		suma.fv_count += RcFcs[index].favorite_count;
-		return condensaRcFcs(RcFcs, mais, suma, callback);
-	    }
-	    else {
-		// no hacemos nada
-		return condensaRcFcs(RcFcs, mais, suma, callback);
-	    }
+	  // no hacemos nada
+	  return condensaRcFcs(RcFcs, mais, suma, callback);
 	}
-    }
+      }
+      else {
+	// no tiene retweet_count
+	if (typeof RcFcs[index].favorite_count !== 'undefined' && RcFcs[index].favorite_count !== 0) {
+	  suma.fv_count += RcFcs[index].favorite_count;
+	  return condensaRcFcs(RcFcs, mais, suma, callback);
+	}
+	else {
+	  // no hacemos nada
+	  return condensaRcFcs(RcFcs, mais, suma, callback);
+	}
+      }
+    });
+  }
 };
 
 
@@ -202,95 +206,97 @@ function obtenRcFcs(cuenta, followers, tweets, favs, callback) {
 };
 
 function iteraCuentas(cuentas, index, callback) {
-    var more = index+1;
-    var cuantasc = cuentas.length;
-    if (more > cuantasc) {
-	return callback('ok');
-    }
-    else {
-	// console.log(cuentas[index].nombreSistema);
-	if (typeof cuentas[index].datosPage !== 'undefined') {
-	    // console.log('tieneDatosPage');
-	    classdb.buscarToArray(cuentas[index].nombreSistema+'_fans_ahora', {}, {}, 'escuchadores/cron_crecimiento/iteraCuentas', function(items) {
-		var fans = 0;
-		if (items !== 'error' && typeof items[0] !== 'undefined') {
-		    fans = items[0].fans;
+  var more = index+1;
+  var cuantasc = cuentas.length;
+  if (more > cuantasc) {
+    return callback('ok');
+  }
+  else {
+    setImmediate(function(){
+      // console.log(cuentas[index].nombreSistema);
+      if (typeof cuentas[index].datosPage !== 'undefined') {
+	// console.log('tieneDatosPage');
+	classdb.buscarToArray(cuentas[index].nombreSistema+'_fans_ahora', {}, {}, 'escuchadores/cron_crecimiento/iteraCuentas', function(items) {
+	  var fans = 0;
+	  if (items !== 'error' && typeof items[0] !== 'undefined') {
+	    fans = items[0].fans;
+	  }
+	  obtenLCS(cuentas[index].nombreSistema, fans, function(yup){
+	    if (typeof cuentas[index].datosTwitter !== 'undefined') {
+	      // console.log('tieneTwitter');
+	      classdb.buscarToArray(cuentas[index].nombreSistema+'_twitter_data_ahora', {}, {}, 'escuchadores/cron_crecimiento/iteraCuentas', function(td){
+		var followers = 0, tweets = 0, favorites = 0;
+		if (td !== 'error') {
+		  followers = td[0].followers; tweets = td[0].tweets; favorites = td[0].favorites;
 		}
-		obtenLCS(cuentas[index].nombreSistema, fans, function(yup){
-		    if (typeof cuentas[index].datosTwitter !== 'undefined') {
-			// console.log('tieneTwitter');
-			classdb.buscarToArray(cuentas[index].nombreSistema+'_twitter_data_ahora', {}, {}, 'escuchadores/cron_crecimiento/iteraCuentas', function(td){
-			    var followers = 0, tweets = 0, favorites = 0;
-			    if (td !== 'error') {
-				followers = td[0].followers; tweets = td[0].tweets; favorites = td[0].favorites;
-			    }
-			    obtenRcFcs(cuentas[index].nombreSistema, followers, tweets, favorites, function(yep){
-				return iteraCuentas(cuentas, more, callback);				
-			    });
-			});
-		    }
-		    else {
-			return iteraCuentas(cuentas, more, callback);
-		    }
+		obtenRcFcs(cuentas[index].nombreSistema, followers, tweets, favorites, function(yep){
+		  return iteraCuentas(cuentas, more, callback);				
 		});
-	    });
-	}
-	else {
-	    if (typeof cuentas[index].datosMonitoreo !== 'undefined') {
-		// console.log('tieneMonitoreo');
-		classdb.buscarToArray(cuentas[index].nombreSistema+'_fans_ahora', {}, {}, 'escuchadores/cron_crecimiento/iteraCuentas', function(items) {
-		    var fans = 0;
-		    if (items !== 'error' && typeof items[0] !== 'undefined') {
-			fans = items[0].fans;
-		    }
-		    obtenLCS(cuentas[index].nombreSistema, fans, function(yup){
-			if (typeof cuentas[index].datosTwitter !== 'undefined') {
-			    // console.log('tieneTwitter');
-			    classdb.buscarToArray(cuentas[index].nombreSistema+'_twitter_data_ahora', {}, {}, 'escuchadores/cron_crecimiento/iteraCuentas', function(td){
-				var followers = 0, tweets = 0, favorites = 0;
-				if (td !== 'error') {
-				    if (typeof td[0] !== 'undefined') {
-					if (typeof td[0].followers !== 'undefined') {
-					    followers = td[0].followers; 
-					}
-					if (typeof td[0].tweets !== 'undefined') {
-					    tweets = td[0].tweets; 
-					}
-					if (typeof td[0].favorites !== 'undefined') {
-					    favorites = td[0].favorites;
-					}
-				    }
-				}
-				obtenRcFcs(cuentas[index].nombreSistema, followers, tweets, favorites, function(yep){
-				    return iteraCuentas(cuentas, more, callback);				
-				});				
-			    });
-			}
-			else {
-			    return iteraCuentas(cuentas, more, callback);				
-			}
-		    });
-		});
-	    }	 
-	    else {
-		if (typeof cuentas[index].datosTwitter !== 'undefined') {
-		    // console.log('tieneTwitter');
-		    classdb.buscarToArray(cuentas[index].nombreSistema+'_twitter_data_ahora', {}, {}, 'escuchadores/cron_crecimiento/iteraCuentas', function(td){
-			var followers = 0, tweets = 0, favorites = 0;
-			if (td !== 'error') {
-			    followers = td[0].followers; tweets = td[0].tweets; favorites = td[0].favorites;
-			}
-			obtenRcFcs(cuentas[index].nombreSistema, followers, tweets, favorites, function(yep){
-			    return iteraCuentas(cuentas, more, callback);				
-			});				
-		    });
-		}
-		else {
-		    return iteraCuentas(cuentas, more, callback);				
-		}
+	      });
 	    }
+	    else {
+	      return iteraCuentas(cuentas, more, callback);
+	    }
+	  });
+	});
+      }
+      else {
+	if (typeof cuentas[index].datosMonitoreo !== 'undefined') {
+	  // console.log('tieneMonitoreo');
+	  classdb.buscarToArray(cuentas[index].nombreSistema+'_fans_ahora', {}, {}, 'escuchadores/cron_crecimiento/iteraCuentas', function(items) {
+	    var fans = 0;
+	    if (items !== 'error' && typeof items[0] !== 'undefined') {
+	      fans = items[0].fans;
+	    }
+	    obtenLCS(cuentas[index].nombreSistema, fans, function(yup){
+	      if (typeof cuentas[index].datosTwitter !== 'undefined') {
+		// console.log('tieneTwitter');
+		classdb.buscarToArray(cuentas[index].nombreSistema+'_twitter_data_ahora', {}, {}, 'escuchadores/cron_crecimiento/iteraCuentas', function(td){
+		  var followers = 0, tweets = 0, favorites = 0;
+		  if (td !== 'error') {
+		    if (typeof td[0] !== 'undefined') {
+		      if (typeof td[0].followers !== 'undefined') {
+			followers = td[0].followers; 
+		      }
+		      if (typeof td[0].tweets !== 'undefined') {
+			tweets = td[0].tweets; 
+		      }
+		      if (typeof td[0].favorites !== 'undefined') {
+			favorites = td[0].favorites;
+		      }
+		    }
+		  }
+		  obtenRcFcs(cuentas[index].nombreSistema, followers, tweets, favorites, function(yep){
+		    return iteraCuentas(cuentas, more, callback);				
+		  });				
+		});
+	      }
+	      else {
+		return iteraCuentas(cuentas, more, callback);				
+	      }
+	    });
+	  });
+	}	 
+	else {
+	  if (typeof cuentas[index].datosTwitter !== 'undefined') {
+	    // console.log('tieneTwitter');
+	    classdb.buscarToArray(cuentas[index].nombreSistema+'_twitter_data_ahora', {}, {}, 'escuchadores/cron_crecimiento/iteraCuentas', function(td){
+	      var followers = 0, tweets = 0, favorites = 0;
+	      if (td !== 'error') {
+		followers = td[0].followers; tweets = td[0].tweets; favorites = td[0].favorites;
+	      }
+	      obtenRcFcs(cuentas[index].nombreSistema, followers, tweets, favorites, function(yep){
+		return iteraCuentas(cuentas, more, callback);				
+	      });				
+	    });
+	  }
+	  else {
+	    return iteraCuentas(cuentas, more, callback);				
+	  }
 	}
-    }
+      }
+    });
+  }
 };
 
 function obtieneCrecimientos() {
