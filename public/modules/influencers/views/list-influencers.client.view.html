@@ -3,299 +3,196 @@
 </style>
 <!--Header-->
 <div class="pure-u-md-1-1 header" data-ng-controller="SettingsController">
-	<div id="facebook-connect-header" data-ng-show="!statusLoginFacebook2"><a href="{{constant.host}}/auth/facebook"><img src="/modules/core/img/facebook-login-header.svg" /></a></div>
+	<div id="facebook-connect-header" data-ng-show="!statusLoginFacebook2">
+		<a href="https://{{constant.host}}/auth/facebook"><img src="/modules/core/img/facebook-login-header.svg" /></a>
+	</div>
 	<div id="facebook-cuenta-usuario" data-ng-show="statusLoginFacebook2">
 		<div class="imagen perfil-circular" style=" width: 40px; height: 40px; background-image: url(https://graph.facebook.com/{{authentication.user.additionalProvidersData.facebook.id}}/picture?type=square);background-size: cover; background-position: center;">
 			&nbsp;
 		</div>
 		<ul>
-			<li><a data-ng-click="removeUserSocialAccount('facebook')">Cerrar Sesión</a></li>
+			<li>
+				<a data-ng-click="removeUserSocialAccount('facebook')">Cerrar Sesión</a>
+			</li>
 		</ul>
 	</div>
     <div class="pure-u-md-1-1 border-inf-blanco bg-azul1" style="position:relative;">  
-
-        <div class="pure-u-md-4-24 pure-u-sm-1-1 izq" data-ng-include="'modules/core/views/notificacion.html'">
-        </div>  
-
-
-<div class="pure-u-md-20-24 pure-u-sm-1-1 titulo-seccion izq" align="center">
-   <p class="txt-blanco negrita" style="opacity: .5;" translate>INFLUENCERS</p>
+        <div class="pure-u-md-4-24 pure-u-sm-1-1 izq" data-ng-include="'modules/core/views/notificacion.html'"></div>  
+		<div class="pure-u-md-20-24 pure-u-sm-1-1 titulo-seccion izq" align="center">
+   			<p class="txt-blanco negrita" style="opacity: .5;" translate>INFLUENCERS</p>
+		</div>
+    </div>
 </div>
-
-      
-    </div>
-    </div>
 <!--Finalizar header-->
+
 <div class="pure-u-md-1-1" id="contenedor-completo">
-<!--Llamada del side-->
-  <div class="pure-u-md-4-24 pure-u-sm-1-1 border-interno-der" id="lateral">
-    <div data-ng-include="'/modules/core/views/side.html'"></div>
-  </div>
-
-<div style="border-top:solid 1px #fff;" class="pure-u-md-20-24 border-interno-der alto-100 contenedorTemas" data-ng-controller="InfluencersController" data-ng-init="find()">
-<div class="pure-u-md-4-24 pure-u-sm-1-1 border-interno-der alto-100-interno izq" style="height:100% !important; /*position:fixed;*/height: 100%; background-color:#DEE3EC; overflow: auto; padding-bottom: 50px;">
-    <ul class="menu-lateral-cuentas enlaces-izq alto-100" ng-init="getInfluencers()">
-
-<!--listado-->
-        <li class="tamanioDefinido" ng-repeat="influencer in influencers" ng-class="{active:influencer.username===username}"> 
-
-<div style="width: 100%; margin:0px; float:left;display:block;">
-	<div ng-click="informacionInfluencer(influencer)" ng-dblclick="activaForm(influencer.idUser)" style="display:block;float:left; width: 20%; margin-left:4%; margin-right: 2%; padding-top: 8px;">
-		<img src="/modules/core/img/usuario-sem-imagem.png" class="circular-ligero" style="width:40px; height:40px; max-width:1000px; margin-left:auto; margin-top:2px; margin-right: auto;" ng-hide="influencer.imagen_influencer.length>0" class="cursor"/>
-		<img src="{{influencer.imagen_influencer}}" class="circular-ligero" style="width:40px; height:40px; max-width:1000px; margin-left:auto; margin-top:2px; margin-right: auto;" ng-show="influencer.imagen_influencer.length>0" class="cursor"/>
-	</div>
-	<div ng-click="informacionInfluencer(influencer)" ng-dblclick="activaForm(influencer.idUser)" style="display:block;float:left; width: 55%; padding-top: 22px;" class="cursor">
-                <a class="light tamanioGeneralLetra txt-izq" style="padding:0px;">
-                    {{influencer.nombre+' '+influencer.apellidos}}
-                </a>		
-	</div>
-	<div style="display:block;float:left; width: 10%; margin-left: 8%; padding-top: 22px;">
-		    <a name="borrar_cuenta" class="borrar activate_modal cursor"  style="" data-ng-controller="ModalInfluencers" ng-click="open(influencer.idUser)"></a>
-	</div>
-</div>
-
-
-        </li>
-
-<!--listado-->         
-                                   
-
-        <li class="tamanioDefinido cursor" ng-show="authentication.user.roles[0]=='app-manager' || authentication.user.roles[0]=='account-manager'">
-            <a data-ng-controller="ModalInfluencers" data-ng-click="openNuevo('{{influencer}}')" class="mas activate_modal hoverMas" style="margin-left:0px !important;" name="nueva_cuenta"></a>
-        </li>
-
-    </ul>
-
-
-
-</div>
-<div class="pure-u-md-20-24 pure-u-sm-1-1 izq caja-form-influencer" style="/*position: absolute;left: 20%;width: 80%;*/" ng-show="username.length>0">
-<!--contenido derecha-->
-
-<div class="pure-u-md-1-1">
-		<div class="pure-u-md-1-3 pure-u-sm-1-1">
-
-	&nbsp;
-
-	</div>
-
-<div class="pure-u-md-1-3 pure-u-sm-1-1" style="position:relative;">
-<div class="historial-usuario pure-u-md-1-1 izq" align="center">
-<div class="foto" style=" padding-bottom: 10px;"><img src="{{imagen_influencer?imagen_influencer:'/modules/core/img/usuario-sem-imagem.png'}}" class="circular" style="width:120px; height: 120px; max-width: 10000;"/></div>
-<h3 class="negrita tituloCuenta" style="margin-top: 0px;margin-bottom: 19px">{{nombreCompleto}}</h3>
-<p class="txt-centro nombreCuenta" style="position:relative;font-size: 18px;" ng-show="username.length>0">@{{username}}<!--<img src="modules/core/img/claro.png" style="position:absolute; top:20px;  right: 54px; top: -60px;">--></p>
-
-</div>
-</div>
-
-	<div class="pure-u-md-1-3 pure-u-sm-1-1">
-
-		&nbsp;
-
-	</div>
-</div>
-
-	<div class="pure-u-md-1-1 pure-u-sm-1-1" style="padding-top:30px;">
-
-<form class="form-1" ng-submit="guardaDatos()" style="width: 100%;">
-
-	<div class="pure-u-md-1-2 pure-u-sm-1-1 izq">
-		
-		<div class="pure-u-md-1-1 pure-u-sm-1-1">
-
-		<label translate>First Name</label>
-		<input type="text" style="color: #9B9B9B;" ng-model="nombre" placeholder=""  onClick="this.select();"/>			
-
+	<!--Llamada del side-->
+	<div class="pure-u-md-4-24 pure-u-sm-1-1 border-interno-der" id="lateral">
+    	<div data-ng-include="'/modules/core/views/side.html'"></div>
+  	</div>
+  
+	<div style="border-top:solid 1px #fff;" class="pure-u-md-20-24 border-interno-der alto-100 contenedorTemas" data-ng-controller="InfluencersController" data-ng-init="find(); obtieneCuenta();">
+		<!--Rango de influencers-->
+		<div style="background-color:#DEE3EC;">
+			<div ovts-slider='' style="width:90%; height:100px; margin:0 auto;padding-top:10px;" model='cuenta.rango_influencers' ovts-slider-options='{label: "Rango Influencers", valueSuffix: "", min:"5000", max:"1000000"}'></div>
 		</div>
-		
-		<div class="pure-u-md-1-1">
-			<label translate>Industry</label>
-			<select id="categoria" name="categoria" data-ng-model="categoria" >			
-				<option data-ng-repeat="i in listaIndustry" value="{{i}}">{{i | translate}}</option>
-			</select>
+		<div class="pure-u-md-4-24 pure-u-sm-1-1 border-interno-der alto-100-interno izq" style="height:100% !important;height: 100%; background-color:#DEE3EC; overflow: auto; padding-bottom: 50px;">
+    		<ul class="menu-lateral-cuentas enlaces-izq alto-100" ng-init="getInfluencers()">
+        		<li class="tamanioDefinido" ng-repeat="influencer in influencers" ng-class="{active:influencer.username===username}"> 
+					<div style="width: 100%; margin:0px; float:left;display:block;">
+						<div ng-click="informacionInfluencer(influencer)" ng-dblclick="activaForm(influencer.idUser)" style="display:block;float:left; width: 20%; margin-left:4%; margin-right: 2%; padding-top: 8px;">
+							<img ng-src="{{influencer.imagen_influencer}}" class="circular-ligero" style="width:40px; height:40px; max-width:1000px; margin-left:auto; margin-top:2px; margin-right: auto;" fallback-src="/modules/core/img/usuario-sem-imagem.png" class="cursor"/>
+						</div>
+						<!--ng-dblclick="activaForm(influencer.idUser)"-->
+						<div ng-click="informacionInfluencer(influencer)" style="display:block;float:left; width: 55%; padding-top: 22px;" class="cursor">
+                			<a class="light tamanioGeneralLetra txt-izq" style="padding:0px;">
+                    			{{influencer.nombre+' '+influencer.apellidos}}
+                			</a>		
+						</div>
+						<div style="display:block;float:left; width: 10%; margin-left: 8%; padding-top: 22px;">
+		    				<a name="borrar_cuenta" class="borrar activate_modal cursor"  style="" data-ng-controller="ModalInfluencers" ng-click="open(influencer.idUser)"></a>
+						</div>
+					</div>
+        		</li>
+        		<li class="tamanioDefinido cursor" ng-show="authentication.user.roles[0]=='app-manager' || authentication.user.roles[0]=='account-manager'">
+            		<a data-ng-controller="ModalInfluencers" data-ng-click="openNuevo('{{influencer}}')" class="mas activate_modal hoverMas" style="margin-left:0px !important;" name="nueva_cuenta"></a>
+        		</li>
+    		</ul>
+		</div>
+		<div class="pure-u-md-20-24 pure-u-sm-1-1 izq caja-form-influencer" style="/*position: absolute;left: 20%;width: 80%;*/" ng-show="username.length>0">
+			<div class="pure-u-md-1-1">
+				<div class="pure-u-md-1-3 pure-u-sm-1-1">&nbsp;</div>
+				<div class="pure-u-md-1-3 pure-u-sm-1-1" style="position:relative;">
+					<div class="historial-usuario pure-u-md-1-1 izq" align="center">
+						<div class="foto" style=" padding-bottom: 10px;">
+							<img ng-src="{{imagen_influencer}}" class="circular" style="width:120px; height: 120px; max-width: 10000;" fallback-src="/modules/core/img/usuario-sem-imagem.png"/>
+						</div>
+						<h3 class="negrita tituloCuenta" style="margin-top: 0px;margin-bottom: 19px">{{nombreCompleto}}</h3>
+						<p class="txt-centro nombreCuenta" style="position:relative;font-size: 18px;" ng-show="username.length>0">@{{username}}</p>
+					</div>
+				</div>
+				<div class="pure-u-md-1-3 pure-u-sm-1-1">&nbsp;</div>
+			</div>
+			<div class="pure-u-md-1-1 pure-u-sm-1-1">
+				<form class="form-1" ng-submit="guardaDatos()" style="width: 100%;">
+					<div class="pure-u-md-1-2 pure-u-sm-1-1 izq">
+						<div class="pure-u-md-1-1 pure-u-sm-1-1">
+							<label translate>First Name</label>
+							<input type="text" style="color: #9B9B9B;" ng-model="nombre" placeholder=""  onClick="this.select();"/>			
+						</div>
+						<div class="pure-u-md-1-1">
+							<label translate>Industry</label>
+							<select id="categoria" name="categoria" data-ng-model="categoria" >			
+								<option data-ng-repeat="i in listaIndustry" value="{{i}}">{{i | translate}}</option>
+							</select>
+						</div>
+					</div>
+					<div class="pure-u-md-1-2 izq pure-u-sm-1-1 ">
+						<div class="pure-u-md-1-1">
+							<label translate>Last Name</label>
+							<input type="text" value="Mendoza" style="color: #9B9B9B;" ng-model="apellido" placeholder=""  onClick="this.select();"/>			
+						</div>
+						<div class="pure-u-md-1-1">
+							<label translate>Username (twitter)</label>
+							<input type="text" value="Usuario" style="color: #9B9B9B;" disabled="disabled" ng-model="username" placeholder=""/>
+						</div>	
+					</div>
+					<div class="pure-u-md-1-1 pure-u-sm-1-1 " align="center">
+						<label translate style="margin:0px; width:23%;">Description</label>
+						<div style="clear:both;;"></div>
+						<textarea data-ng-model="descripcion" data-ng-model="descripcion" onClick="this.select();"  name="descripcion" id="descripcion" placeholder="Opcional" style="height: 100px;width: 85%; border: solid 1px #465769;"/></textarea>
+					</div>
+					<div>
+						<!--ng-show="idInf==idEdicion"   ng-show="idInf.toString().length>0"-->
+						<div class="pure-u-md-1-1 pure-u-sm-1-1 " style="padding-top: 20px; padding-bottom: 50px;">
+							<button type="submit" class="der btn btn-guardar" style="width: 150px; margin-right: 7.5%;" translate>Accept</button>
+							<!--<button class="der btn btn-cancelar" ng-click="desactivaForm()" style="width: 120px; margin-right: 20px;" translate>Cancel</button>-->
+						</div>
+					</div>
+				</form>
+			</div>
 		</div>
 	</div>
-	
-	
-	<div class="pure-u-md-1-2 izq pure-u-sm-1-1 ">
-				<div class="pure-u-md-1-1">
-
-		<label translate>Last Name</label>
-		<input type="text" value="Mendoza" style="color: #9B9B9B;" ng-model="apellido" placeholder=""  onClick="this.select();"/>			
-
-		</div>
-		
-
-		<div class="pure-u-md-1-1">
-			<label translate>Username (twitter)</label>
-
-			
-			<input type="text" value="Usuario" style="color: #9B9B9B;" disabled="disabled" ng-model="username" placeholder=""/>
-
-		</div>	
-		
-		
-	
-			
-	</div>
-
-		<div class="pure-u-md-1-1 pure-u-sm-1-1 " align="center">
-			<label translate style="margin:0px; width:23%;">Description</label>
-			<div style="clear:both;;"></div>
-			<textarea data-ng-model="descripcion" data-ng-model="descripcion" onClick="this.select();"  name="descripcion" id="descripcion" placeholder="Opcional" style="height: 100px;width: 85%; border: solid 1px #465769;"/></textarea>
-			<!--<input type="text" data-ng-model="descripcion" onClick="this.select();" placeholder="Opcional"/>-->
-		</div>		
-
-<div ng-show="idInf.toString().length>0">
-	<div class="pure-u-md-1-1 pure-u-sm-1-1 " style="padding-top: 100px; padding-bottom: 50px;" ng-show="idInf==idEdicion" >
-		<button type="submit" class="der btn btn-guardar" style="width: 150px; margin-right: 7.5%;" translate>Accept</button>
-		<button class="der btn btn-cancelar" ng-click="desactivaForm()" style="width: 120px; margin-right: 20px;" translate>Cancel</button>
-	</div>
-</div>
-	
-		
-</form>
-				
-
-	</div>
-    
-<!--contenido derecha-->
-</div>
-</div>
 </div>
 
-
-<!--emergentes-->
-
-<!--nueva-->
-    <script type="text/ng-template" id="nuevoInfluencers.html">
-
-<div class="pure-g" ng-controller="InfluencersController">
+<script type="text/ng-template" id="nuevoInfluencers.html">
+	<div class="pure-g" ng-controller="InfluencersController">
         <div ng-show="muestraBarra" style="width:100%; background-color:white;position:absolute;height:100%; opacity:0.9;">
             <div style="margin-top:25%;">
                 <center>
-                <div id="muestraLoading" align="center">
-                  <link rel="stylesheet" href="/modules/core/css/spinners.css" type="text/css">
-                    <div class="loader" align="center">
-                        <div class="signal"></div>
-                          
-                    </div>      
-                </div>
+                	<div id="muestraLoading" align="center">
+                    	<div class="loader" align="center">
+                        	<div class="signal"></div>
+                    	</div>      
+                	</div>
                 </center>
             </div>
         </div>
-<div style="padding-bottom:30px;padding-top: 20px; padding-left: 20px; padding-right: 20px;">        
-
-<div align="center" class="pure-u-md-1-1">
-<h3 style=" line-height:0px;"><strong translate>Add Influencer</strong></h3>	
-</div>
-
-<div class="pure-u-md-1-1" data-ng-if="mensajeErrores" align="center">
-	<p class="txt-error txt-centro">
-		{{mensajeErrores}}
-	</p>
-</div>
-
-
-<form class="form-4 izq" name="form1" id="form1" ng-submit="guardaInfluencer()" style="padding-top: 30px;">
-
-	<div class="pure-u-md-1-2 izq" >
-		
-
-		<div class="pure-u-md-1-1 izq">
-		<label style="margin: 0px; margin-left: 16px;" translate>First Name</label>
-		<input type="text" name="nombre" id="nombre" data-ng-model="nombre" placeholder="Nombre" ng-class="{'error': errorNombre}"/>
-
-		 <!--<span data-ng-if="errorNombre" class="txt-error">{{errorNombre}}</span>-->			
-		</div>
-
-		
-			<div class="pure-u-md-1-1 izq">
-				
-				
-				
-		<label style="margin: 0px; margin-left: 16px;" translate>Industry</label>
-		<select id="categoria" name="categoria" ng-init="categoria=''" data-ng-model="categoria"  style="background-color: #fff;"  ng-class="{'error': errorCategoria}">
-			<option data-ng-repeat="i in listaIndustry" value="{{i}}">{{i | translate}}</option>
-		</select>
-		<!--<span data-ng-if="errorCategoria" class="txt-error">{{errorCategoria}}</span>-->
-		</div>
-		
-	
-
-	</div>
-	
-	
-	<div class="pure-u-md-1-2 izq">
-
+		<div style="padding-bottom:30px;padding-top: 20px; padding-left: 20px; padding-right: 20px;">        
+			<div align="center" class="pure-u-md-1-1">
+				<h3 style=" line-height:0px;"><strong translate>Add Influencer</strong></h3>	
+			</div>
+			<div class="pure-u-md-1-1" data-ng-if="mensajeErrores" align="center">
+				<p class="txt-error txt-centro">
+					{{mensajeErrores}}
+				</p>
+			</div>
+			<form class="form-4 izq" name="form1" id="form1" ng-submit="guardaInfluencer()" style="padding-top: 30px;">
+				<div class="pure-u-md-1-2 izq" >
+					<div class="pure-u-md-1-1 izq">
+						<label style="margin: 0px; margin-left: 16px;" translate>First Name</label>
+						<input type="text" name="nombre" id="nombre" data-ng-model="nombre" placeholder="Nombre" ng-class="{'error': errorNombre}"/>
+					</div>
+					<div class="pure-u-md-1-1 izq">
+						<label style="margin: 0px; margin-left: 16px;" translate>Industry</label>
+						<select id="categoria" name="categoria" ng-init="categoria=''" data-ng-model="categoria"  style="background-color: #fff;"  ng-class="{'error': errorCategoria}">
+							<option data-ng-repeat="i in listaIndustry" value="{{i}}">{{i | translate}}</option>
+						</select>
+					</div>
+				</div>
+				<div class="pure-u-md-1-2 izq">
+					<div class="pure-u-md-1-1 izq">
+						<label style="margin: 0px; margin-left: 16px;" translate>Last Name</label>
+						<input type="text" name="apellido" id="apellido" data-ng-model="apellido" placeholder="Apellidos" ng-class="{'error': errorApellido}"/>
+					</div>
+					<div class="pure-u-md-1-1 izq">
+						<label style="margin: 0px;margin-left: 16px;" translate>Username</label>
+						<input type="text"  name="username" data-ng-model='username' id="username" placeholder="Solo Twitter" ng-class="{'error': errorUsername}"/>
+					</div>	
+				</div>
 				<div class="pure-u-md-1-1 izq">
-		<label style="margin: 0px; margin-left: 16px;" translate>Last Name</label>
-		<input type="text" name="apellido" id="apellido" data-ng-model="apellido" placeholder="Apellidos" ng-class="{'error': errorApellido}"/>
-
-		 <!--<span data-ng-if="errorApellido" class="txt-error">{{errorApellido}}</span>-->			
+					<label style="margin: 0px;margin-left: 16px;" translate>Description</label>
+					<textarea data-ng-model="descripcion" data-ng-model="descripcion" name="descripcion" id="descripcion" placeholder="Opcional" style="height: 100px;width: 95%;"/></textarea>
+				</div>	
+				<div class="pure-u-md-1-1" style="margin-top:30px;">
+					<div style="width: 420px; margin: 0px auto;">
+						<button type="submit" class="escuchar_influencers_enviar_ btn btn-guardar der" id="enviar" style="width:250px;" translate>Accept</button>
+						<button type="button" ng-controller="ModalInfluencers" class="btn btn-cancelar izq" ng-click="cancel()" style="width:150px;" translate>Cancel</button>
+					</div>
+				</div>		
+			</form>
+			<div class="clear limpiar"></div>				
 		</div>
-		
-
-
-		<div class="pure-u-md-1-1 izq">
-			<label style="margin: 0px;margin-left: 16px;" translate>Username</label>
-			<input type="text"  name="username" data-ng-model='username' id="username" placeholder="Solo Twitter" ng-class="{'error': errorUsername}"/>
-
-			 <!--<span data-ng-if="errorNombreUsuario" class="txt-error">{{errorNombreUsuario}}</span>-->
-		</div>	
-		
-		
-		
-			
 	</div>
-	
-	
-		
-		<div class="pure-u-md-1-1 izq">
-			<label style="margin: 0px;margin-left: 16px;" translate>Description</label>
-			<textarea data-ng-model="descripcion" data-ng-model="descripcion" name="descripcion" id="descripcion" placeholder="Opcional" style="height: 100px;width: 95%;"/></textarea>
-		</div>	
-	
-
-<div class="pure-u-md-1-1" style="margin-top:30px;">
-	<div style="width: 420px; margin: 0px auto;">
-	<button type="submit" class="escuchar_influencers_enviar_ btn btn-guardar der" id="enviar" style="width:250px;" translate>Accept</button>
-	<button type="button" ng-controller="ModalInfluencers" class="btn btn-cancelar izq" ng-click="cancel()" style="width:150px;" translate>Cancel</button>
-	</div>
-</div>		
-</form>
-<div class="clear limpiar"></div>				
-</div>
-
-	</div>
-
-    </script> 
+</script> 
     
-    <!--nueva-->
-
-    <script type="text/ng-template" id="modalInfluencers.html">
-
-        <div align="center">
-        	<div class="pure-u-md-1-1">
-        		 <p style="margin-bottom: 0px;" translate>Are you sure?</p>  
-        		<p class="txt-centro" style="margin-top: 5px;"><small class="txt-rojo" translate>You will not be notified when they message back</small></p>
-        	</div>
-       		<div class="pure-u-md-1-1">
-       			
-<table width="100%" class="tabla-botones-acciones-basicas">
-<tr>
-<td><button ng-click="cancel()" ng-controller="ModalInfluencers" class="btn btn-cancelar der" translate>Cancel</button></td>
-<td><button class="btn btn-guardar izq" ng-click="eliminaInfluencer('{{influencer.idUser}}')" translate>Accept</button></td>
-</tr>
-</table>       			
-       			
-             
-                    			
-       		</div>
-           
-
-           
+<script type="text/ng-template" id="modalInfluencers.html">
+    <div align="center">
+    	<div class="pure-u-md-1-1">
+        	<p style="margin-bottom: 0px;" translate>Are you sure?</p>  
+        	<p class="txt-centro" style="margin-top: 5px;"><small class="txt-rojo" translate>You will not be notified when they message back</small></p>
+        </div>
+       	<div class="pure-u-md-1-1">		
+			<table width="100%" class="tabla-botones-acciones-basicas">
+				<tr>
+					<td>
+						<button ng-click="cancel()" ng-controller="ModalInfluencers" class="btn btn-cancelar der" translate>Cancel</button>
+					</td>
+					<td>
+						<button class="btn btn-guardar izq" ng-click="eliminaInfluencer('{{influencer.idUser}}')" translate>Accept</button>
+					</td>
+				</tr>
+			</table>     			
+       	</div>   
     </div> 
-
-    </script> 
-
+</script> 

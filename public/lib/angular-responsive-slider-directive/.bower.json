@@ -1,0 +1,38 @@
+{
+  "name": "angular-responsive-slider-directive",
+  "version": "1.0.0",
+  "homepage": "https://github.com/viewthespace/angular-responsive-slider-directive",
+  "authors": [
+    "Ian Forsyth <ian@ianforsyth.com>"
+  ],
+  "description": "A responsive angular slider directive. Supports custom ranges, step, labels, and styles.",
+  "main": "src/js/angular-responsive-slider-directive.js",
+  "keywords": [
+    "angular",
+    "responsive",
+    "slider",
+    "vts"
+  ],
+  "license": "MIT",
+  "private": false,
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "index.html"
+  ],
+  "dependencies": {
+    "angular": "latest"
+  },
+  "_release": "1.0.0",
+  "_resolution": {
+    "type": "version",
+    "tag": "v1.0.0",
+    "commit": "de115ef29f19cdb7301d332fb8b5d69e1dd3fb2c"
+  },
+  "_source": "git://github.com/viewthespace/angular-responsive-slider-directive.git",
+  "_target": "~1.0.0",
+  "_originalSource": "angular-responsive-slider-directive",
+  "_direct": true
+}

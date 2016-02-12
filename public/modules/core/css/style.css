@@ -1639,7 +1639,7 @@ ul.menu-lateral-temas li a.mas:hover {
 
 .listado-mensajes > li.no-leido{
 	/*background-color: #EBEEF3;*/
-	border:solid 1px #465769;
+	border:solid 2px #465769;
 }
 .asignado{
   border: 2px solid #0DBEC8 !important;
@@ -2609,6 +2609,7 @@ border-radius:3px;
 .lista-comentarios-detalle > li .caritas ul li {
   display: block;
   float: left;
+  margin-right: 4px;
 }
 
 .menu-temas {
@@ -2762,27 +2763,55 @@ z-index: 10;
 .letraNegra{color: black;}
 .letraBlanca{color: white;}
 /*+-+-+-+-+-+-+-+-+-+-+-++-+-+-+-+ CARITAS BUZON +-+-+-+-+-+-+-+-+-+-+-+-+-+-++-+-*/
-.positivo, .neutro, .negativo{
-	/*height: 25px;
-	width: 27px;*/
+.positivo{
 	width:33px;
 	height:33px;
 	cursor: pointer;	/*transition: all 0.5s;*/
 	background-repeat: no-repeat;
-	/*background-image:url(../img/caritas-sprite.png);*/
-	background-image:url(../img/caritas-sentiment.png);
-	margin:0px 1px;
+	background-image:url(../img/caritas/conversacion/positivo_inactivo_1.png);
+  background-size: cover;
 	}
-/*NORMAL*/
-.positivo{/*background-position:0px 0px;*/ background-position:0px -36px;}
-.neutro{/*background-position:-30px 0px;*/ background-position:-33px -36px;}
-.negativo{/*background-position: -59px 0px;*/ background-position:-66px -36px;}
-/*NORMAL*/
-/*HOVER*/
-.positivo:hover,.positivo-activo{/*background-position:0px -27px;*/background-position: 0px -3px;}
-.neutro:hover,.neutro-activo{/*background-position:-30px -27px;*/background-position: -33px -3px;}
-.negativo:hover,.negativo-activo{/*background-position: -59px -27px;*/ background-position: -66px -3px;}
-/*HOVER*/
+.neutro{
+  width:33px;
+  height:33px;
+  cursor: pointer;  /*transition: all 0.5s;*/
+  background-repeat: no-repeat;
+  background-image:url(../img/caritas/conversacion/neutro_inactivo_1.png);
+  background-size: cover;
+  }
+.negativo{
+  width:33px;
+  height:33px;
+  cursor: pointer;  /*transition: all 0.5s;*/
+  background-repeat: no-repeat;
+  background-image:url(../img/caritas/conversacion/negativo_inactivo_1.png);
+  background-size: cover;
+  }
+
+.positivo:hover, .positivo-activo{
+  width:33px;
+  height:33px;
+  cursor: pointer;  /*transition: all 0.5s;*/
+  background-repeat: no-repeat;
+  background-image:url(../img/caritas/conversacion/positivo_activo_1.png);
+  background-size: cover;
+}
+.neutro:hover, .neutro-activo{
+  width:33px;
+  height:33px;
+  cursor: pointer;  /*transition: all 0.5s;*/
+  background-repeat: no-repeat;
+  background-image:url(../img/caritas/conversacion/neutro_activo_1.png);
+  background-size: cover;
+}
+.negativo:hover, .negativo-activo{
+  width:33px;
+  height:33px;
+  cursor: pointer;  /*transition: all 0.5s;*/
+  background-repeat: no-repeat;
+  background-image:url(../img/caritas/conversacion/negativo_activo_1.png);
+  background-size: cover;
+}
 /*+-+-+-+-+-+-+-+-+-+-+-++-+-+-+-+ CARITAS BUZON +-+-+-+-+-+-+-+-+-+-+-+-+-+-++-+-*/
 
 /*Module descartados*/
@@ -2869,6 +2898,21 @@ z-index: 10;
 
 }
 
+#campana-salir2{
+	display:block;
+	background-image:url(../img/notifications.png);
+	display:block;
+	width:100%;
+	/*height:32px;*/
+	/*padding:25px 0px;*/
+	background-repeat:no-repeat;
+	background-position:center;
+	padding-top:46px;
+	font-size:10px;
+	background-size: 30px 30px;
+
+}
+
 /*#campana-salir:hover{
 	background-image:url(../img/campana-hover.png);
 }*/
@@ -2879,6 +2923,18 @@ position: absolute;
     left: 50%;
     top: 30px;
     background-color: #F07204;
+    float: left;
+    border-radius: 13%;
+    padding: 1px 3px;
+    font-size: 9px;
+}
+
+#campana-salir2 > span{
+position: absolute;
+    height: auto;
+    left: 50%;
+    top: 30px;
+    /* background-color: #F07204; */
     float: left;
     border-radius: 13%;
     padding: 1px 3px;
@@ -3337,6 +3393,9 @@ transition: 0.5s ease;
 opacity:0;
 }
 
+.otraclasemas {
+    margin-top: 35px;
+}
 	
 ul#lista-notificaciones-principal{
 	display:block;
@@ -3473,10 +3532,12 @@ clear:both;
 #muestraLoadingPrimario{
   z-index: 9999;
   position: absolute;
-  top: 119px;
+  /*top: 119px;*/
+  top: 54px;
   /* right: 0%; */
   width: 84%;
-  height: calc(100% - 100px);
+  /*height: calc(100% - 100px);*/
+  height: calc(100%);
   /*height: 100vh;*/
   /*border:1px solid black;*/
   /* background-color: rgba(0%,0%,0%,0.8); */

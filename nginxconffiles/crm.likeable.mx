@@ -1,0 +1,75 @@
+server {
+	listen 80;
+	server_name crm.likeable.mx;
+	return 301 https://$server_name$request_uri;
+	# rewrite https://$server_name$request_uri? permanent;
+}
+
+server {
+	listen 443 ssl;
+	server_name crm.likeable.mx;
+	ssl_certificate /etc/nginx/ssl/likeable.mx.chained.crt;
+        ssl_certificate_key /etc/nginx/ssl/likeable.mx.key;
+
+	location / {
+	        proxy_pass http://localhost:8080;
+        	proxy_http_version 1.1;
+        	proxy_set_header Upgrade $http_upgrade;
+	        proxy_set_header Connection 'upgrade';
+	        proxy_set_header Host $host;
+	        proxy_cache_bypass $http_upgrade;
+		client_max_body_size 5m;
+	}
+}
+
+server{
+	listen 8081;
+	location / {
+		proxy_pass http://localhost:8091;
+        	proxy_http_version 1.1;
+        	proxy_set_header Upgrade $http_upgrade;
+	        proxy_set_header Connection 'upgrade';
+	        proxy_set_header Host $host;
+	        proxy_cache_bypass $http_upgrade;
+		client_max_body_size 5m;
+	}
+}
+
+server{
+	listen 8082;
+	location / {
+		proxy_pass http://localhost:8092;
+        	proxy_http_version 1.1;
+        	proxy_set_header Upgrade $http_upgrade;
+	        proxy_set_header Connection 'upgrade';
+	        proxy_set_header Host $host;
+	        proxy_cache_bypass $http_upgrade;
+		client_max_body_size 5m;
+	}
+}
+
+server{
+	listen 8083;
+	location / {
+		proxy_pass http://localhost:8093;
+        	proxy_http_version 1.1;
+        	proxy_set_header Upgrade $http_upgrade;
+	        proxy_set_header Connection 'upgrade';
+	        proxy_set_header Host $host;
+	        proxy_cache_bypass $http_upgrade;
+		client_max_body_size 5m;
+	}
+}
+
+server{
+	listen 8084;
+	location / {
+		proxy_pass http://localhost:8094;
+        	proxy_http_version 1.1;
+        	proxy_set_header Upgrade $http_upgrade;
+	        proxy_set_header Connection 'upgrade';
+	        proxy_set_header Host $host;
+	        proxy_cache_bypass $http_upgrade;
+		client_max_body_size 5m;
+	}
+}

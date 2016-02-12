@@ -22,12 +22,26 @@
     color: #c9cacc !important; 
 }
 </style>
+<style type="text/css" ng-if="authentication.user.roles[0] === 'directivo'">
+#contenedor-graficas {
+	position: absolute;
+    width: 86%;
+    height: 92%;
+    overflow:scroll; 
+}
+#barra-rangos{
+	width: 86%;
+}
+.pure-u-1-2, .pure-u-12-24{
+	width: 82.5%;
+}
+</style>
 
 <!--Header-->
 
 
 <div class="pure-u-md-1-1 header" data-ng-controller="SettingsController">
-	<div id="facebook-connect-header" data-ng-show="!statusLoginFacebook2"><a href="{{constant.host}}/auth/facebook"><img src="/modules/core/img/facebook-login-header.svg" /></a></div>
+	<div id="facebook-connect-header" data-ng-show="!statusLoginFacebook2"><a href="https://{{constant.host}}/auth/facebook"><img src="/modules/core/img/facebook-login-header.svg" /></a></div>
 	<div id="facebook-cuenta-usuario" data-ng-show="statusLoginFacebook2">
 		<div class="imagen perfil-circular" style=" width: 40px; height: 40px; background-image: url(https://graph.facebook.com/{{authentication.user.additionalProvidersData.facebook.id}}/picture?type=square);background-size: cover; background-position: center;">
 			&nbsp;
@@ -53,7 +67,7 @@
 
 <div class="pure-u-md-1-1" id="contenedor-completo">
 	<!--Llamada del side-->
-	<div class="pure-u-md-4-24 pure-u-sm-1-1 border-interno-der" id="lateral">
+	<div class="pure-u-md-4-24 pure-u-sm-1-1 border-interno-der" id="lateral" ng-hide="authentication.user.roles[0] === 'directivo'">
 		<div data-ng-include="'/modules/core/views/side.html'"></div>
 	</div>
 
@@ -241,22 +255,24 @@
 		</div>
 		<!-- MODAL PARA Eliminar cuenta general -->
 
-		<!-- CONECTA TWITTER-->
-		<div ng-controller="ModalDemoCtrl">
-			<script type="text/ng-template" id="conectTwitterContent.html">
-				<div id="detalle_comentarios" style="background-color: #fff; border-radius: 3px  ; color: #000; padding-bottom: 15px;">
-				<div style="width:100%; clear:both; display:block;padding: 30px;" class="izq">
+<!-- CONECTA TWITTER-->
+<div ng-controller="ModalDemoCtrl">
+	<script type="text/ng-template" id="conectTwitterContent.html">
+		<div id="detalle_comentarios" style="background-color: #fff; border-radius: 3px  ; color: #000; padding-bottom: 15px;">
+			<div style="width:100%; clear:both; display:block;padding: 30px;" class="izq">
 				<div class="pure-u-md-1-1" data-ng-show="muestraForm">
 
 				<form data-ng-submit="submitTwitter()" class="form-3" name="form_twitter">
-				<h3 class="txt-centro" translate>Twitter  Accounts</h3>
-				<!--<p class="txt-centro" style="padding-bottom: 10px; display:block;" translate>We highly recommend having a<br/>consumer service account</p>-->
-				<p class="txt-centro" style="padding-bottom: 10px; display:block;">Para recibir, responder y clasificar mensajes abre una Cuenta de Respuesta.<br> Para recibir y clasificar abre una Cuenta de Monitoreo</p>
-				<!--style="padding-bottom: 20px;"-->
-				<div class="pure-u-md-1-1" align="center">
-				<button class="btn btn-guardar btn-chico txt-blanco" style="width: 150px; background-color: #0DBEC8; padding:7px 0px !important;" data-ng-click="showHelp()" translate>Need Help?</button>
-				</div>
-				<div class="pure-u-md-1-1">
+						<h3 class="txt-centro" translate>Twitter  Accounts</h3>
+						<p class="txt-centro" style="padding-bottom: 10px; display:block;">Para recibir, responder y clasificar mensajes abre una Cuenta de Respuesta.<br> Para recibir y clasificar abre una Cuenta de Monitoreo</p>
+						
+						<div class="pure-u-md-1-1" align="center">
+							<!--<button class="btn btn-guardar btn-chico txt-blanco" style="width: 150px; background-color: #0DBEC8; padding:7px 0px !important;" data-ng-click="showHelp()" translate>Need Help?</button>-->
+							<a class="btn btn-guardar btn-chico txt-blanco" style="width: 150px; background-color: #0DBEC8; padding:7px 0px !important;" data-ng-click="showHelp()" translate>Need Help?</a>
+
+						</div>
+						
+						<div class="pure-u-md-1-1">
 				<div class="pure-u-md-1-2 izq">
 
 				<label translate>*Primary Account</label>
@@ -535,8 +551,8 @@
 					</table>
 
 									<div style="float:right; margin-right: 20px; margin-top: 5px;">
-									<label translate style="padding-left:15px;">Exportar</label>	
-									<a style="cursor: pointer;" title="{{ 'Download CSV' | translate }}" ng-click="descargaArchivo(account)">
+									<label translate style="padding-left:15px;" ng-hide="totalCasos === 0">Exportar</label>
+									<a style="cursor: pointer;" title="{{ 'Download CSV' | translate }}" ng-click="descargaArchivo(account)" ng-hide="totalCasos === 0">
 										<img src="/modules/core/img/icono-cvs.gif" />
 									</a>										
 									</div>
@@ -660,20 +676,19 @@
 							<div class="titulo">
 								<h1>{{ 'Average Time' | translate }}</h1>
 							</div>
-							<div class="grafica" data-ng-class="{'alto200':chartPromedioTiempo.tipo}">
+							<div class="grafica" data-ng-class="{'alto200':chartPromedioTiempo.tipo}" style="padding:0px !important;">
 								<center>
 									<!--si hay data-->
 									<div class="pure-u-md-1-1 pure-u-sm-1-1 izq" data-ng-show="chartPromedioTiempo.tipo">
-										<img src="modules/core/img/cronometro.png" style="width: 65px; padding-top:20px;">
-										<h1 style="font-size:35px !important; color:#6a6a6a;">
-											<b style="font-size:35px !important;">{{chartPromedioTiempo.promedio}}</b>
-											 {{chartPromedioTiempo.tipo}}
+										<img src="modules/core/img/Timer.svg" style="width: 20%!important; padding-top:20px;">
+										<h1 style="font-size:35px !important; color:#333333;">
+											<b style="font-size:35px !important;">{{chartPromedioTiempo.promedio}} {{chartPromedioTiempo.tipo}}</b>
 										</h1>	
 									</div>
 									<!--si hay data-->
 									<!--si no hay data-->
 									<div class="pure-u-md-1-1 pure-u-sm-1-1 izq" data-ng-show="!chartPromedioTiempo.tipo" align="center">
-										<img src="/modules/core/img/no-data-no-text.png" style="max-width: 42%; height: auto;"/>
+										<img src="/modules/core/img/no-data-no-text.png" style="max-width: 28%; height: auto;"/>
 										<p style="font-size: 16px !important;">No existe suficiente data<br/>para generar esta gráfica</p>
 									</div>
 									<!--si no hay data-->
@@ -693,19 +708,42 @@
 								<!--		<h1>{{ 'Sentiment' | translate }}</h1>-->
 								<h1>Sentimientos</h1>
 							</div>
-							<div class="grafica" data-ng-show="mostrarSentiment" style="height:220px !important;" data-ng-class="{'alto200':mostrarSentiment}">
+							<div class="grafica" data-ng-show="mostrarSentiment"  data-ng-class="{'alto200':mostrarSentiment}">
 
 								<div class="perce_sentiment" align="center">
 									<table style="width: 150px; margin:auto;">
 										<tr>
-											<td data-ng-repeat="(key, value) in sentiment_perce" align="center">
+											<td align="center">
 											<div class="carita-cont" style="width: 100px;">
-												<div style="padding:10px;"><img src="/modules/core/img/caritas/{{key}}-activo.svg" style="width:100%; height:auto; cursor:pointer;" ng-click="clickSentiment(key,numeroSentiment[key])" /></div>
+												<div style="padding:10px;"><img src="/modules/core/img/caritas/positivo_activo_2.png" style="width:100%; height:auto; cursor:pointer;" ng-click="clickSentiment('positivo' ,numeroSentiment['positivo'])" /></div>
 												<div class="valor" style="font-weight: 700;">
-													{{value?value:'0'}}%
+													{{sentiment_perce.positivo?sentiment_perce.positivo:'0'}}%
 												</div>
 												<div class="globo-detalle">
-													{{numeroSentiment[key]?numeroSentiment[key]:'0'}} casos {{key}}s
+													{{numeroSentiment['positivo']?numeroSentiment['positivo']:'0'}} casos positivos
+												</div>
+											</div></td>
+											
+											<td align="center">
+											<div class="carita-cont" style="width: 100px;">
+												<div style="padding:10px;">
+													<img src="/modules/core/img/caritas/neutro_activo_2.png" style="width:100%; height:auto; cursor:pointer;" ng-click="clickSentiment('neutro' ,numeroSentiment['neutro'])" /></div>
+												<div class="valor" style="font-weight: 700;">
+													{{sentiment_perce.neutro?sentiment_perce.neutro:'0'}}%
+												</div>
+												<div class="globo-detalle">
+													{{numeroSentiment['neutro']?numeroSentiment['neutro']:'0'}} casos neutros
+												</div>
+											</div></td>
+
+											<td align="center">
+												<div class="carita-cont" style="width: 100px;">
+												<div style="padding:10px;"><img src="/modules/core/img/caritas/negativo-activo_2.png" style="width:100%; height:auto; cursor:pointer;" ng-click="clickSentiment('negativo',numeroSentiment['negativo'])" /></div>
+												<div class="valor" style="font-weight: 700;">
+													{{sentiment_perce.negativo?sentiment_perce.negativo:'0'}}%
+												</div>
+												<div class="globo-detalle">
+													{{numeroSentiment['negativo']?numeroSentiment['negativo']:'0'}} casos negativos
 												</div>
 											</div></td>
 										</tr>
@@ -715,10 +753,9 @@
 							</div>
 
 							<div class="pure-u-md-1-1 pure-u-sm-1-1 izq" data-ng-show="!mostrarSentiment" align="center">
-								<img src="/modules/core/img/no-data-no-text.png" style="max-width: 42%; height: auto;"/>
+								<img src="/modules/core/img/no-data-no-text.png" style="max-width: 28%; height: auto;"/>
 								<p style="font-size: 16px !important;">No existe suficiente data<br/>para generar esta gráfica</p>
 							</div>
-
 						</div>
 						<!--SENTIMENT-->	
 
@@ -794,7 +831,7 @@
 							</div>
 
 							<div class="pure-u-md-1-1 pure-u-sm-1-1 izq" data-ng-show="!mostrarRating" align="center">
-								<img src="/modules/core/img/no-data-no-text.png" style="max-width: 42%; height: auto;"/>
+								<img src="/modules/core/img/no-data-no-text.png" style="max-width: 28%; height: auto;"/>
 								<p style="font-size: 16px !important;">No existe suficiente data<br/>para generar esta gráfica</p>
 							</div>
 
@@ -811,7 +848,7 @@
 					
 					<div class="clear"></div>
 						<!--DESEMPEÑOS-->
-						<div class="contenedor-grafica" id="grafica-desempeno" style="width: 91%;" data-ng-if="authentication.user.roles[0] == 'app-manager' || authentication.user.roles[0] == 'account-manager'"> 
+						<div class="pure-u-md-1-1 contenedor-grafica"  style="width: 96%; display:block;" id="grafica-desempeno" data-ng-if="authentication.user.roles[0] == 'app-manager' || authentication.user.roles[0] == 'account-manager'"> 
 							<div class="titulo">
 								<h1>Desempeño del Equipo</h1>
 							</div>
@@ -852,7 +889,7 @@
 
 					<div class="pure-u-md-1-1">
 						<!--TOP TEMAS-->
-						<div class="contenedor-grafica" style="width: 92%;">
+						<div class="pure-u-md-1-1 contenedor-grafica"  style="width: 96%; display:block;">
 							<div class="titulo">
 								<h1>{{ 'Top Topics' | translate }}</h1>
 							</div>
@@ -886,7 +923,7 @@
 					<div class="pure-u-md-1-1">
 
 						<!--TOP SUBTEMAS-->
-						<div class="contenedor-grafica" style="width: 92%;">
+						<div class="pure-u-md-1-1 contenedor-grafica"  style="width: 96%; display:block;">
 							<div class="titulo">
 								<h1>{{ 'Top Subtopics' | translate }}</h1>
 							</div>

@@ -8,6 +8,7 @@ var mongoose = require('mongoose'),
 var bst = require('better-stack-traces').install();
 var globales = require('../../config/globals.js');
 var classdb = require('../../config/classdb.js');
+var accesstokens = require('../../config/accesstokens.js');
 
 // otras dependencias
 var _ = require('lodash');
@@ -16,6 +17,7 @@ var http=require('http');
 var https=require('https');
 var ObjectID = require('mongodb').ObjectID;
 var Twit = require('twit');
+var cmd = require("cmd-exec").init();
 
 // hardcoded, un accesstoken mio con esta app
 var perm_at = 'access_token=CAAEdYZBfZAiQQBACAacd8eW6y4m0VJgsTHH3ZA7eu97Bl7RRxRfBqWDFLtJpZAwxSZBhN6H1G22dk5ZATjQ0VeBVydRUkImy9sSdfoMqxxddw1khvDPutEZCiI6HZBoCi6t4eIITTs9jlTxjAFM75rMMcusv6aXu7hIcaPCXPKbUKOuh9ZBl7FzLDi4YCsIJUdYoZD';
@@ -415,7 +417,7 @@ exports.creaSubtema = function(req,res){
 		    }
 		}
 		if(existeSubtema !== 0){
-		    console.log('El subtema ya existe, escriba otro');
+		  //console.log('El subtema ya existe, escriba otro');
 		    res.jsonp(2);
 		}
 		else{
@@ -574,9 +576,9 @@ exports.list = function(req, res) {
 	    }
 	});
     }else{
-	console.log('No es app-manager');
+	//console.log('No es app-manager');
 	Account.findById(req.user.cuenta._id).populate('user', 'displayName').exec(function(err, account) {
-	    console.log(account);
+	    //console.log(account);
 	    if (err) return;
 	    /*var obj = [];
 	     for( var i = 0; i < account.length; i++){
@@ -1071,7 +1073,8 @@ exports.dataUpload = function(req, res){
                   asignado: {},
                   sentimiento: {},
                   clasificacion: {tema: '', subtema:''},
-                  atendido: {}
+                  atendido: {},
+                  eliminado: 1
                 };
                 classdb.inserta(lacoleccion, objetoInicial, 'accounts/dataUpload.primerPost', function(inserte) {
                   if (inserte === 'error') {
@@ -1090,7 +1093,9 @@ exports.dataUpload = function(req, res){
                                   classdb.creaIndexSinTexto(lacoleccion, {'clasificacion.tema':1}, 'accounts/dataUpload.index.clasificacion.tema', function(indexctema) {
                                     classdb.creaIndexSinTexto(lacoleccion, {'clasificacion.subtema':1}, 'accounts/dataUpload.index.clasificacion.subtema', function(indexcsub) {
                                       classdb.creaIndexSinTexto(lacoleccion, {atendido:1}, 'accounts/dataUpload.index.atendido', function(indexatend) {
-	                                res.jsonp(insertado);                                      
+                                        classdb.creaIndexSinTexto(lacoleccion, {eliminado:1}, 'accounts/dataUpload.index.eliminado', function(indexelim) {
+	                                  res.jsonp(insertado);
+                                        });
                                       });
                                     });
                                   });
@@ -1117,44 +1122,58 @@ exports.dataUpload = function(req, res){
 };
 
 exports.getInfoTwitter = function(req, res){
-    function cuentaSetDataQuery(data, id, opcion){
- 	var objectId = new ObjectID(id);
-	var compara = require('../../escuchadores/escuchador/comparador.js');
-	var cadenaInsercion = {};
-	var criterio = { _id : objectId };
- 	///data._id = objectId;
- 	if(opcion === 0) {
-	    cadenaInsercion={
- 		'twitter_consumer_secret':'',
- 		'twitter_consumer_key':'',
- 		'twitter_access_token':'',
- 		'twitter_access_token_secret':'',
- 		'twitter_id_principal' :data.twitter_id_principal,
- 		'twitter_id_respuesta' : data.twitter_id_respuesta,
- 		'twitter_screenname_respuesta' : data.twitter_screenname_respuesta,
- 		'twitter_screenname_principal' : data.twitter_screenname_principal
- 	    };
-	    classdb.actualiza('accounts', criterio, { datosTwitter : cadenaInsercion }, 'accounts/getInfoTwitter/cuentaSetDataQuery', function(actualizao){
-		compara.find();
-	    });
- 	}else if(opcion===1) {
- 	    cadenaInsercion={
- 		'twitter_consumer_secret':data.consumer_key,
- 		'twitter_consumer_key':data.consumer_secret,
- 		'twitter_access_token':data.access_token,
- 		'twitter_access_token_secret':data.access_token_secret,
- 		'twitter_id_principal' :data.twitter_id_principal,
- 		'twitter_id_respuesta' : data.twitter_id_respuesta,
- 		'twitter_screenname_respuesta' : data.twitter_screenname_respuesta,
- 		'twitter_screenname_principal' : data.twitter_screenname_principal
- 	    };
-	    var set = { datosTwitter : cadenaInsercion };
-	    classdb.actualiza('accounts', criterio, { datosTwitter : cadenaInsercion }, 'accounts/getInfoTwitter/cuentaSetDataQuery', function(actualizao){
-		compara.find();
-	    });
- 	}
-
-    }//Fin de function cuentaSetDataQuery
+  function cuentaSetDataQuery(data, id, opcion, callback){
+    var objectId = new ObjectID(id);
+    var cadenaInsercion = {};
+    var criterio = { _id : objectId };
+    ///data._id = objectId;
+    if(opcion === 0) {
+      cadenaInsercion={
+ 	'twitter_consumer_secret':'',
+ 	'twitter_consumer_key':'',
+ 	'twitter_access_token':'',
+ 	'twitter_access_token_secret':'',
+ 	'twitter_id_principal' :data.twitter_id_principal,
+ 	'twitter_id_respuesta' : data.twitter_id_respuesta,
+ 	'twitter_screenname_respuesta' : data.twitter_screenname_respuesta,
+ 	'twitter_screenname_principal' : data.twitter_screenname_principal
+      };
+      classdb.actualiza('accounts', criterio, { datosTwitter : cadenaInsercion }, 'accounts/getInfoTwitter/cuentaSetDataQuery', function(actualizao){
+        cmd.exec("pm2 restart escuchador_cuentas", function(error_restart, respu_restart) {
+          if (error_restart) {
+            console.log(error_restart);
+            return callback(error_restart);
+          } else {
+            console.log(respu_restart);
+            return callback(respu_restart);
+          }
+        });
+      });
+    }else if(opcion===1) {
+      cadenaInsercion={
+ 	'twitter_consumer_secret':data.consumer_key,
+ 	'twitter_consumer_key':data.consumer_secret,
+ 	'twitter_access_token':data.access_token,
+ 	'twitter_access_token_secret':data.access_token_secret,
+ 	'twitter_id_principal' :data.twitter_id_principal,
+ 	'twitter_id_respuesta' : data.twitter_id_respuesta,
+ 	'twitter_screenname_respuesta' : data.twitter_screenname_respuesta,
+ 	'twitter_screenname_principal' : data.twitter_screenname_principal
+      };
+      var set = { datosTwitter : cadenaInsercion };
+      classdb.actualiza('accounts', criterio, { datosTwitter : cadenaInsercion }, 'accounts/getInfoTwitter/cuentaSetDataQuery', function(actualizao){
+        cmd.exec("pm2 restart escuchador_cuentas", function(error_restart, respu_restart) {
+          if (error_restart) {
+            console.log(error_restart);
+            return callback(error_restart);
+          } else {
+            console.log(respu_restart);
+            return callback(respu_restart);
+          }
+        });
+      });
+    }
+  }//Fin de function cuentaSetDataQuery
 
     var consumer_key=req.body.twitter_consumer_key;
     var consumer_secret=req.body.twitter_consumer_secret;
@@ -1196,9 +1215,9 @@ exports.getInfoTwitter = function(req, res){
     }
     var element ={};
     element.consumer_secret = req.body.twitter_consumer_key;
-    element.consumer_key=	req.body.twitter_consumer_secret;
-    element.access_token=req.body.twitter_access_token;
-    element.access_token_secret=req.body.twitter_access_token_secret;
+    element.consumer_key = req.body.twitter_consumer_secret;
+    element.access_token = req.body.twitter_access_token;
+    element.access_token_secret = req.body.twitter_access_token_secret;
     var T  = new Twit(llaves);
     T.get('users/show', {'screen_name': req.body.twitter_screenname_principal}, function(err, data) {
         if(err){
@@ -1212,7 +1231,7 @@ exports.getInfoTwitter = function(req, res){
         }
         else{
             var idUserPrincipal=data.id;
-            console.log(req.body.twitter_screenname_respuesta);
+            //console.log(req.body.twitter_screenname_respuesta);
             if(req.body.twitter_screenname_respuesta){
         	T.get('users/show', {'screen_name': req.body.twitter_screenname_respuesta}, function(errorPeticion2, data2) {
 		    if(errorPeticion2){
@@ -1221,23 +1240,25 @@ exports.getInfoTwitter = function(req, res){
 			res.jsonp(1);//error en usuario secundario
 		    }
 		    else{
-			var idUserSecundario=data2.id;
+			var idUserSecundario = data2.id;
 			element.twitter_id_principal = idUserPrincipal;
 			element.twitter_id_respuesta = idUserSecundario;
 			element.twitter_screenname_respuesta = req.body.twitter_screenname_respuesta;
 			element.twitter_screenname_principal = req.body.twitter_screenname_principal;
-			console.log('Imprimiendo el elemento a ingresar a la base de datos');
-			console.log(element);
-			cuentaSetDataQuery(element,req.body.id,opcion);
-			res.jsonp(element);
+			//console.log('Imprimiendo el elemento a ingresar a la base de datos');
+			//console.log(element);
+			cuentaSetDataQuery(element,req.body.id,opcion, function(reiniciaserv){
+			  res.jsonp(element);
+                        });
 		    }
 		});
             }else{
 		element.twitter_id_principal = idUserPrincipal;
 		element.twitter_screenname_principal = req.body.twitter_screenname_principal;
-		console.log('Imprimiendo el elemento a ingresar a la base de datos');
-		cuentaSetDataQuery(element, req.body.id, opcion);
-		res.jsonp(element);
+		//console.log('Imprimiendo el elemento a ingresar a la base de datos');
+		cuentaSetDataQuery(element, req.body.id, opcion, function(reiniciaserv){
+		  res.jsonp(element);                  
+                });
             }
         }
     });	
@@ -1283,7 +1304,6 @@ exports.eliminaFBConnect=function(req,res){
 };
 
 exports.agregaMonitoreo=function(req,res){
-
     function requestGraph (path, callback) {
 	if (typeof path === 'undefined' || path === null || path === '') {
 	    console.log('solicitudes/getautocp/requestGraph2 - no hubo path, así que no se puede pedir nada al graph');
@@ -1299,7 +1319,7 @@ exports.agregaMonitoreo=function(req,res){
 		}).on('end', function() {
 		    var contenido = JSON.parse(Buffer.concat(chunks));
 		    if (typeof contenido.error !== 'undefined') {
-			// console.log('solicitudes/getautocp/requestGraph2 - hubo un error en solicitud al graph: '+ path);
+			console.log('solicitudes/getautocp/requestGraph2 - hubo un error en solicitud al graph: '+ path);
 			//console.log('rtus/index/requestGraph2.error: '+path);
 			//console.log(JSON.stringify(contenido.error));
 			return callback('error');
@@ -1323,294 +1343,89 @@ exports.agregaMonitoreo=function(req,res){
 	}
     }
 
-
-
-    function requestAT (callback) {
-	var bmpString, access_token;	
-	var path = globales.fbapiversion+globales.path_app_at;
-	globales.options_graph.method = 'GET';
-	globales.options_graph.path = path;
-	var solicitud = https.request(globales.options_graph, function(resp) {
-	    var chunks = [];
-	    resp.on('data', function(dati) {
-		chunks.push(dati);
-		// access_token += dati;
-	    }).on('end', function() {
-		var access_token = JSON.parse(Buffer.concat(chunks));
-		if (access_token.error) {
-		    console.log('solicitudes/getpb/requestAT - error en access_token: '+access_token);
-		    return callback('error');
-		}
-		else {
-		    return callback(access_token);
-		}
-	    });
-	});
-	solicitud.end();
-	solicitud.on('error', function(erra){
-	    console.log('rtus/index/requestAT - error en el request: '+erra);
-	    return callback('error');
-	});
-    }
-
-    // mongo/Graph - obtenemos el access token ya sea de nuestra base de datos o de facebook
-    function getAppAT(callback) {
-	classdb.buscarToArray('verifica_at', {}, {}, 'solicitudes/getom/getAppAT', function(items){
-	    if (items === 'error') {
-		return callback(items);
+  accesstokens.obtieneAppAT('yes', function(appat){
+    console.log('entra a función para obtener access tokens');
+    if (appat === 'error') {
+      console.log('accounts.server.controller/agregaMonitoreo.main/accesstokens.obtieneAppAT error');
+      accesstokens.obtieneUsrsATAmongAllUsrs('yes', function(usrsat){
+        if (usrsat === 'error') {
+          console.log('accounts.server.controller/agregaMonitoreo.main/accesstokens.obtieneUsrsATAmongAllUsrs');
+          res.jsonp(1);
+        }
+        else {
+          var derpathen = globales.fbapiversion+req.body.monitoreo+'?'+usrsat;
+          requestGraph(derpathen, function(segundarespuesta){
+            if (segundarespuesta === 'error') {
+	      res.jsonp(1);
 	    }
 	    else {
-		if (items.length < 1) {
-		    // no existe access_token en bd, lo pedimos a fb
-		    requestAT(function(at) {
-			if (at === 'error' || typeof at === 'undefined' || typeof at.access_token === 'undefined') {
-			    // hubo un error, no access token, gosh
-			    console.log('solicitudes/getom/getAppAT - error en solicitud de access_token a facebook');
-			    return callback('error');
-			}
-			else {
-			    var objeto = {};
-			    objeto = { at: 'access_token='+at.access_token, ts: new Date() };
-			    classdb.inserta('verifica_at', objeto, 'solicitudes/index/getAppAT', function(respuesta){
-				return callback('access_token='+at.access_token);
-			    });
-			}
-		    });
+	      var objectId = new ObjectID(req.body._id);
+	      var criterio = {_id:objectId};
+	      var elset = {'datosMonitoreo':{'id':segundarespuesta.id,'name':req.body.monitoreo}};
+	      classdb.actualiza('accounts', criterio, elset, 'accounts/agregaMonitoreo', function(updated){
+		if (updated === 'error') {
+		  res.jsonp(1);
 		}
 		else {
-		    var ts = items[0].ts.getTime();
-		    var tsm1 = (ts) + 3600000;
-		    var ahora = new Date().getTime();
-		    if (tsm1 < ahora) {
-			requestAT(function(at) {
-			    if (at === 'error' || typeof at === 'undefined' || typeof at.access_token === 'undefined') {
-				// no hubo respuesta por parte de facebook o hubo un error, no access token
-				console.log('solicitudes/getom/getAppAT - error en solicitud de access_token a facebook para updatear');
-				return callback('error');
-			    }
-			    else {
-				// hubo respuesta por parte de facebook
-				var criterio_actualizacion = {_id:items[0]._id};
-				var objeto = {};
-				objeto = { at: 'access_token='+at.access_token, ts: new Date() };
-				classdb.actualiza('verifica_at', criterio_actualizacion, objeto, 'solicitudes/getol/getAppAT', function(respuestau) {
-				    if(respuestau === 'error') {
-					return callback('error');
-				    }
-				    else {
-					return callback('access_token='+at.access_token);
-				    }
-				});
-			    }
-			});
+		  res.jsonp(2);
+		}	
+	      });		    
+	    }
+          });          
+        }
+      });
+    }
+    else {
+      var elpath = globales.fbapiversion+req.body.monitoreo+'?'+appat;
+      requestGraph(elpath, function(primerarespuesta){
+        if (primerarespuesta === 'error') {
+          console.log('no se pudo con el access token de app');
+          accesstokens.obtieneUsrsATAmongAllUsrs('yes', function(usersat){
+            if (usersat === 'error') {
+              res.jsonp(1)
+            }
+            else {
+              console.log('Y EL ACCESS TOKEN DEL USUARIO ESSSS:')
+              console.log(usersat);
+              console.log('ACCESS TOKEN DEL USUARIO END');
+              var derpathen = globales.fbapiversion+req.body.monitoreo+'?'+usersat;
+              requestGraph(derpathen, function(segundarespuesta){
+                if (segundarespuesta === 'error') {
+		  res.jsonp(1);
+		}
+		else {
+		  var objectId = new ObjectID(req.body._id);
+		  var criterio = {_id:objectId};
+		  var elset = {'datosMonitoreo':{'id':segundarespuesta.id,'name':req.body.monitoreo}};
+		  classdb.actualiza('accounts', criterio, elset, 'accounts/agregaMonitoreo', function(updated){
+		    if (updated === 'error') {
+		      res.jsonp(1);
 		    }
 		    else {
-			// y sigue vigente
-			return callback(items[0].at);
-		    }
+		      res.jsonp(2);
+		    }	
+		  });		    
 		}
-	    }
-	});
-    }
-
-    function obtieneUsuariosConAccessToken (callback) {
-	var criterium = {
-	    $and: [
-		{'additionalProvidersData.facebook': { $exists: true }},
-		{'additionalProvidersData.facebook.accessToken': {$exists: true}}
-	    ]
-	};
-	var usersfields = {
-	    '_id' : '', 
-	    'displayName' : '', 
-	    'username' : '',
-	    'cuenta.marca': '',
-	    'additionalProvidersData.facebook.accessToken' : '',
-	    'additionalProvidersData.facebook.name': ''
-	};
-	classdb.buscarToArrayFields('users', criterium, usersfields, {}, 'rtus/index/obtieneUsuariosConAccessToken', function(dieusern){	
-	    return callback(dieusern);
-	});
-    }
-
-    function quitaAdditionalProvidersData (alusuario, altoken, callback){
-	var critere = {
-	    $and: [
-		{displayName : alusuario},
-		{'additionalProvidersData.facebook.accessToken' : altoken}
-	    ]
-	};
-	var leunset = {additionalProvidersData : ''};
-	classdb.actualizaUnset('users', critere, leunset, 'rtus/index/quitaAdditionalProvidersData', function(lareponse){
-	    return callback(lareponse);
-	});
-    }
-
-    function tokensDeUsuarios (los_usuarios, index, validTokens, callback) {
-	var more = index+1;
-	var cuantosusuarios = los_usuarios.length;
-	if (more > cuantosusuarios) {
-	    return callback(validTokens);
-	}
-	else {
-	    setImmediate(function(){
-		if (typeof los_usuarios[index] !== 'undefined') {
-		    var eltoken = los_usuarios[index].additionalProvidersData.facebook.accessToken;
-		    var eldisplayname = los_usuarios[index].displayName;
-		    var path = globales.fbapiversion+'oauth/access_token_info?client_id='+globales.fb_app_id+'&access_token='+eltoken;
-		    requestGraph(path, function(validacion){
-			if (validacion === 'error' || validacion === 'invalid') {
-			    return tokensDeUsuarios(los_usuarios, more, validTokens, callback);
-			}
-			else if(validacion === 'invalid') {
-			    quitaAdditionalProvidersData(eldisplayname, eltoken, function(eliminato){
-				console.log('access_token de '+eldisplayname+' eliminado - '+eliminato);
-				return tokensDeUsuarios(los_usuarios, more, validTokens, callback);
-			    });
-			}
-			else {
-			    validTokens.push(validacion.access_token);
-			    return tokensDeUsuarios(los_usuarios, more, validTokens, callback);
-			}
-		    });
-		}
-		else {
-		    return tokensDeUsuarios(los_usuarios, more, validTokens, callback);
-		}
-	    });
-	}
-    }
-
-    function obtieneAccessTokensValidosDeTodos (callback) {
-	var critere = {'nombre_cta': 'todos'};
-	var lesort = {created_time: -1};
-	var lostokensvalidos = [];
-	classdb.buscarToArray('verifica_auto_uat', critere, {}, 'rtus/index/getCtaATs', function(items){
-	    if (items === 'error') {
-		return callback(lostokensvalidos);
+              });
+            }
+          });
+        }
+        else {
+          var objectId = new ObjectID(req.body._id);
+	  var criterio = {_id:objectId};
+	  var elset = {'datosMonitoreo':{'id':primerarespuesta.id,'name':req.body.monitoreo}};
+	  classdb.actualiza('accounts', criterio, elset, 'accounts/agregaMonitoreo', function(updated){
+	    if (updated === 'error') {
+	      res.jsonp(1);
 	    }
 	    else {
-		if (items.length < 1) {
-		    // no existen access_tokens en bd, los pedimos a fb
-		    obtieneUsuariosConAccessToken(function(usuarios){
-			if (usuarios === 'error') {
-			    return callback(lostokensvalidos);
-			}
-			else {
-			    tokensDeUsuarios(usuarios, 0, [], function(validtokens){
-				if (validtokens.length < 1) {
-				    // no hay tokens para esta cuenta
-				    return callback(lostokensvalidos);
-				}
-				else {
-				    var objeto = {
-					nombre_cta: 'todos',
-					created_time: new Date(),
-					valid_tokens: validtokens
-				    };
-				    lostokensvalidos = validtokens;
-				    classdb.inserta('verifica_auto_uat', objeto, 'solicitudes/getautocp/getCtaATs', function(insertao){
-					return callback(lostokensvalidos);
-				    });
-				}
-			    });
-			}
-		    });
-		}
-		else {
-		    var ts = items[0].created_time.getTime();
-		    var tsm1 = (ts) + 3600000;
-		    var ahora = new Date().getTime();
-		    if (tsm1 < ahora) {
-			obtieneUsuariosConAccessToken(function(usuarios){
-			    if (usuarios === 'error') {
-				return callback(lostokensvalidos);
-			    }
-			    else {
-				tokensDeUsuarios(usuarios, 0, [], function(validtokens){
-				    if (validtokens.length < 1) {
-					// no hay tokens para esta cuenta
-					return callback(lostokensvalidos);
-				    }
-				    else {
-					var objeto = {
-					    nombre_cta: 'todos',
-					    created_time: new Date(),
-					    valid_tokens: validtokens
-					};
-					lostokensvalidos = validtokens;
-					classdb.inserta('verifica_auto_uat', objeto, 'solicitudes/getautocp/getCtaATs', function(insertao){
-					    return callback(lostokensvalidos);
-					});
-				    }
-				});
-			    }
-			});
-		    }
-		    else {
-			// y sigue vigente
-			lostokensvalidos = items[0].valid_tokens;
-			return callback(lostokensvalidos);
-		    }
-		}
-	    }
-	});	
+	      res.jsonp(2);
+	    }	
+	  }); 
+        }
+      });
     }
-
-    getAppAT(function(accesstoken){
-	if (accesstoken === 'error') {
-	    console.log('accounts.server.controller/agregaMonitoreo.main/getAppAT ERROR');
-	    res.jsonp(1);
-	}
-	else {
-	    var elpath = globales.fbapiversion+req.body.monitoreo+'?'+accesstoken;
-	    requestGraph(elpath, function(primerarespuesta){
-		if (primerarespuesta === 'error') {
-		    obtieneAccessTokensValidosDeTodos(function(access_tokens){
-			if (access_tokens.length > 0) {	
-			    var at_elegido = access_tokens[Math.floor(Math.random()*access_tokens.length)];	
-			    var derpathen = globales.fbapiversion+req.body.monitoreo+'?access_token='+at_elegido;
-			    requestGraph(derpathen, function(segundarespuesta){
-				if (segundarespuesta === 'error') {
-				    res.jsonp(1);
-				}
-				else {
-				    var objectId = new ObjectID(req.body._id);
-				    var criterio = {_id:objectId};
-				    var elset = {'datosMonitoreo':{'id':primerarespuesta.id,'name':req.body.monitoreo}};
-				    classdb.actualiza('accounts', criterio, elset, 'accounts/agregaMonitoreo', function(updated){
-		    			if (updated === 'error') {
-					    res.jsonp(1);
-		    			}
-		    			else {
-					    res.jsonp(2);
-		    			}	
-				    });		    
-				}
-			    });
-			}
-			else {
-			    res.jsonp(1);
-			}
-		    });
-
-		}
-		else {
-		    var objectId = new ObjectID(req.body._id);
-		    var criterio = {_id:objectId};
-		    var elset = {'datosMonitoreo':{'id':primerarespuesta.id,'name':req.body.monitoreo}};
-		    classdb.actualiza('accounts', criterio, elset, 'accounts/agregaMonitoreo', function(updated){
-		    	if (updated === 'error') {
-			    res.jsonp(1);
-		    	}
-		    	else {
-			    res.jsonp(2);
-		    	}	
-		    });		    
-		}
-	    });
-	}
-    });
+  });
 };
 
 exports.eliminaMonitoreo=function(req,res){
@@ -1625,7 +1440,7 @@ exports.eliminaMonitoreo=function(req,res){
 exports.connectFBConnect=function(req,res){
     var idPage=req.body.idCuenta;
     var access_token=req.body.accessToken;
-    console.log('CONECTANDO PAGINA DE FACEBOOK !!!!');
+    //console.log('CONECTANDO PAGINA DE FACEBOOK !!!!');
     //	deleteFB.path = '/'+idPage+'/subscribed_apps?access_token='+access_token;	
     globales.options_graph.method = 'POST';
     globales.options_graph.path = globales.fbapiversion+idPage+'/subscribed_apps?access_token='+access_token;
@@ -1652,7 +1467,7 @@ exports.connectFBConnect=function(req,res){
 };
 
 exports.desconectaTwitter = function(req, res){
-    console.log('Llamando a desconectaTwitter en server');
+    //console.log('Llamando a desconectaTwitter en server');
     var objectId = new ObjectID(req.body._id);
     var criterio = {'_id':objectId};
     var elset = { 'datosTwitter' : '' };
@@ -1661,15 +1476,21 @@ exports.desconectaTwitter = function(req, res){
 	    res.jsonp(updated);
 	}
 	else {
-	    var compara = require('../../escuchadores/escuchador/comparador.js');
-    	    compara.find();
-	    res.jsonp(updated);
+          cmd.exec("pm2 restart escuchador_cuentas", function(error_restart, respu_restart) {
+            if (error_restart) {
+              console.log(error_restart);
+              res.jsonp('error');
+            } else {
+              console.log(respu_restart);
+              res.jsonp(updated);
+            }
+          });          
 	}
     });
 };
 
 exports.eliminaListening = function(req, res){
-    console.log('Llamando a elimina Listening en server');
+    //console.log('Llamando a elimina Listening en server');
     var objectId = new ObjectID(req.body._id);
     var criterio = {'_id':objectId};
     var elset = {'datosTwitter.twitter_screenname_respuesta':'-1'};
@@ -1852,17 +1673,43 @@ exports.insertTrackers = function(req, res){
 	var criterio = { '_id' : idCuenta };
 	var eladdtoset = {'trackers' : req.body.objetoTrackers};
 	classdb.actualizacresult(coleccion, criterio, eladdtoset, 'insertTrackers/', function(updated){
-	   	res.jsonp(updated);
+          if (updated === 'error') {
+	    res.jsonp(updated);
+          }
+          else {
+            cmd.exec("pm2 restart escuchador_trackers", function(error_restart, respu_restart) {
+              if (error_restart) {
+                console.log(error_restart);
+                res.jsonp('error');
+              } else {
+                console.log(respu_restart);
+                res.jsonp(updated);
+              }
+            });
+          }       
 	});
 };
 
 exports.eliminaTrackers = function(req, res){
-	var coleccion = 'accounts';
-	var idCuenta = new ObjectID(req.body.infoCuenta._id);
-	var criterio = { '_id' : idCuenta };
-    var unset = {'trackers':''};
-    classdb.actualizaUnset(coleccion, criterio, unset, '/eliminaTrackers', function(updated){
-		res.jsonp(updated);
-    });
+  var coleccion = 'accounts';
+  var idCuenta = new ObjectID(req.body.infoCuenta._id);
+  var criterio = { '_id' : idCuenta };
+  var unset = {'trackers':''};
+  classdb.actualizaUnset(coleccion, criterio, unset, '/eliminaTrackers', function(updated){
+    if (updated === 'error') {
+      res.jsonp(updated);
+    }
+    else {
+      cmd.exec("pm2 restart escuchador_trackers", function(error_restart, respu_restart) {
+        if (error_restart) {
+          console.log(error_restart);
+          res.jsonp('error');
+        } else {
+          console.log(respu_restart);
+          res.jsonp(updated);
+        }
+      });
+    }
+  });
 
 };

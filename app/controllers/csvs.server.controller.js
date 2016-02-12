@@ -100,18 +100,23 @@ exports.csvByID = function(req, res, next, id) { Csv.findById(id).populate('user
 		next();
 	});
 };
+
 exports.generaCsv = function(req, res){
     var col = req.body.nombreSistema+'_consolidada';
     var fecha_inicial = new Date(req.body.fecha_inicial);
     var fecha_final = new Date(req.body.fecha_final);
-    var criterio;
+    var criterio  = {};
     
     function getdatoscuenta(nombreSistema,cback) {
 		var criterio = {'nombreSistema': nombreSistema};
 		classdb.buscarToStream('accounts', criterio, {}, 'feeds/getMailboxDescartados/querySecundario', function(datos){
+	    	console.log('LOS DATOS DE LA CUENTA');
+	    	console.log(datos);
 	    	if(datos.length > 0){
 				if(datos[0].datosPage){
 		    		return cback(datos[0].datosPage.id);
+				}else if(datos[0].datosMonitoreo){
+					return cback(datos[0].datosMonitoreo.id);
 				}
 	    	}else{
 				return cback('error');
@@ -121,7 +126,7 @@ exports.generaCsv = function(req, res){
 
     function quitaEspeciales(string){
 		if (string) {
-    	    return string.replace(/,/g,'-').replace(/"/g,'&34').replace(/\n/g,' ');
+    	    return string.replace(/,/g,'-').replace(/"/g,'&34').replace(/\n/g,' ').replace(/(\r\n|\n|\r)/gm, ' ');
 		} 
     }
 
@@ -292,6 +297,8 @@ exports.generaCsv = function(req, res){
 		    		fecha_llegada: new Date(items[index].created_time),
 		    		respuesta: ''
 				};
+				var resta = '';
+				var respuesta = '';
 				/* Obteniendo respuesta o respuestas */
 				if(items[index].respuestas){
 		    		for(var i in items[index].respuestas){
@@ -299,9 +306,8 @@ exports.generaCsv = function(req, res){
 		    		}
 		    		obj.status = 'Respondido';
 		    		obj.fecha_respuesta = new Date(items[index].respuestas[0].timestamp);
-		    		var resta = obj.fecha_respuesta.getTime() - obj.fecha_llegada.getTime();
+		    		resta = obj.fecha_respuesta.getTime() - obj.fecha_llegada.getTime();
 		    		obj.tiempo_respuesta = ( resta * 0.001 );
-		    		var respuesta = '';
 		    		respuesta = obtieneTiempo(parseInt(obj.tiempo_respuesta));
 		    		obj.tiempo_respuesta = respuesta.promedio+' '+respuesta.tipo; 
 				}
@@ -355,25 +361,39 @@ exports.generaCsv = function(req, res){
 				}
 
 
-				var fechaLlegadaCorregida = corrigeFormatoFecha(obj.fecha_llegada);
 				var fechaRespuestaCorregida = corrigeFormatoFecha(obj.fecha_respuesta);
-				obj.fecha_llegada = fechaLlegadaCorregida;
 				obj.fecha_respuesta = fechaRespuestaCorregida;
 
 				if(obj.fecha_respuesta.length === 0 && items[index].atendido && !items[index].descartado){
-					console.log(items[index].atendido.fecha);
 					obj.fecha_respuesta = new Date(items[index].atendido.fecha);
+					resta = obj.fecha_respuesta.getTime() - obj.fecha_llegada.getTime();
+		    		obj.tiempo_respuesta = ( resta * 0.001 );
+		    		respuesta = obtieneTiempo(parseInt(obj.tiempo_respuesta));
+		    		obj.tiempo_respuesta = respuesta.promedio+' '+respuesta.tipo; 
 					obj.fecha_respuesta = corrigeFormatoFecha(obj.fecha_respuesta);
 					//console.log('No hay fecha de respuesta pero hay clasificacion');
 				}else if(obj.fecha_respuesta.length === 0 && !items[index].atendido && items[index].descartado){
-					console.log(items[index].descartado.fecha);
 					obj.fecha_respuesta = new Date(items[index].descartado.fecha);
+					resta = obj.fecha_respuesta.getTime() - obj.fecha_llegada.getTime();
+		    		obj.tiempo_respuesta = ( resta * 0.001 );
+		    		respuesta = obtieneTiempo(parseInt(obj.tiempo_respuesta));
+		    		obj.tiempo_respuesta = respuesta.promedio+' '+respuesta.tipo;
 					obj.fecha_respuesta = corrigeFormatoFecha(obj.fecha_respuesta);
 				}else if(obj.fecha_respuesta.length === 0 && items[index].atendido && items[index].descartado){
-					console.log(items[index].atendido.fecha);
 					obj.fecha_respuesta = new Date(items[index].atendido.fecha);
+					resta = obj.fecha_respuesta.getTime() - obj.fecha_llegada.getTime();
+		    		obj.tiempo_respuesta = ( resta * 0.001 );
+		    		respuesta = obtieneTiempo(parseInt(obj.tiempo_respuesta));
+		    		obj.tiempo_respuesta = respuesta.promedio+' '+respuesta.tipo;
 					obj.fecha_respuesta = corrigeFormatoFecha(obj.fecha_respuesta);
 				}
+
+				var fechaLlegadaCorregida = corrigeFormatoFecha(obj.fecha_llegada);
+				obj.fecha_llegada = fechaLlegadaCorregida;
+				//console.log('EL OBJETO QUE SE ESTA PASANDO');
+				//console.log(obj);
+				//console.log('\n\n\n');
+
 				//console.log(obj.fecha_respuesta);
 				//Validación para saber quien atendio
 				if(items[index].atendido){
@@ -521,12 +541,12 @@ exports.generaArchivo = function(req,res){
 	    if (data !== 'error' && data.length > 0) {
 	      var count = {};
 	      var objetoSentiment={};
-	      var negativo=0;
-	      var neutro=0; 
-	      var positivo=0;
+	      //var negativo=0;
+	      //var neutro=0; 
+	      //var positivo=0;
 		    
 	      for(var i in data){
-		if(data[i].sentiment) {
+		/*if(data[i].sentiment) {
 		  if(data[i].sentiment==='negativo'){
 		    negativo++;
 		  }
@@ -535,14 +555,14 @@ exports.generaArchivo = function(req,res){
 		  }
 		  else if(data[i].sentiment==='positivo'){
 		    positivo++;
-		  }
+		  }*/
 		   	    /* var sentiment = 'sentiment_'+data[i].sentiment;
 		    	     if (count.hasOwnProperty(sentiment)) {
 			     count[sentiment]++;
 		    	     } else {
 			     count[sentiment] = 1;
 		    	     }*/
-		}
+		//}
 		if(data[i].clasificacion){
 		  var tema = data[i].clasificacion.tema;
 		  var subtema = data[i].clasificacion.subtema;
@@ -562,9 +582,9 @@ exports.generaArchivo = function(req,res){
 		  }
                 }
 	      }
-	      count.sentiment_negativo=negativo;
-	      count.sentiment_neutro=neutro;
-	      count.sentiment_positivo=positivo;
+	      //count.sentiment_negativo=negativo;
+	      //count.sentiment_neutro=neutro;
+	    //  count.sentiment_positivo=positivo;
 	    	    //count[objetoSentiment];
 	    	    //sentiment__negativo
 	    	    //console.log('Si hay posts resueltos');

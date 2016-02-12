@@ -42,6 +42,8 @@ angular
 	$scope.imagenDefecto = 'data:image/png;base64,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';
 	// rellenamos el usuario
 	$scope.user = Authentication.user;
+	$scope.enable_notifications = $scope.user.notificaciones;
+	$scope.enable_notifications_dailyreport = $scope.user.dailyreport;
 	// obtenemos las cuentas
 
 	
@@ -173,9 +175,16 @@ angular
  		var email=$scope.correoUsuario;
   		var nickname=$scope.nicknameUsuario;
   		var notificaciones = $scope.enable_notifications;
-  		console.log('Updeteando profile');
-  		console.log($scope.enable_notifications);
-		$http.post('/actualizaPerfil/', {nombre:nombre,apellido:apellidos,correo:email,rol:rol,idUsuario:idUsuario,nickname:nickname, notificaciones:$scope.enable_notifications}).success(function(data){
+  		var dailyreport = $scope.enable_notifications_dailyreport;
+  		if(typeof dailyreport === 'undefined'){
+  			dailyreport = false;
+  		}
+  		if(typeof notificaciones === 'undefined'){
+  			notificaciones = false;
+  		}
+  		//console.log(notificaciones);
+  		//console.log(dailyreport);
+		$http.post('/actualizaPerfil/', {nombre:nombre,apellido:apellidos,correo:email,rol:rol,idUsuario:idUsuario,nickname:nickname, notificaciones: notificaciones, dailyreport : dailyreport}).success(function(data){
 			if(data===0){
 				$scope.mensajeActualizacion='Ha ocurrido un error al actualizar';
 			}
@@ -185,6 +194,8 @@ angular
 				$scope.mensajeActualizacion='Perfil Actualizado';
 				$scope.muestraAct=true;
 				Authentication.user=data[0];
+				//console.log('El usuario actualizado');
+				//console.log(Authentication.user);
 				$scope.user = Authentication.user;	
 			}
     	});

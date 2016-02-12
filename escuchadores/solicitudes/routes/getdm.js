@@ -111,7 +111,7 @@ router.get('/', function(req, res, next) {
 	    setImmediate(function(){
 		revisaDM(nombreSistema, datos[index], function(answer){
 		    if (answer === 'error' || answer === 'existe' ) {
-			console.log('solicitudes/getdm/desglosaDMs - Hubo un error de conexión o en el count, o dm ya existe');
+			// console.log('solicitudes/getdm/desglosaDMs - '+answer);
 			desglosaDMs(nombreSistema, datos, acc_id, created_time, more, callback);
 		    }
 		    else {
@@ -140,7 +140,7 @@ router.get('/', function(req, res, next) {
 	});
 	var tokenelements = datosCuenta.datosTwitter.twitter_access_token.split('-');
 	var cta_id = tokenelements[0];
-	T.get('direct_messages', { count: 50, full_text: true }, function(err, data, response) {
+	T.get('direct_messages', { count: 30, full_text: true }, function(err, data, response) {
 	    if(err){
 		console.log('solicitudes/getdm/obtieneDMs - Error en solicitud a twitter para '+datosCuenta.nombreSistema+': '+err);
 		return callback('error');

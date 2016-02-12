@@ -13,7 +13,7 @@
 }
 </style>
 <div class="pure-u-md-1-1 header" data-ng-controller="SettingsController">
-	<div id="facebook-connect-header" data-ng-show="!statusLoginFacebook2"><a href="{{constant.host}}/auth/facebook"><img src="/modules/core/img/facebook-login-header.svg" /></a></div>
+	<div id="facebook-connect-header" data-ng-show="!statusLoginFacebook2"><a href="https://{{constant.host}}/auth/facebook"><img src="/modules/core/img/facebook-login-header.svg" /></a></div>
 	<div id="facebook-cuenta-usuario" data-ng-show="statusLoginFacebook2">
 		<div class="imagen perfil-circular" style=" width: 40px; height: 40px; background-image: url(https://graph.facebook.com/{{authentication.user.additionalProvidersData.facebook.id}}/picture?type=square);background-size: cover; background-position: center;">
 			&nbsp;
@@ -857,7 +857,7 @@ ng-model-options='{ debounce: 2000 }' ng-change="busquedaInput('proceso')" style
 
 <div data-ng-show="!statusLoginFacebook" class="pure-u-md-1-1 izq" style="padding: 0px 0px;">
 <div class="pure-u-md-1-1">
-	<a href="{{globals.host}}/auth/facebook" ng-click="faceConnect(items[0]._id)" id="btn-facebook-connect" translate>Facebook Connect</a>
+	<a href="https://{{globals.host}}/auth/facebook" ng-click="faceConnect(items[0]._id)" id="btn-facebook-connect" translate>Facebook Connect</a>
 </div>
 </div>
 <div class="pure-u-md-1-1" data-ng-show="statusLoginFacebook">

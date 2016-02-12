@@ -14,7 +14,8 @@ var classdb = require('../../config/classdb.js');
  */
 exports.index = function(req, res) {
 	res.render('index', {
-		user: req.user || null
+		user: req.user || null,
+		globals : globales.url
 	});
 };
 
@@ -24,11 +25,9 @@ exports.notification = function(req, res){
     var critus = {'cuenta.marca': req.body.cuenta};
     var campos = {_id : 1,email:1,notificaciones:1};
     
-
     classdb.buscarToArrayFields('users', critus, campos, {}, 'core/notificacion.main', function(items) {
 	if (items === 'error') {
 	    console.log('NO hay usuarios a los que notificar');
-	    console.log();
 	    res.jsonp(items);
 	}
 	else {
@@ -61,16 +60,22 @@ exports.notification = function(req, res){
 		    console.log('Notificacion insertada correctamente');
 		    console.log(items);
 		    var socketio = req.app.get('socketio'); // take out socket instance from the app container
-		    socketio.sockets.emit('notify', data); // emit an event for all connected client
+		    socketio.sockets.emit('notify', data[0]); // emit an event for all connected client
 		    console.log('Realizando el envio de email +++++++++++++++++++++++++++++');
 		    var mails ='';
-		    for(var i in items){
-		    	if(items[i].email){
-		    		if(items[i].notificaciones && items[i].notificaciones !== 'false'){
-		    			mails += items[i].email+',';
-		    		}
-		    	}
+		  for(var i in items){
+		    if(items[i].email){
+		      if(items[i].notificaciones && items[i].notificaciones !== 'false'){
+                        console.log('Un email:');
+                        console.log(items[i].email);
+                        console.log('Un email end...')
+		    	mails += items[i].email+',';
+		      }
 		    }
+		    }
+                  console.log('losmails...');
+                  console.log(mails);
+                  console.log('losmails... end');
 		    	console.log('Realizando el envio de email +++++++++++++++++++++++++++++');
 		    	console.log(mails);
 			    res.render('templates/notify-email', {
@@ -126,8 +131,10 @@ exports.nuevoMensaje= function(req, res){
 			cuenta: cuenta
 		};
 		var socketio = req.app.get('socketio'); // take out socket instance from the app container
-		socketio.sockets.emit('mensajeNuevo', data); // emit an event for all connected client
+		socketio.sockets.in(cuenta).emit('mensajeNuevo', data); // emit an event for all connected client
 	}
+
+	res.jsonp({code:200,message:"Post recibido"});
 }
 exports.obtieneDesempenioDiario = function(req, res){
 	var coleccion = req.body.cuenta+'_consolidada';

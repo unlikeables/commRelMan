@@ -16,6 +16,7 @@ module.exports = function() {
 		User.findOne({
 			_id: id
 		}, '-salt -password', function(err, user) {
+			//delete user.additionalProvidersData.facebook.accessToken;
 			done(err, user);
 		});
 	});

@@ -6,32 +6,44 @@
 <body>
 <style>
 @media all and (max-width: 480px) {
-.ExternalClass *[class].ecxib_t {
-min-width:100% !important;
+	.ExternalClass *[class].ecxib_t {
+		min-width:100% !important;
+	}
+	.ExternalClass *[class].ecxib_row {
+		display:block !important;
+	}
+	.ExternalClass *[class].ecxib_ext {
+		display:block !important;
+		padding:10px 0 5px 0;
+		vertical-align:top !important;
+		width:100% !important;
+	}
+	.ExternalClass *[class].ecxib_img, .ExternalClass *[class].ecxib_mid {
+		vertical-align:top !important;
+	}
+	.ExternalClass *[class].ecxmb_blk {
+		display:block !important;
+		padding-bottom:10px;
+		width:100% !important;
+	}
+	.ExternalClass *[class].ecxmb_hide {
+		display:none !important;
+	}
+	.ExternalClass *[class].ecxmb_inl {
+		display:inline !important;
+	}
 }
-.ExternalClass *[class].ecxib_row {
-display:block !important;
+.chica{
+	font-size: 14px;
 }
-.ExternalClass *[class].ecxib_ext {
-display:block !important;
-padding:10px 0 5px 0;
-vertical-align:top !important;
-width:100% !important;
+.mediana{
+	font-size:  : 19px;
 }
-.ExternalClass *[class].ecxib_img, .ExternalClass *[class].ecxib_mid {
-vertical-align:top !important;
+.grande{
+	font-size: 22px;
 }
-.ExternalClass *[class].ecxmb_blk {
-display:block !important;
-padding-bottom:10px;
-width:100% !important;
-}
-.ExternalClass *[class].ecxmb_hide {
-display:none !important;
-}
-.ExternalClass *[class].ecxmb_inl {
-display:inline !important;
-}
+.colorGris{
+	color: #465769;
 }
 </style>
 <table cellspacing="0" cellpadding="0" width="100%;" id="ecxemail_table" border="0" style="border-collapse:collapse;">
@@ -64,7 +76,7 @@ display:inline !important;
 		<tr>
 			<td style=""></td>
 			<td style="">
-				<span style="font-family:Helvetica Neue,Helvetica,Lucida Grande,tahoma,verdana,arial,sans-serif;font-size:16px;line-height:21px;font-weight:bold;color:#141823;">Hola</span>
+				<span style="font-family:Helvetica Neue,Helvetica,Lucida Grande,tahoma,verdana,arial,sans-serif; color: #465769; font-size:22px;">Hola</span>
 			</td>
 		</tr>
 		<tr style="">
@@ -73,7 +85,7 @@ display:inline !important;
 		<tr>
 			<td style=""></td>
 			<td style="">
-				<span style="color:#141823;font-size:16px;font-weight:normal;font-family:Helvetica Neue,Helvetica,Lucida Grande,tahoma,verdana,arial,sans-serif;">A continuación te presentamos el resúmen diario del desempeño de la cuenta.</span>
+				<span style="font-family:Helvetica Neue,Helvetica,Lucida Grande,tahoma,verdana,arial,sans-serif; color: #465769; font-size:19px;">A continuación te presentamos el resumen diario del desempeño de la cuenta.</span>
 			</td>
 		</tr>
 		<tr style="">
@@ -82,7 +94,7 @@ display:inline !important;
 		<tr>
 			<td style=""></td>
 			<td style="padding-bottom:28px;">
-				<span style="color:#141823;font-size:20px;line-height:24px;font-family:Helvetica Neue,Helvetica,Lucida Grande,tahoma,verdana,arial,sans-serif;">Fecha: <%=fecha%></span>
+				<span style="font-family:Helvetica Neue,Helvetica,Lucida Grande,tahoma,verdana,arial,sans-serif; color: #465769; font-size:19px;">Fecha: <%=fecha%></span>
 			</td>
 		</tr>
 		<tr style="">
@@ -101,11 +113,11 @@ display:inline !important;
 	<tbody>
 		<tr>
 			<td valign="middle" style="padding-right:20px;font-size:0px;" class="ecximage">
-					<img src="https://crm.likeable.mx/<%=cuenta.imagen_src%>" style="border:0; width: 44px; height: 44px;border: solid 2px #404040 !important; border-radius: 24px;">
+					<img src="https://crm.likeable.mx/<%=cuenta.imagen_src%>" style="border:0; width: 64px !important; height: 64px !important;border: solid 2px #404040 !important; border-radius: 40px !important; min-height: 64px !important; max-height : 64px !important;">
 			</td>
 			<td valign="middle" class="ecxcontent" style="width:100%;">
 				<div>
-					<span style="color:#141823;font-size:20px;line-height:24px;font-family:Helvetica Neue,Helvetica,Lucida Grande,tahoma,verdana,arial,sans-serif;"><%=cuenta.marca%></span>
+					<span style="font-family:Helvetica Neue,Helvetica,Lucida Grande,tahoma,verdana,arial,sans-serif; color: #465769; font-size:19px; font-weigth:bold;"><%=cuenta.marca%></span>
 				</div>
 			</td>
 		</tr>
@@ -118,68 +130,95 @@ display:inline !important;
         <tr>
             <th width="62%"></th>
             <th width="38%" style="padding-bottom:12px;text-transform:uppercase;" align="center">
-                <span style="color: #898f9c; font-size: 11px; font-weight: bold; line-height: 16px; font-family: &quot;Helvetica Neue&quot;, Helvetica, &quot;Lucida Grande&quot;, tahoma, verdana, arial, sans-serif;">Totales</span>
+                <span style="font-family: &quot;Helvetica Neue&quot;, Helvetica, &quot;Lucida Grande&quot;, tahoma, verdana, arial, sans-serif; color: #465769; font-size:14px; font-weigth:bold;">Totales</span>
             </th>
         </tr>
 	</thead>
     <tbody>
     	<tr style="border-bottom:1px solid #e8e8e8;">
 			<td style="padding:19px 0 15px;">
-            	<span style="color: #141823; font-size: 14px; font-weight: normal; line-height: 24px; font-family: &quot;Helvetica Neue&quot;, Helvetica, &quot;Lucida Grande&quot;, tahoma, verdana, arial, sans-serif;">Total de Casos</span>
+            	<span style="font-family: &quot;Helvetica Neue&quot;, Helvetica, &quot;Lucida Grande&quot;, tahoma, verdana, arial, sans-serif; color: #141823; font-size:14px;">Total de Casos</span>
             </td>
 			<td align="center" valign="middle" style="text-align:center;padding:19px 0 15px;">
-            	<span style="font-size:16px;color:#0DBEC8;"><%=datos.Todos%></span>
+            	<span style="font-size:14px;color:#0DBEC8;"><%=datos.Todos%></span>
             </td>
 		</tr>
         
         <tr style="border-bottom:1px solid #e8e8e8;">
 			<td style="padding:19px 0 15px;">
-            	<span style="color: #141823; font-size: 14px; font-weight: normal; line-height: 24px; font-family: &quot;Helvetica Neue&quot;, Helvetica, &quot;Lucida Grande&quot;, tahoma, verdana, arial, sans-serif;">Casos no Atendidos</span>	
+            	<span style="font-family: &quot;Helvetica Neue&quot;, Helvetica, &quot;Lucida Grande&quot;, tahoma, verdana, arial, sans-serif; color: #141823; font-size:14px;">Casos no Atendidos</span>	
             </td>
             <td align="center" valign="middle" style="text-align:center;padding:19px 0 15px;">
-            	<span style="font-size:16px;color:#0DBEC8;"><%=datos.Entrada%></span>
+            	<span style="font-size:14px;color:#0DBEC8;"><%=datos.Entrada%></span>
             </td>
 		</tr>
         
         <tr style="border-bottom:1px solid #e8e8e8;">
 			<td style="padding:19px 0 15px;">
-            	<span style="color: #141823; font-size: 14px; font-weight: normal; line-height: 24px; font-family: &quot;Helvetica Neue&quot;, Helvetica, &quot;Lucida Grande&quot;, tahoma, verdana, arial, sans-serif;">Casos Atendidos</span>
+            	<span style="font-family: &quot;Helvetica Neue&quot;, Helvetica, &quot;Lucida Grande&quot;, tahoma, verdana, arial, sans-serif;color: #141823; font-size:14px;">Casos Atendidos con Respuesta</span>
 			</td>
             <td align="center" valign="middle" style="text-align:center;padding:19px 0 15px;">
-            	<span style="font-size:16px;color:#0DBEC8;"><%=datos.Completos%></span>
+            	<span style="font-size:14px;color:#0DBEC8;"><%=datos.Completos%></span>
 			</td>
 		</tr>
 
 		<tr style="border-bottom:1px solid #e8e8e8;">
 			<td style="padding:19px 0 15px;">
-				<span style="color: #141823; font-size: 14px; font-weight: normal; line-height: 24px; font-family: &quot;Helvetica Neue&quot;, Helvetica, &quot;Lucida Grande&quot;, tahoma, verdana, arial, sans-serif;">Casos Descartados</span>
+            	<span style="font-family: &quot;Helvetica Neue&quot;, Helvetica, &quot;Lucida Grande&quot;, tahoma, verdana, arial, sans-serif; color: #141823; font-size:14px;">Casos Atendidos sin Respuestas</span>
+			</td>
+            <td align="center" valign="middle" style="text-align:center;padding:19px 0 15px;">
+            	<span style="font-size:14px;color:#0DBEC8;"><%=datos.AtendidosSinRespuesta%></span>
+			</td>
+		</tr>
+
+        <tr style="border-bottom:1px solid #e8e8e8;">
+			<td style="padding:19px 0 15px;">
+            	<span style="font-family: &quot;Helvetica Neue&quot;, Helvetica, &quot;Lucida Grande&quot;, tahoma, verdana, arial, sans-serif;color: #141823; font-size:14px;">Casos Atendidos Fuera de Horario</span>
+			</td>
+            <td align="center" valign="middle" style="text-align:center;padding:19px 0 15px;">
+            	<span style="font-size:14px;color:#0DBEC8;"><%=datos.AtendidosDestiempo%></span>
+			</td>
+		</tr>
+
+		<tr style="border-bottom:1px solid #e8e8e8;">
+			<td style="padding:19px 0 15px;">
+				<span style="font-family: &quot;Helvetica Neue&quot;, Helvetica, &quot;Lucida Grande&quot;, tahoma, verdana, arial, sans-serif; color: #141823; font-size:14px;">Casos Descartados</span>
             </td>
             <td align="center" valign="middle" style="text-align:center;padding:19px 0 15px;">
-            	<span style="font-size:16px;color:#0DBEC8;"><%=datos.Descartados%></span>
+            	<span style="font-size:14px;color:#0DBEC8;"><%=datos.Descartados%></span>
+            </td>
+		</tr>
+
+		<tr style="border-bottom:1px solid #e8e8e8;">
+			<td style="padding:19px 0 15px;">
+				<span style="font-family: &quot;Helvetica Neue&quot;, Helvetica, &quot;Lucida Grande&quot;, tahoma, verdana, arial, sans-serif; color: #141823; font-size:14px;">Casos Descartados Fuera de Horario</span>
+            </td>
+            <td align="center" valign="middle" style="text-align:center;padding:19px 0 15px;">
+            	<span style="font-size:14px;color:#0DBEC8;"><%=datos.DescartadosDestiempo%></span>
             </td>
 		</tr>
 
 		<tr style="border-bottom:1px solid #e8e8e8;">
     		<td style="padding:19px 0 15px;">
-        		<span style="color: #141823; font-size: 14px; font-weight: normal; line-height: 24px; font-family: &quot;Helvetica Neue&quot;, Helvetica, &quot;Lucida Grande&quot;, tahoma, verdana, arial, sans-serif;">Atendidos en Facebook</span>
+        		<span style="font-family: &quot;Helvetica Neue&quot;, Helvetica, &quot;Lucida Grande&quot;, tahoma, verdana, arial, sans-serif; color: #141823; font-size:14px;">Atendidos en Facebook</span>
     		</td>
     		<td align="center" valign="middle" style="text-align:center;padding:19px 0 15px;">
-        		<span style="font-size:16px;color:#0DBEC8;"><%=datos.Facebook%></span>
+        		<span style="font-size:14px;color:#0DBEC8;"><%=datos.Facebook%></span>
     		</td>
 		</tr>
 
 		<tr style="border-bottom:1px solid #e8e8e8;">
     		<td style="padding:19px 0 15px;">
-            	<span style="font-family: &quot;Helvetica Neue&quot;, Helvetica, &quot;Lucida Grande&quot;, tahoma, verdana, arial, sans-serif; font-size: 14px; color: #141823">Tiempo Promedio de Respuestas</span>
+            	<span style="font-family: &quot;Helvetica Neue&quot;, Helvetica, &quot;Lucida Grande&quot;, tahoma, verdana, arial, sans-serif;color: #141823; font-size:14px;">Tiempo Promedio de Respuestas</span>
 			</td>
 			<td align="center" valign="middle" style="text-align:center;padding:19px 0 15px;">
-				<span style="font-size:16px;color:#0DBEC8;"><%=datos.tiempoRespuesta%></span>
+				<span style="font-size:14px;color:#0DBEC8;"><%=datos.tiempoRespuestaNS%></span>
 			</td>
 		</tr>
 
 		<tr style="border-bottom:1px solid #e8e8e8;">
     		<td colspan="2" style="padding:19px 0 15px;">
-                	<span style="color: #898f9c; font-size: 11px; font-weight: bold; line-height: 16px; font-family: &quot;Helvetica Neue&quot;, Helvetica, &quot;Lucida Grande&quot;, tahoma, verdana, arial, sans-serif;">NIVEL DE SERVICIO</span>
+                	<span style="font-family: &quot;Helvetica Neue&quot;, Helvetica, &quot;Lucida Grande&quot;, tahoma, verdana, arial, sans-serif; color: #465769; font-size:14px;">NIVEL DE SERVICIO</span>
             </td>
     	</tr>
 
@@ -188,7 +227,7 @@ display:inline !important;
             	<span style="font-family: &quot;Helvetica Neue&quot;, Helvetica, &quot;Lucida Grande&quot;, tahoma, verdana, arial, sans-serif; font-size: 14px; color: #141823">Menos de 1 Hora</span>
             </td>
 			<td align="center" valign="middle" style="text-align:center;padding:19px 0 15px;">
-				<span style="font-size:16px;color:#0DBEC8;"><%=datos.menosHora%></span>
+				<span style="font-size:14px;color:#0DBEC8;"><%=datos.menosHoraNS%></span>
 			</td>
 		</tr>
 
@@ -197,7 +236,7 @@ display:inline !important;
             	<span style="font-family: &quot;Helvetica Neue&quot;, Helvetica, &quot;Lucida Grande&quot;, tahoma, verdana, arial, sans-serif; font-size: 14px; color: #141823">De 1 a 8 Horas</span>
             </td>
     		<td align="center" valign="middle" style="text-align:center;padding:19px 0 15px;">
-        		<span style="font-size:16px;color:#0DBEC8;"><%=datos.unaOcho%></span>
+        		<span style="font-size:14px;color:#0DBEC8;"><%=datos.unaOchoNS%></span>
     		</td>
 		</tr>
 
@@ -206,7 +245,7 @@ display:inline !important;
             	<span style="font-family: &quot;Helvetica Neue&quot;, Helvetica, &quot;Lucida Grande&quot;, tahoma, verdana, arial, sans-serif; font-size: 14px; color: #141823">De 8 a 24 Horas</span>
             </td>
 			<td align="center" valign="middle" style="text-align:center;padding:19px 0 15px;">
-        		<span style="font-size:16px;color:#0DBEC8;"><%=datos.ochoVeinticuatro%></span>
+        		<span style="font-size:14px;color:#0DBEC8;"><%=datos.ochoVeinticuatroNS%></span>
     		</td>
 		</tr>
 
@@ -215,7 +254,7 @@ display:inline !important;
             	<span style="font-family: &quot;Helvetica Neue&quot;, Helvetica, &quot;Lucida Grande&quot;, tahoma, verdana, arial, sans-serif; font-size: 14px; color: #141823">Más de 24 Horas</span>
             </td>
 			<td align="center" valign="middle" style="text-align:center;padding:19px 0 15px;">
-				<span style="font-size:16px;color:#0DBEC8;"><%=datos.masVeinticuatro%></span>
+				<span style="font-size:14px;color:#0DBEC8;"><%=datos.masVeinticuatroNS%></span>
 			</td>
 		</tr>
 	</tbody>
@@ -248,7 +287,8 @@ display:inline !important;
 		</tr>
 		<tr>
 			<td style="">
-				<span style="font-family:Helvetica Neue,Helvetica,Lucida Grande,tahoma,verdana,arial,sans-serif;font-size:16px;line-height:21px;color:#141823;">Gracias, <br>Likeable CRM</span>
+				<span style="font-family:Helvetica Neue,Helvetica,Lucida Grande,tahoma,verdana,arial,sans-serif;color: #465769; font-size:19px; font-weigth:bold;">Gracias.</span><br>
+				<img src="https://crm.likeable.mx/modules/core/img/likeableMail.png" style="width:25% !important; padding-top:15px!important;">
 			</td>
 		</tr>
 		<tr style="">

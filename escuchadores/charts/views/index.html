@@ -1,0 +1,80 @@
+<html>
+<head>
+	<title>Generando CSV</title>
+	<style type="text/css">
+	body{
+		margin: 0;
+		padding: 0;
+		background: #EBEEF3;
+		font-family: 'Lato', sans-serif !important;
+	}
+	.carga{
+		width: 60%;
+		font-size: 30px;
+		margin: 0 auto;
+		margin-top: 10%;
+		text-align: center;
+	}
+	#porcentaje{
+		font-size: 50px;
+		font-family: sans-serif; 
+	}
+	#descarga{
+		position: absolute;
+		left: 40%;
+		top: 40%;
+		display: none;
+	}
+	a{
+		display: inline;
+	    color: #0DBEC8;
+	    font-weight: bold;
+	    margin-left: -25px;
+	    font-size: 38px;
+	}
+	</style>
+	<script type="text/javascript" src="https://code.jquery.com/jquery-2.2.0.min.js"></script>
+	<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/1.4.5/socket.io.js"></script>
+	<script type="text/javascript">
+	$(document).on('ready', function(){
+		var socket = io();
+		socket.on('update',function(data){
+			//console.log('Socket');
+			//console.log(socket.id);
+			$('#porcentaje').html(data.toFixed(2)+' %');
+		});
+		var socket_client;
+		socket.on('connection',function(socket){
+			socket_client = socket.toString();
+			//console.log('Socket conectado '+socket_client);
+		});
+
+
+
+		var url = window.location;
+			url = url.toString();
+			var params = url.substring(url.indexOf('?'));
+			console.log(params);
+			$.get( "http://crm-csvs.likeable.mx/getcsvs/node"+params, function( data ) {
+			  	//console.log('La data');
+			  	//console.log(data);
+			  	$('#porcentaje').html('100 %');
+			  	$('#descarga').attr('href','http://crm-csvs.likeable.mx/getcsvs/download?filename='+data.filename);
+			  	$('#engrane,#porcentaje,#h').fadeOut();
+			  	$('#descarga').fadeIn();
+			});
+
+	});
+	</script>
+</head>
+<body>
+	<div class="carga">
+		<h1 id="h">Procesando...</h1>
+		<span id="porcentaje"></span><br><br>
+		<img src="http://crm-csvs.likeable.mx/gears.gif" id="engrane">
+		<a href="" id="descarga" target="_blank">Descarga Archivo</a>
+	</div>
+	
+	
+</body>
+</html>

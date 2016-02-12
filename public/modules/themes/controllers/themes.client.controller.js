@@ -494,7 +494,7 @@ angular.module('themes')
       		$log.info('Modal dismissed at: ' + new Date());
     	});
   	};
-}).controller('ModalInstanceThemes',function ($scope, $modalInstance,agregaTema,agregaSubtema,agregaRespuesta,temaEscogido,subtemaEscogido,respuestaEliminada,deleteTema,deleteSubtema,deleteRespuesta,$resource,$http,Accounts,Authentication,Themes) {
+}).controller('ModalInstanceThemes',function ($scope, $modalInstance,agregaTema,agregaSubtema,agregaRespuesta,temaEscogido,subtemaEscogido,respuestaEliminada,deleteTema,deleteSubtema,deleteRespuesta,$resource,$http,Accounts,Authentication,Themes, Socket) {
 	$scope.temaEscogido = temaEscogido;
   	$scope.deleteTema = deleteTema;
   	$scope.deleteSubtema = deleteSubtema;
@@ -540,6 +540,7 @@ angular.module('themes')
   				}else if(data===4){
 					$scope.mensajeTema = 'Error al añadir el tema';
   				}else{
+  					Socket.emit('actualizaTemasServer', $scope.authentication.user.cuenta.marca);
   					$scope.ok('tema',data,'',temaNuevo);
   				}
   			});
@@ -555,6 +556,7 @@ angular.module('themes')
 			var cuenta = $scope.authentication.user.cuenta.marca;
 			$http.post('/eliminaTema', {tema : temaEliminar, cuenta : cuenta}).success(function(data){
 				//console.log(data);
+				Socket.emit('actualizaTemasServer', $scope.authentication.user.cuenta.marca);
 				$scope.ok('eliminaTema',data);
 			});
 		}
@@ -589,6 +591,7 @@ angular.module('themes')
 						for(var j in data){
   							subtemas[j] = {'idSubtema':data[j].idSubtema,'nombre':data[j].subtema};
   						}
+  						Socket.emit('actualizaTemasServer', $scope.authentication.user.cuenta.marca);
   						$scope.ok('subtema',temaActual);
 					}
   				});
@@ -608,6 +611,7 @@ angular.module('themes')
 				var cuenta = $scope.authentication.user.cuenta.marca;
 				$http.post('/eliminaSubtema', {tema : tema, subtema : subtema, cuenta : cuenta}).success(function(data){
 					$scope.ok('eliminaSubtema',tema);
+					Socket.emit('actualizaTemasServer', $scope.authentication.user.cuenta.marca);
 				});
 			}
 		}

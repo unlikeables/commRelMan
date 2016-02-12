@@ -49,6 +49,10 @@ angular.module('feeds').config(['$stateProvider',
 		state('mailbox', {
 			url: '/mailbox',
 			templateUrl: 'modules/feeds/views/buzon.view.html'
+		})
+		.state('filtros',{
+			url: '/buzon/:red/:tipo',
+			templateUrl: 'modules/feeds/views/buzon.view.html'
 		});
 	}
 ]);

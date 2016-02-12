@@ -1,0 +1,11 @@
+extends layout
+
+block content
+  div(.error)
+    div(.errorname) #{error.name}
+    div(.errormsg) #{error.message}
+    div(.errorfile) #{error.filename}
+
+  div(.contenido)
+    div(#mascontenidos) ¡Hola Mundo!
+

@@ -4,7 +4,9 @@
  */
 var init = require('./config/init')(),
     config = require('./config/config'),
+    globales = require('./config/globals'),
     mongoose = require('mongoose');
+var bst = require('better-stack-traces').install();
 
 /**
  * Main application entry file.

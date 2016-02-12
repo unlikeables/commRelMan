@@ -18,7 +18,9 @@ module.exports = {
 				/*'public/lib/bootstrap/dist/css/bootstrap-theme.css',*/
 				'public/lib/ngDialog/css/ngDialog.min.css',
 				'public/modules/core/css/animate.css',
-				'public/lib/jQCloud/dist/jqcloud.min.css'
+				'public/lib/jQCloud/dist/jqcloud.min.css',
+				'public/lib/angular-responsive-slider-directive/src/style/style.css'
+
 			],
 			js: [
 				'public/lib/angular/angular.js',
@@ -48,13 +50,14 @@ module.exports = {
 				//'public/modules/core/js/hmaps/js/highmaps.js',
 				'public/modules/core/js/hmaps/js/modules/map.js',
 				'public/modules/core/js/hmaps/js/modules/exporting.js',
-				
-				'//code.highcharts.com/maps/modules/map.js',
+				'//code.highcharts.com/maps/1.1.9/modules/map.js',
+				//'//code.highcharts.com/maps/modules/map.js',
 				'//code.highcharts.com/mapdata/countries/mx/mx-all.js',
 				'//code.highcharts.com/mapdata/custom/world.js',
 				'//cdnjs.cloudflare.com/ajax/libs/jquery.isotope/2.2.0/isotope.pkgd.min.js',
 				'public/lib/angular-img-fallback/angular.dcb-img-fallback.min.js',
 				//'public/modules/core/js/functions.js'
+				'public/lib/angular-responsive-slider-directive/src/js/angular-responsive-slider-directive.js'
 
 			]
 		},

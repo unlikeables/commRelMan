@@ -120,6 +120,8 @@ exports.eliminaEquipo=function(req,res){
 */
 //Método que sirve para actualizar la información del usuario ubicado en la pestaña de Perfil
 exports.actualizaPerfil = function(req,res){
+	//console.log('ActualizandoaNDO');
+	//console.log(req.body);
     var id = new ObjectId(req.body.idUsuario);
     var criterius = {_id : id};
     var elset = {
@@ -129,7 +131,8 @@ exports.actualizaPerfil = function(req,res){
 		'lastName' : req.body.apellido,
 		'firstName' : req.body.nombre,
 		'roles':[req.body.rol],
-		'notificaciones': req.body.notificaciones
+		'notificaciones': req.body.notificaciones,
+		'dailyreport' : req.body.dailyreport
     };
     //console.log(req.body);
     classdb.actualizacresult('users', criterius, elset, 'users/actualizaPerfil', function(actual){
@@ -446,6 +449,7 @@ exports.saveOAuthUserProfile = function(req, providerUserProfile, done) {
     } else {
 	// User is already logged in, join the provider data to the existing user
 	var user = req.user;
+	var globals = globales;
 	
 	// Check if user exists, is not signed in using this provider, and doesn't have that provider data already configured
 	if (user.provider !== providerUserProfile.provider && (!user.additionalProvidersData || !user.additionalProvidersData[providerUserProfile.provider])) {
@@ -475,9 +479,7 @@ exports.removeOAuthProvider = function(req, res, next) {
 
     if (user && provider) {
 	// Delete the additional provider
-	if (user.additionalProvidersData[provider]) {
-	    delete user.additionalProvidersData[provider];
-	    
+	if (user.additionalProvidersData[provider]) {	    
 	    // Then tell mongoose that we've updated the additionalProvidersData field
 	    user.markModified('additionalProvidersData');
 	}

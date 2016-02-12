@@ -4,18 +4,12 @@ var https = require('https');
 var querystring = require('querystring');
 var _ = require('lodash');
 var Twit = require('twit');
-
-var llaves = 
-    {
-      "consumer_key":"eVSpP6uPUMUBeQyBGDyBLejk6",
-      "consumer_secret":"Fhkr18LmrMh8hzOJPnFTsAEhXrwYR20IKDoXiqqnOgTbMtSrdG",
-      "access_token":"1694381664-iwUOPNz52GgMlXvvRmDb09I3212OFyeMISajDfp",
-      "access_token_secret":"CQeN3XessyExYjGQYT5HCwZTuqYKeW6CBZRxzgHGqletT"
-    };
-var T = new Twit(llaves), losdatos = {};
 var classdb = require('./classdb.js');
 var globales = require('./globals.js');
+var llaves = globales.llaves;
 
+
+var T = new Twit(llaves), losdatos = {};
 function getAccountsConDatosTwitter(callback) {
   var criterium = {
     $and: [
@@ -29,7 +23,8 @@ function getAccountsConDatosTwitter(callback) {
 
   var accountfields = {
     '_id' : '', 
-    'nombreSistema' : '', 
+    'nombreSistema' : '',
+    'rango_influencers': '',
     'datosTwitter': '',
     'created_time' : ''
   };
@@ -50,9 +45,16 @@ function generaArregloCtas(datae, index, arregloCtas, callback) {
       if (typeof datae[index] !== 'undefined') {
         var snprin = datae[index].datosTwitter.twitter_screenname_principal;
         var idprin = datae[index].datosTwitter.twitter_id_principal;
+        var raninf = datae[index].rango_influencers;
         var objeto = {};
+        objeto.nombre = datae[index].nombreSistema;
+        if (datae[index].rango_influencers) {
+          objeto.raninf = datae[index].rango_influencers;
+        }
+        else {
+          objeto.raninf = 10000;
+        }
         if (snprin !== null && snprin !== '-1') {
-          objeto.nombre = datae[index].nombreSistema;
           objeto.track = [];
           objeto.track.push(snprin);
           objeto.follow = [];
@@ -82,45 +84,54 @@ function generaArregloCtas(datae, index, arregloCtas, callback) {
 };
 
 function getFirstArrays(accounts, callback) {
-    var datosctas = { cuentas : [], follow : [], track : [] , trackuc : [], trackat : []};
-    var cuentas = [], follow = [], track = [], trackuc = [], trackat = []; 
-    var num = 0;
-    for (var k in accounts) {
-	num++;
-	cuentas[k] = accounts[k].nombre;
-	if (accounts[k].follow.length > 0 && accounts[k].follow[0] !== null) {
-	    for (var l in accounts[k].follow) {
-		follow.push(accounts[k].follow[l]);
-	    }
-	}
-	if (accounts[k].track.length > 0 && accounts[k].track[0] !== null) {
-	    for (var n in accounts[k].track) {
-		track.push(accounts[k].track[n].toLowerCase());
-		trackat.push('@'+accounts[k].track[n].toLowerCase());
-		trackuc.push(accounts[k].track[n]);
-	    }
-	}
-	if (num === accounts.length) {
-	    track.sort(function(a, b){
-		return b.length - a.length; // ASC -> a - b; DESC -> b - a
-	    });
+  var datosctas = { cuentas : [], acctinfrank : {}, follow : [], follinfrank : {}, acc_foll: {}, track : [] , trackuc : [], trackat : []};
+  var cuentas = [], acctinfrank = {}, follow = [], follinfrank = {}, acc_foll = {}, track = [], trackuc = [], trackat = []; 
+  var num = 0;
+  for (var k in accounts) {
+    num++;
+    cuentas[k] = accounts[k].nombre;
+    acctinfrank[accounts[k].nombre] = [];
+    acctinfrank[accounts[k].nombre].push(accounts[k].raninf);
+    acc_foll[accounts[k].nombre] = [];
+    if (accounts[k].follow.length > 0 && accounts[k].follow[0] !== null) {
+      for (var l in accounts[k].follow) {
+	follow.push(accounts[k].follow[l]);
+        follinfrank[accounts[k].follow[l]] = [];
+        follinfrank[accounts[k].follow[l]].push(accounts[k].raninf);
+        acc_foll[accounts[k].nombre].push(accounts[k].follow[l]);
+      }
+    }
+    if (accounts[k].track.length > 0 && accounts[k].track[0] !== null) {
+      for (var n in accounts[k].track) {
+	track.push(accounts[k].track[n].toLowerCase());
+	trackat.push('@'+accounts[k].track[n].toLowerCase());
+	trackuc.push(accounts[k].track[n]);
+      }
+    }
+    if (num === accounts.length) {
+      track.sort(function(a, b){
+	return b.length - a.length; // ASC -> a - b; DESC -> b - a
+      });
+      
+      trackat.sort(function(a, b){
+	return b.length - a.length; // ASC -> a - b; DESC -> b - a
+      });
     
-	    trackat.sort(function(a, b){
-		return b.length - a.length; // ASC -> a - b; DESC -> b - a
-	    });
-    
-	    trackuc.sort(function(a, b){
-		return b.length - a.length; // ASC -> a - b; DESC -> b - a
-	    });
+      trackuc.sort(function(a, b){
+	return b.length - a.length; // ASC -> a - b; DESC -> b - a
+      });
 
-	    datosctas.cuentas = cuentas;
-	    datosctas.follow = _.uniq(follow);
-	    datosctas.track = _.uniq(track);
-	    datosctas.trackat = _.uniq(trackat);
-	    datosctas.trackuc = _.uniq(trackuc);
-	    return callback(datosctas);
-	}
-    }    
+      datosctas.cuentas = cuentas;
+      datosctas.acc_foll = acc_foll;
+      datosctas.follow = _.uniq(follow);
+      datosctas.track = _.uniq(track);
+      datosctas.acctinfrank = acctinfrank;
+      datosctas.follinfrank = follinfrank;
+      datosctas.trackat = _.uniq(trackat);
+      datosctas.trackuc = _.uniq(trackuc);
+      return callback(datosctas);
+    }
+  }    
 };
 
 function get_followAccounts_array(thedata, configCuentas, callback) {
@@ -359,7 +370,7 @@ function clasifica(untweet, losdatos, callback){
       twauthorid = untweet.user.id,
       follow_acc = losdatos.follows_accounts,
       accounts_del_follow = follow_acc[''+twauthorid],
-
+      
       eltwitlc = untweet.text.toLowerCase(),
       trackat = losdatos.trackat,
       trackat_acc = losdatos.tracksat_accounts,
@@ -368,10 +379,9 @@ function clasifica(untweet, losdatos, callback){
       track_acc_co = losdatos.tr_acc_wp_conv,
 
       accs_tracks = losdatos.accounts_tracks;
-
-    // console.log(losdatos);
     // console.log(accounts_del_follow);
 
+  
   untweet.colecciones_pr = [];
   untweet.colecciones_at = [];
   untweet.colecciones_conv = [];    
@@ -379,10 +389,10 @@ function clasifica(untweet, losdatos, callback){
   follows_de_ctas(accounts_del_follow, 0, [], function(lasctas_propias){
     if (lasctas_propias.length < 1) {
       // no hubo cuentas, no es nuestro, como sea seguimos revisando mentions o terminos
-      iteratracksatvstweet(eltwitlc, trackat, trackat_acc, 0, [], function(lostracksat){
+      iteratracksatvstweet(eltwitlc, trackat, trackat_acc, 0, [], function(lostracksat) {
         if (lostracksat.length < 1) {
           // no hubo mentions, ¿será un término? vamos a ver
-          iteratracksvstweet(eltwitlc, track, track_acc_co, 0, [], function(lostrackssolos){
+          iteratracksvstweet(eltwitlc, track, track_acc_co, 0, [], function(lostrackssolos) {
             if (lostrackssolos.length < 1) {
               // no hubo nada, weirdowls 
               return callback(untweet);
@@ -409,7 +419,6 @@ function clasifica(untweet, losdatos, callback){
             }
           });
         }
-
       });
     }
     else {
@@ -487,7 +496,7 @@ function insertauntweet(coleccion, tweet, callback) {
     var basecol = elemcol[0], sectermcol = elemcol[1], firsttwo = sectermcol.substring(0,2);
     if (firsttwo !== 'AT') {
 	classdb.insertacresult(coleccion, tweet, 'escuchador/escuchador.js/insertauntweet', function(insercion){
-	    return callback(insercion);
+	    return callback(insercion[0]);
 	});
     }
     else {
@@ -497,174 +506,175 @@ function insertauntweet(coleccion, tweet, callback) {
 	tweet.obj = 'twitter';
 	tweet.tipo = 'twit';
 	classdb.insertacresult(colec, tweet, 'escuchador/escuchador.js/insertauntweet', function(inserta){
-	    return callback(inserta);
+          // console.log(inserta)
+          // console.log('es un pinche '+typeof inserta);
+          return callback(inserta[0]);
 	});
     }
 };
 
-function procesatweet(tweet, colecciones, index, callback) {
-    if (index !== parseInt(index, 10) || typeof index === 'undefined' || index === null) {
-	index = 0;
-    }
-    var more = index+1;
-    if (more > colecciones.length) {
-	return callback(index);	
-    }
-    else {
-	var elemcol = colecciones[index].split("_");
-	var basecol = elemcol[0], sectermcol = elemcol[1], firsttwo = sectermcol.substring(0,2);
-	tweet.tw_url = "https://twitter.com/"+tweet.user.screen_name+"/status/"+tweet.id_str;
-	tweet.created_time = new Date();
-	tweet.influencers = '';
-	tweet.from_user_id = ''+tweet.user.id;
-	tweet.from_user_name = tweet.user.name;
-	tweet.from_user_screen_name = tweet.user.screen_name;
-	
+function procesatweet(tweet, colecciones, diedata, index, callback) {
+  if (index !== parseInt(index, 10) || typeof index === 'undefined' || index === null) {
+    index = 0;
+  }
+  var more = index+1;
+  if (more > colecciones.length) {
+    return callback(index);	
+  }
+  else {
+    var elemcol = colecciones[index].split("_");
+    var basecol = elemcol[0], sectermcol = elemcol[1], firsttwo = sectermcol.substring(0,2);
+    tweet.tw_url = "https://twitter.com/"+tweet.user.screen_name+"/status/"+tweet.id_str;
+    tweet.created_time = new Date();
+    tweet.influencers = '';
+    tweet.from_user_id = ''+tweet.user.id;
+    tweet.from_user_name = tweet.user.name;
+    tweet.from_user_screen_name = tweet.user.screen_name;
 
-	// revisamos si es influencer
-	esinfluencer(basecol, tweet.user.id, function(influ) {
-	    if (influ === 'error') {
-		console.log('error definiendo si es influencer o no');
-		return procesatweet(tweet, colecciones, more, callback);
-	    }
-	    else {
-		if (influ.length < 1) {
-		    if (basecol === 'imss'){
-			if (tweet.user.followers_count > 5000) {
-			    tweet.influencers = tweet.user.followers_count+' followers';
-			}
-			else {
-			    delete tweet.influencers;
-			}
-		    }
-		    else {
-			if (tweet.user.followers_count > 5000000 ) {
-			    tweet.influencers = tweet.user.followers_count+' followers';
-			}
-			else {
-			    delete tweet.influencers;
-			}
-		    }
-		} else {
-		    tweet.influencers = influ[0].categoria;
+    // revisamos si es influencer
+    esinfluencer(basecol, tweet.user.id, function(influ) {
+      if (influ === 'error') {
+	console.log('error definiendo si es influencer o no');
+	return procesatweet(tweet, colecciones, diedata, more, callback);
+      }
+      else {
+	if (influ.length < 1) {
+          var acctinfrank = diedata.acctinfrank;
+          var influencers_range = acctinfrank[basecol];
+          if (tweet.user.followers_count > influencers_range) {
+            console.log('más de '+influencers_range+' followers');
+            tweet.influencers = tweet.user.followers_count+' followers';
+          }
+          else {
+            console.log('menos de '+influencers_range+' followers');
+            delete tweet.influencers;
+          }
+	} else {
+	  tweet.influencers = influ[0].categoria;
+	}
+	// checamos si ya existe tweet
+	existetweet(colecciones[index], tweet, function(existe) {
+	  if (existe === 'error' || existe === 'existe') {
+	    console.log('error al comprobar existencia de tweet '+tweet.id_str+', o bien el tweet ya existe');
+	    return procesatweet(tweet, colecciones, diedata, more, callback);
+	  }
+	  else {
+	    // console.log('tweet '+tweet.id_str+' no existe, insertamos');
+	    insertauntweet(colecciones[index], tweet, function(insertado) {
+	      if (insertado === 'error') {
+		console.log('error insertando tweet a mongo');
+		return procesatweet(tweet, colecciones, diedata, more, callback);
+	      }
+	      else {
+		if (firsttwo !== 'AT') {
+		  console.log('no fue mention, no hace falta mandarlo a notificaciones');
+		  return procesatweet(tweet, colecciones, diedata, more, callback);
 		}
-		// checamos si ya existe tweet
-		existetweet(colecciones[index], tweet, function(existe) {
-		    if (existe === 'error') {
-			console.log('error al comprobar existencia de tweet '+tweet.id_str);
-			return procesatweet(tweet, colecciones, more, callback);
+		else {
+                  console.log('\n\n\n console.logs start');
+                  console.log('tweet_id_str: '+tweet.id_str);
+                  console.log('enviado por: '+tweet.user.screen_name);
+                  console.log('es mention');
+		  if (tweet.influencers) {
+                    console.log('es influencer');
+		    var cuenta = basecol;
+		    var mongo_id = ''+insertado._id;
+		    var coleccion_orig = colecciones[index];
+		    var coleccion = basecol+'_consolidada';
+		    var fecha = tweet.created_time.toString();
+		    var post_data = querystring.stringify(
+		      {
+			mongo_id : mongo_id,
+			tweet_id : tweet.id,
+			user_id : tweet.user.id,
+			screen_name : tweet.user.screen_name,
+			text : tweet.text,
+			cuenta : cuenta,
+			coleccion : coleccion,
+			col_orig : coleccion_orig,
+			razon : tweet.influencers,
+			tipo : tweet.tipo,
+			fecha : fecha,
+			profile_image : tweet.user.profile_image_url_https,
+			followers: tweet.user.followers_count
+		      }
+		    );
+                    var post_options = {};
+                    if (post_options.headers) {
+                      delete post_options.headers;
+                    }
+                    post_options.hostname = globales.options_likeable.hostname;
+		    post_options.port =  443;
+		    post_options.path = '/notify';
+		    post_options.method = 'POST';
+		    post_options.headers = {
+		      'Content-Type': 'application/x-www-form-urlencoded',
+		      'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+		      'Content-Length': post_data.length
 		    }
-		    else if (existe === 'existe') {
-			console.log('tweet '+tweet.id_str+' ya existe, no insertamos');
-			return procesatweet(tweet, colecciones, more, callback);
-		    }
-		    else {
-			// console.log('tweet '+tweet.id_str+' no existe, insertamos');
-			// tweet no existe insertamos el tweet
-			insertauntweet(colecciones[index], tweet, function(insertado) {
-			    if (insertado === 'error') {
-				console.log('error insertando tweet a mongo');
-				return procesatweet(tweet, colecciones, more, callback);
-			    }
-			    else {
-				if (firsttwo !== 'AT') {
-				    console.log('no fue mention, no hace falta mandarlo a notificaciones');
-				    return procesatweet(tweet, colecciones, more, callback);
-				}
-				else {
-				    if (typeof tweet.influencers !== 'undefined') {
-
-					var cuenta = basecol;
-					var mongo_id = ''+insertado[0]._id;
-					var coleccion_orig = colecciones[index];
-					var coleccion = basecol+'_consolidada';
-					var fecha = tweet.created_time.toString();
-					var post_data = querystring.stringify(
-					    {
-						mongo_id : mongo_id,
-						tweet_id : tweet.id,
-						user_id : tweet.user.id,
-						screen_name : tweet.user.screen_name,
-						text : tweet.text,
-						cuenta : cuenta,
-						coleccion : coleccion,
-						col_orig : coleccion_orig,
-						razon : tweet.influencers,
-						tipo : tweet.tipo,
-						fecha : fecha,
-						profile_image : tweet.user.profile_image_url_https,
-						followers: tweet.user.followers_count
-					    }
-					);
-					var post_options = {
-					    hostname: globales.options_likeable.hostname,
-					    port: 443,
-					    path: '/notify',
-					    method: 'POST',
-					    headers: {
-						'Content-Type': 'application/x-www-form-urlencoded',
-						'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-						'Content-Length': post_data.length
-					    }
-					};
-					var post_req = https.request(post_options, function(res) {
-					    res.setEncoding('utf8');
-					    res.on('data', function (chunk) {
-						// console.log('resp: '+ chunk);
-					    });
-					});
-					post_req.write(post_data);
-					post_req.end();
-					post_req.on('error', function(e){
-					    console.log('escuchador/postinflu varios error: '+e);
-					    console.log("Error: " +e.message); 
-					    console.log( e.stack );
-					});
-				    }
-				    if (!tweet.retweeted_status) {
-					var dadate = tweet.created_time.toString();
-					var nm_data = querystring.stringify(
-					    {
-						obj: 'twitter',
-						tipo: 'twit',
-						created_time: dadate,
-						cuenta: basecol
-					    }
-					    
-					);
-					var nm_options = {
-					    hostname: globales.options_likeable.hostname,
-					    port: 443,
-					    path: '/nuevoMensaje',
-					    method: 'POST',
-					    headers: {
-						'Content-Type': 'application/x-www-form-urlencoded',
-						'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-						'Content-Length': nm_data.length
-					    }
-					};
-					var nmpost_req = https.request(nm_options, function(resnm) {
-					    resnm.setEncoding('utf8');
-					    resnm.on('data', function (nmchunk) {
-					    });
-					});
-					nmpost_req.write(nm_data);
-					nmpost_req.end();
-					nmpost_req.on('error', function(e){
-					    console.log('escuchador/post-nuevoMensaje varios error: '+e);
-					    console.log("Error: " +e.message); 
-					    console.log( e.stack );
-					});
-				    }
-				    return procesatweet(tweet, colecciones, more, callback);
-				}
-			    }
-			});		    
-		    }
-		});
-	    }
+                    console.log('TS prepost: '+new Date());
+		    var post_req = https.request(post_options, function(res) {
+				     res.setEncoding('utf8');
+				     res.on('data', function (chunk) {
+				       console.log('resp: '+ chunk+' TS postpost: '+new Date());
+				     });
+				   });
+		    post_req.write(post_data);
+		    post_req.end();
+		    post_req.on('error', function(e){
+		     console.log('escuchador/postinflu varios error: '+e);
+		      console.log("Error: " +e.message); 
+		      console.log( e.stack );
+		    });
+		  }
+		  if (!tweet.retweeted_status) {
+                    console.log('no es retweet');
+		    var dadate = tweet.created_time.toString();
+		    var nm_data = querystring.stringify(
+		      {
+			obj: 'twitter',
+			tipo: 'twit',
+			created_time: dadate,
+			cuenta: basecol
+		      }
+		    );
+                    var nm_options = {};
+                    if (nm_options.headers) {
+                      delete nm_options.headers;
+                    }
+		    nm_options.hostname = globales.options_likeable.hostname;
+		    nm_options.port = 443;
+		    nm_options.path = '/nuevoMensaje';
+		    nm_options.method = 'POST';
+		    nm_options.headers = {
+		      'Content-Type': 'application/x-www-form-urlencoded',
+		      'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+		      'Content-Length': nm_data.length
+		    };
+                    console.log('TSnm prepost: '+new Date());
+		    var nmpost_req = https.request(nm_options, function(resnm) {
+				       resnm.setEncoding('utf8');
+				       resnm.on('data', function (nmchunk) {
+                                         console.log('respnm: '+nmchunk+' TSnm postpost: '+new Date());
+				       });
+				     });
+		    nmpost_req.write(nm_data);
+		    nmpost_req.end();
+		    nmpost_req.on('error', function(e){
+		      console.log('escuchador/post-nuevoMensaje varios error: '+e);
+		      console.log("Error: " +e.message); 
+		      console.log( e.stack );
+		    });
+		  }
+		  return procesatweet(tweet, colecciones, diedata, more, callback);
+		}
+	      }
+	    });		    
+	  }
 	});
-    }
+      }
+    });
+  }
 };
 
 getAccountsConDatosTwitter(function(lascuentas){
@@ -673,10 +683,12 @@ getAccountsConDatosTwitter(function(lascuentas){
       get_followAccounts_array(losdatos, ctasprocesadas, function(losfollows){
 	get_accountsFollows_array(losfollows, ctasprocesadas, function(lasctasf){
 	  get_trackAccounts_array(lasctasf, ctasprocesadas, function(lostracks){
-            
+            // console.log(lostracks);
 	    var stream = T.stream("statuses/filter", {"follow" : lostracks.follow, "track" : lostracks.trackuc});
+            stream.on('error', function(error){
+              console.log(error);
+            });
 	    stream.on('tweet', function (tweet) {
-
 	      clasifica(tweet, lostracks, function(tuit){
 		var colecciones = [];
 		if (tuit.colecciones_pr) { 
@@ -709,7 +721,7 @@ getAccountsConDatosTwitter(function(lascuentas){
 		  }
 		}
 		// console.log(colecciones);
-		procesatweet(tuit, colecciones, 0, function(indx){
+		procesatweet(tuit, colecciones, lostracks, 0, function(indx){
 		  if (indx < 1) {
 		    console.log(indx);
 		  }

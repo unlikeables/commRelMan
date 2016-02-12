@@ -6,91 +6,15 @@ angular.module('charts')
 
 .controller('ChartsController', ['$scope', '$http','$stateParams','$location', 'Authentication', 'Charts',
 	function($scope, $http, $stateParams, $location, Authentication, Charts ) {
-
 		$scope.authentication = Authentication;
 		
-
-		
-	
-
 $scope.graficaTags = function(action){
-	
-	
-	
-	
 	var nombreColeccion = $scope.authentication.user.cuenta.marca+'_consolidada';
 	//var nombreColeccion = 'exafm_consolidada';
 	var NumeroMaximoElementosMostrar = 10;
 	console.log(nombreColeccion);
-	
-	
 	var datosRemotos;
-
-
-			$http.get('/getStringTagCloud?cuenta=' + nombreColeccion).success(function(data) {
-				//callback(data);
-				//console.log(data[0]);
-				var datosRemotos = data;
-				//console.log('datos remotos');
-				console.log(datosRemotos);
-				
-	var elemento = angular.element(document.querySelector('#tagcloud'));	
-	var arrayTemp = [];
-	if(action == 'create'){
-	$scope.check_hashtag = true;
-	$scope.check_mentions = true;
-	$scope.check_keywords = true;		
-	}
-
-	
-	if($scope.check_hashtag){
-	
-	
-	$scope.hashtags = datosRemotos[1].hashtags.splice(0,NumeroMaximoElementosMostrar);	
-	}else{
-	$scope.hashtags = [];	
-	}
-	
-	if($scope.check_mentions){
-	
-	$scope.mentions = datosRemotos[2].menciones.splice(0,NumeroMaximoElementosMostrar);	
-	}else{
-	$scope.mentions = [];	
-	}
-	
-	if($scope.check_keywords){
-	//arrayTemp = datosRemotos[0].terminos.splice(0,20);
-	$scope.keywords = datosRemotos[0].terminos.splice(0,NumeroMaximoElementosMostrar);	
-	}else{
-	$scope.keywords = [];	
-	}
-	
-	$scope.palabras = [];
-	
-	if(action == 'create'){
-	console.log('create');
-	
-	$scope.palabras = $scope.hashtags.concat($scope.mentions,$scope.keywords);
-	
-	
-	$(elemento).jQCloud($scope.palabras, {  width: 500,  height: 350, shape:true}); 		
-	}
-	
-	if(action == 'update'){
-	console.log('update');
-	
-	$scope.palabras = $scope.hashtags.concat($scope.mentions,$scope.keywords);
-	
-	$(elemento).html(''); 		
-	$(elemento).jQCloud($scope.palabras, {width: 500,height: 350,shape:true}); 			
-	}				
-				
-			});
-			
-
-	
-
-}//graficaTags 
+};//graficaTags 
 
 		//console.log($scope.authentication.cuenta.marca);
 		$scope.chart1=function(){

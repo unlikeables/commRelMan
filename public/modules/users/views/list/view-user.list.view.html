@@ -1,6 +1,6 @@
 <!--Header-->
 <div class="pure-u-md-1-1 header" data-ng-controller="ModalEquipo">
-	<div id="facebook-connect-header" data-ng-show="!statusLoginFacebook"><a href="{{constant.host}}/auth/facebook"><img src="/modules/core/img/facebook-login-header.svg" /></a></div>
+	<div id="facebook-connect-header" data-ng-show="!statusLoginFacebook"><a href="https://{{constant.host}}/auth/facebook"><img src="/modules/core/img/facebook-login-header.svg" /></a></div>
     <div class="pure-g border-inf-blanco bg-azul1" style="position:relative;">
         <div class="pure-u-md-4-24 pure-u-sm-1-1" data-ng-include="'modules/core/views/notificacion.html'"></div>
         <div class="pure-u-md-20-24 pure-u-sm-1-1 titulo-seccion" align="center">
@@ -70,7 +70,13 @@
        <div class="pure-u-md-1-1">
             <label for="username">Notificaciones</label>
             <div style="margin-left: 100px;">
-                Activar notificaciones <input type="checkbox" name="enable_notifications" ng-model="enable_notifications" ng-checked="user.notificaciones && user.notificaciones !== 'false'"><br>
+                <input type="checkbox" name="enable_notifications" ng-model="enable_notifications" ng-checked="user.notificaciones && user.notificaciones !== 'false'" ng-init = "user.notificaciones"> Activar notificaciones<br>
+            </div>
+        </div>
+
+       <div class="pure-u-md-1-1">
+            <div style="margin-left: 100px;">
+                <input type="checkbox" name="enable_notifications_dailyreport" ng-model="enable_notifications_dailyreport" ng-checked="user.dailyreport && user.dailyreport !== 'false'" ng-init = "user.dailyreport"> Recibir resumen diario<br>
             </div>
         </div>
 

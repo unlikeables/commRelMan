@@ -25,7 +25,7 @@ angular.module('core')
 	    $scope.authentication = Authentication;
 	    var tieneSesion=$scope.authentication.user.hasOwnProperty('_id');
 	    if(tieneSesion===false){
-	    	$location.path('/');
+	    	//$location.path('/');
 	    }
 
 		$scope.getClass = function(path) {

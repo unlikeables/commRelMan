@@ -111,78 +111,56 @@ $scope.clickSentiment = function (key,value){
 		    var title= [];
 		    var obj = {};
 		    var series = [];
-		    var sentiment = {};
-	    	sentiment.negativo = items.sentiment_negativo;
-			sentiment.neutro = items.sentiment_neutro;
-			sentiment.positivo = items.sentiment_positivo;
-			$scope.numeroSentiment = sentiment;
-		    var total = 0;
-		    for(var x in sentiment){
-		    	total += sentiment[x];
-		    }
-		    $scope.sentiment_perce = obtenPorcentajes(sentiment,total);	
-
-		    //Validación que nos sirve para ocultar o mostrar los sentimientos en la gráfica
-		   	if((isNaN($scope.sentiment_perce.negativo) === true && isNaN($scope.sentiment_perce.neutro) === true && isNaN($scope.sentiment_perce.positivo) === true) || ($scope.sentiment_perce.negativo === 0 && $scope.sentiment_perce.neutro === 0 && $scope.sentiment_perce.positivo === 0)){
-		   		$scope.mostrarSentiment = false;
-		   	}else{
-		   		$scope.mostrarSentiment = true;
-		   	}
-
 			var temasTemas = [];
 			var subtemasTemas = [];
 			var objTemp = {};
 			var subtemasTemp = [];
 			var divTema;
 			var subtemaEncontrado = false;
+			var prom = 0;
+			var promSub = 0;
 			for(var tt in items){
 				objTemp = {};
 				divTema = tt.split('_');
 				
 				if(divTema.length == 1){
-				objTemp.name = tt;
-				objTemp.y = items[tt];
-				objTemp.drilldown = tt;
-				temasTemas.push(objTemp);
+					objTemp.name = tt;
+					objTemp.y = items[tt];
+					objTemp.drilldown = tt;
+					prom = prom + objTemp.y;
+					temasTemas.push(objTemp);
 
-				objTemp = {};
-				objTemp.id = divTema[0];
-				objTemp.data = [];
-				objTemp.events = {
-					click : function(e,i){
-						//alert(e.point.name);	
-					}
-				};
-				subtemasTemas.push(objTemp);				
-									
+					objTemp = {};
+					objTemp.id = divTema[0];
+					objTemp.data = [];
+					objTemp.events = {
+						click : function(e,i){
+							//alert(e.point.name);	
+						}
+					};
+					subtemasTemas.push(objTemp);									
 				}
-				
 			}//for
+			var axu_cont = 0;
 			
 			for(var tt in items){
+				axu_cont = 0;
 				objTemp = {};
 				divTema = tt.split('_');
 				var arrayTemporal = [];
-
-				
 				if(divTema.length != 1){
 					for(var st in subtemasTemas){
-
-											
-						
 						if(subtemasTemas[st].id === divTema[0]){
-							//console.log(divTema);	
+							promSub = promSub + items[tt];
 							arrayTemporal[0] = divTema[1];
 							arrayTemporal[1] = items[tt];
-							//console.log(arrayTemporal);
 							subtemasTemas[st].data.push(arrayTemporal);
 						}
 					}
 				}				
-				
 			}//for 2
 
-		    $scope.sentiment = sentiment;
+		   // $scope.sentiment = sentiment;
 		    for(var i  in data){
 				if(i.search('_') === -1){
 			    	obj[contador2] ={
@@ -203,8 +181,6 @@ $scope.clickSentiment = function (key,value){
 				}  
 				for(var k in obj){
 			    	if( i.search(obj[k].name) !== -1 && i.search('_') !== -1 ){
-			    		//console.log('Encontramos un subtema ');
-			    		//console.log(i);
 						if(contador_coincidencias.hasOwnProperty(obj[k].name)){
 				    		contador_coincidencias[obj[k].name] += data[i];
 						}else{
@@ -274,16 +250,7 @@ $scope.clickSentiment = function (key,value){
 			}
 		    $scope.totalTemas = totalTemas;
 		    var topTemasDrill = []; 
-			/*Esto es cuando no se quiere un top ten		    
-			if(cuentaTemasDrill <= 50){
-		    	for(var i = 0; i <= cuentaTemasDrill; i++){
-		    		topTemasDrill.push(temasDrillOrd[i]);
-		    	}
-		    }else{
-		    	for(var i = 0; i<50; i++){
-		    		topTemasDrill.push(temasDrillOrd[i]);
-		    	}
-		    }*/
+
 		    if(cuentaTemasDrill < 10){
 		    	for(var i = 0; i <= cuentaTemasDrill; i++){
  		    		topTemasDrill.push(temasDrillOrd[i]);
@@ -293,16 +260,28 @@ $scope.clickSentiment = function (key,value){
  		    		topTemasDrill.push(temasDrillOrd[i]);
  		    	}
  		    }
-			/*if(array.length > 0){
-				$scope.mostrarTemasDrill = true;
-			}else{
-				$scope.mostrarTemasDrill = false;
-			}*/
 			if(topTemasDrill.length > 0){
 				$scope.mostrarTemasDrill = true;
 			}else{
 				$scope.mostrarTemasDrill = false;
 			}			
+
+			var promTemas = 0;
+			var promSubtemas = 0;
+			for(var iteracion = 0; iteracion<temasTemas.length;iteracion++){
+				promTemas = (temasTemas[iteracion].y / prom) * 100;
+				temasTemas[iteracion].name = temasTemas[iteracion].name + ' ('+promTemas.toFixed(2)+'% ) ';
+				for(var iteracionSub = 0; iteracionSub<subtemasTemas[iteracion].data.length; iteracionSub++){
+					var total_subtemas = subtemasTemas[iteracion].data.length;
+					var total_perce = 0;
+					for(var i in subtemasTemas[iteracion].data){
+						var aux = subtemasTemas[iteracion].data[i];
+						total_perce = total_perce + aux[1];
+					}
+					promSubtemas = (subtemasTemas[iteracion].data[iteracionSub][1] / total_perce) * 100;
+					subtemasTemas[iteracion].data[iteracionSub][0] = subtemasTemas[iteracion].data[iteracionSub][0] + ' ('+promSubtemas.toFixed(2)+'% ) ';
+				}
+			}
 
 			$scope.config = {
 				loading:true,
@@ -327,12 +306,16 @@ $scope.clickSentiment = function (key,value){
 						 allowPointDrilldown: false,
 						 series : subtemasTemas
 					},
-					legend : {
-						align : 'right',
-						verticalAlign : 'middle',
-						layout : 'vertical',
-						itemMarginBottom : 20,
-						enabled : true
+										legend:{
+						enabled:true,
+						align: 'right',
+						verticalAlign: 'middle',
+						layout: 'vertical',
+						itemMarginBottom: 20,
+						x : -22,
+						labelFormatter: function () {
+							return this.name + ' ('+this.y+')';	
+            			}
 					},
 					lang : {
 						drillUpText : '<< Regresar'
@@ -377,8 +360,15 @@ $scope.clickSentiment = function (key,value){
 					type : 'category'
 				},
 				legend : {
-					enabled : false
-				},
+						align : 'right',
+						verticalAlign : 'middle',
+						layout : 'vertical',
+						itemMarginBottom : 20,
+						enabled : true
+					},
+				/*legend : {
+					enabled : true
+				},*/
 				plotOptions : {
 					pie : {
 						allowPointSelect : true,
@@ -399,6 +389,17 @@ $scope.clickSentiment = function (key,value){
 						}
 					}
 				},
+        		tooltip: {
+           			// backgroundColor: null,
+           			// borderWidth: 0,
+           			// shadow: true,
+            		useHTML: true,
+            		headerFormat : '<div class="tooltipDesempenio">',
+            		footerFormat : '</div>',
+            		style: {
+                		padding: 10
+            		}
+        		},
 				series : [{
 					name : 'Total',
 					colorByPoint : true,
@@ -762,6 +763,22 @@ $scope.clickSentiment = function (key,value){
 	});
 
 /*
+
+*/
+$http.post('/chartSentiment',{nombreSistema:nombreSistema,fecha_inicial:$scope.dt,fecha_final:$scope.dt2, tipo: opcion}).success(function(objetoSentimiento){
+  	$scope.numeroSentiment = objetoSentimiento;
+  	var total = objetoSentimiento.positivo + objetoSentimiento.neutro + objetoSentimiento.negativo;
+  	$scope.sentiment_perce = obtenPorcentajes(objetoSentimiento,total);	
+	if((isNaN($scope.sentiment_perce.negativo) === true && isNaN($scope.sentiment_perce.neutro) === true && isNaN($scope.sentiment_perce.positivo) === true) || ($scope.sentiment_perce.negativo === 0 && $scope.sentiment_perce.neutro === 0 && $scope.sentiment_perce.positivo === 0)){
+		$scope.mostrarSentiment = false;
+	}else{
+		$scope.mostrarSentiment = true;
+	}
+});
+
+
+
+/*
   
                  _                                                     _     _            
                 | |                                     /\            | |   (_)           
@@ -783,7 +800,6 @@ $scope.clickSentiment = function (key,value){
 
 $http.post('/chartPromedioCasos',{nombreSistema:nombreSistema,fecha_inicial:$scope.dt,fecha_final:$scope.dt2, tipo: opcion}).success(function(data){
 	//var total = data.Completos + data.Descartados + data.Entrada + data.Proceso;
-
 	//data.Completos = data.Completos - data.facebook;
 	var total = data.Completos + data.Descartados + data.Entrada;
 	console.log('Imprimiendo el total de promedio caso');
@@ -1007,8 +1023,8 @@ for(var o in obj){
 				plotBackgroundColor: null,
 				plotBorderWidth: null,
 				plotShadow: false,
-				height:300
-				//spacingRight: 1000
+				height:300,
+				spacingLeft: 1000
         						
 			},
 			credits:{
@@ -1503,7 +1519,6 @@ for(var o in obj){
 			var miniatura = '';
 			for(var i in data_desem){
 				if(data_desem[i].total!==0){
-					count++;
 					existe_data++;
 					images['<span style="text-align:center";>'+data_desem[i].nombre+'<br><span style="font-weight:bold;">'+data_desem[i].total+' Casos</span></span>'] = (data_desem[i].imagen)?'<br><img src="'+data_desem[i].imagen+'" class="circular--ligero" style="width:30px; height:30px;border-radius:50%;">':'<br><img src="/modules/core/img/usuario-sem-imagem.png" class="circular-ligero" style="width:30px; height:30px;border-radius:50%;">';			
 					miniatura = data_desem[i].imagen;
@@ -1512,16 +1527,13 @@ for(var o in obj){
 					}								
 					var totalPorcentaje = (data_desem[i].total / $scope.totalCasos)*100;
 					totalPorcentaje = totalPorcentaje.toFixed(2);
-					arr_names.push('<div class="datos-desempeno"><a title="'+data_desem[i].nombre+': '+totalPorcentaje +'% \nAtendidos: '+data_desem[i].atendidos+'\nDescartados: '+data_desem[i].descartado+'\nTotal: '+data_desem[i].total+'"><img src="'+miniatura+'" class="circular-ligero" style="width:30px; cursor:pointer; height:30px;border-radius:50%; max-width:100px;"></a></div>');	
-					aux_atendidos.push(data_desem[i].atendidos);
-					aux_descartado.push(data_desem[i].descartado);
+					arr_names.push('<div class="datos-desempeno"><a title="'+data_desem[i].nombre+': '+totalPorcentaje +'% \nAtendidos: '+data_desem[i].respuestas+'\nResueltos: '+data_desem[i].atendidos+'\nDescartados: '+data_desem[i].descartado+'\nTotal: '+data_desem[i].total+'"><img src="'+miniatura+'" class="circular-ligero" style="width:30px; cursor:pointer; height:30px;border-radius:50%; max-width:100px;"></a></div>');	
+					//arr_names.push('<div class="datos-desempeno"><a title="'+data_desem[i].nombre+': '+totalPorcentaje +'% \nAtendidos: '+data_desem[i].atendidos+'\nDescartados: '+data_desem[i].descartado+'\nTotal: '+data_desem[i].total+'"><img src="'+miniatura+'" class="circular-ligero" style="width:30px; cursor:pointer; height:30px;border-radius:50%; max-width:100px;"></a></div>');
+					aux_respuestas.push({op:data_desem[i].idUsuario,y:data_desem[i].respuestas,tipo:'respondido', idCuenta:data_desem[i].idCuenta});
+					aux_atendidos.push({op:data_desem[i].idUsuario,y:data_desem[i].atendidos,tipo:'atendidos',idCuenta:data_desem[i].idCuenta});
+					aux_descartado.push({op:data_desem[i].idUsuario,y:data_desem[i].descartado,tipo:'descartados',idCuenta:data_desem[i].idCuenta});
 				}
 			}
-			
-			console.log('auxiliares !!!');
-			console.log(aux_atendidos);
-			console.log(aux_descartado);
-			console.log(aux_respuestas);
 			
 			obj_desem.push({
 				name: 'Descartados',
@@ -1529,8 +1541,8 @@ for(var o in obj){
 				color:'#8ed996',
 				events:{
 				    click: function (e,i) {	
-						console.log(e.point);
-						window.open($scope.constant.host+'/#!/filtroAccount?first='+fecha_inicial+'&second='+fecha_final+'&usuario='+e.point.op+'&tipo='+e.point.tipo+'&cuenta='+nombreSistema+'&opcion='+opcion);
+						//console.log(e.point);
+						window.open($scope.constant.host+'/#!/filtroAccount?first='+fecha_inicial+'&second='+fecha_final+'&usuario='+e.point.op+'&tipo='+e.point.tipo+'&cuenta='+nombreSistema+'&opcion='+opcion+'&iCuenta='+e.point.idCuenta);
 						//window.open('https://alberto.likeable.mx/#!/filtroAccount?first='+fecha_inicial+'&second='+fecha_final+'&tema='+e.point.name+'&total='+e.point.y+'&cuenta='+nombreSistema);
 					}
 				}
@@ -1538,35 +1550,15 @@ for(var o in obj){
 			obj_desem.push({
 				name: 'Atendidos',
 				data: aux_atendidos,
-				//data: aux_respuestas,
 				color:'#f67c01',
 				events:{
 				    click: function (e,i) {	
-					//	alert(opcion);
-						console.log(e.point);
-						window.open($scope.constant.host+'/#!/filtroAccount?first='+fecha_inicial+'&second='+fecha_final+'&usuario='+e.point.op+'&tipo='+e.point.tipo+'&cuenta='+nombreSistema+'&opcion='+opcion);
+						window.open($scope.constant.host+'/#!/filtroAccount?first='+fecha_inicial+'&second='+fecha_final+'&usuario='+e.point.op+'&tipo='+e.point.tipo+'&cuenta='+nombreSistema+'&opcion='+opcion+'&iCuenta='+e.point.idCuenta);
 						//window.open('https://alberto.likeable.mx/#!/filtroAccount?first='+fecha_inicial+'&second='+fecha_final+'&tema='+e.point.name+'&total='+e.point.y+'&cuenta='+nombreSistema);
 					}
 				}
 			});
-	
-	/*		obj_desem.push({
-				name: 'Atendidos',
-				//data: aux_atendidos,
-				data: aux_respuestas,
-				color:'#32b9d9',
-				events:{
-				    click: function (e,i) {	
-						console.log(e.point);
-						window.open($scope.constant.host+'/#!/filtroAccount?first='+fecha_inicial+'&second='+fecha_final+'&usuario='+e.point.op+'&tipo='+e.point.tipo+'&cuenta='+nombreSistema+'&opcion='+opcion);
-					}
-				}
-			});*/
-			//obj_desem.push({
-				//	name: 'Clasificados',
-				//	data: aux_clasificados,
-				//	color:'#465769'
-			//});
+
 			if(existe_data === 0){
 				//alert('No hay datos para estas fechas');
 				$scope.mostrarDesempenoEquipo = false;
@@ -1576,8 +1568,9 @@ for(var o in obj){
 			
 			$scope.obj_desem = obj_desem;
 			var alto = (count * 50 < 400)?400:(count * 50);
-			console.log('Alto !!!!!');
-			console.log(alto);
+			var ancho = (2 * 50 < 850)?850:(2 * 50);
+			//console.log('Alto !!!!!');
+			//console.log(alto);
 			$scope.loadingDesempenio = false;
 			$scope.chartDesempenio = {
 				
@@ -1586,6 +1579,7 @@ for(var o in obj){
 					chart: {
 					    type: 'bar',
 					    height: alto,
+					    width: ancho,
 					    renderTo:'container',
 						events:{
 							redraw:function(){
@@ -1599,6 +1593,17 @@ for(var o in obj){
 					credits:{
 						enabled:false
 					},
+        			tooltip: {
+           				// backgroundColor: null,
+           				// borderWidth: 0,
+           				// shadow: true,
+            			useHTML: true,
+            			headerFormat : '<div class="tooltipDesempenio">',
+            			footerFormat : '</div>',
+            			style: {
+                			padding: 10
+            			}
+        			},
 					xAxis: {
 						categories: arr_names,
 						labels: {
@@ -2149,6 +2154,10 @@ $http.post('/chartDesempenioHora',{nombreSistema : nombreSistema, fecha_inicial 
 	};
 
 	$scope.descargaArchivo = function(nombreSistema, opcion){
+
+		console.log('CONSTANTES');
+		console.log($scope.constant);
+
 		
 		function capitaliseFirstLetter(string){
 			if(typeof(string) !== 'undefined' && string !== null){
@@ -2163,6 +2172,7 @@ $http.post('/chartDesempenioHora',{nombreSistema : nombreSistema, fecha_inicial 
 			}
 		}
 
+
 		//window.open($scope.archivo);
 		if(nombreSistema === undefined){
 			nombreSistema = Authentication.user.cuenta.marca;
@@ -2175,73 +2185,11 @@ $http.post('/chartDesempenioHora',{nombreSistema : nombreSistema, fecha_inicial 
 			fecha_inicial : $scope.dt,
 			fecha_final : $scope.dt2
 		};
-	    	/*$http.post('/generaCsv',obj)*/
-		$http({method: 'POST',url: '/generaCsv',data: obj,timeout :90000}).then(function(items){
-			console.log('Llamando a the !!!!');
-			console.log(items);
-			var items = items.data;
-			var data = new Array();
-			
-			data.push([
-				'Fecha de Entrada',
-				'Fecha de Atención',
-				'Tiempo de Respuesta',
-				'Status',
-				'Razón de Descartado',
-				'Nombre de Usuario',
-				'Fuente',
-				'Clase',
-				'Link',
-				'Mensaje',
-				'Tema',
-				'Subtema',
-				'Sentimiento',
-				'Respuesta',
-				'Atendido Por'
-			]);
-			
-			for(var i in items){
-				
-				data.push([
-					items[i].fecha_llegada,
-					items[i].fecha_respuesta,
-					items[i].tiempo_respuesta,
-					capitaliseFirstLetter(items[i].status),
-					items[i].razon_descartado,
-					items[i].nombre_post,
-					capitaliseFirstLetter(items[i].obj),
-					capitaliseFirstLetter(items[i].tipo.replace('facebook_','')),
-					items[i].url,
-					items[i].mensaje,
-					items[i].tema,
-					items[i].subtema,
-					capitaliseFirstLetter(items[i].sentiment),
-					items[i].respuesta.replace('||' , ''),
-					capitaliseFirstLetter(items[i].atendidoPor)
-				]);
 
-			}
-			var dataString;
-			var csvContent = "";
-			data.forEach(function(infoArray, index){
-				dataString = infoArray.join(",");
-				csvContent += index < data.length ? dataString+ "\n" : dataString;
-			}); 
-			//var encodedUri = encodeURI(csvContent);
-			//window.open(encodedUri);
-			//console.log(data);
-			var csvData;
-			var encodedUri = encodeURI(csvContent);
-			csvData = new Blob([csvContent], { type: 'text/csv' })
-			var csvUrl = URL.createObjectURL(csvData);
-			var link = document.createElement("a");
-			//link.setAttribute("href", encodedUri);
-			link.setAttribute("href", csvUrl);
-			var fecha_string_inicial = new Date($scope.dt).toDateString().replace(/ /g,'');
-			var fecha_string_final = new Date($scope.dt2).toDateString().replace(/ /g,'');
-			link.setAttribute("download", obj.nombreSistema+'_'+fecha_string_inicial+'_to_'+fecha_string_final+'.csv');
-			link.click();
-	  	});
+		console.log();
+		window.open('http://'+$scope.constant.csv+'/getcsvs/process?nombreSistema='+obj.nombreSistema+'&fecha_inicial='+obj.fecha_inicial+'&fecha_final='+obj.fecha_final, '_blank');
+		
+
 	};
 	$scope.descargaDescartados = function(nombreSistema,fecha_inicial,fecha_final, tipo){
 		//window.open($scope.archivo);
@@ -3065,7 +3013,7 @@ $http.post('/chartDesempenioHora',{nombreSistema : nombreSistema, fecha_inicial 
 	    }else{
 		var acepta = confirm('No tienes sesion activa en Facebook deseas iniciar sesion?');
 		if(acepta){
-		    document.location=$scope.constant.host+'/auth/facebook';
+		    document.location='https://'+$scope.constant.host+'/auth/facebook';
 		}
 	    }  		
 	};

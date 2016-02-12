@@ -5,17 +5,6 @@ var ObjectID = require('mongodb').ObjectID;
 var dbase = '';
 var mongobase = 'mongodb://localhost/likeable-crm-dev';
 var Q = require('q');
-/*
-  MongoClient.connect(mongobase, function(err, db) {
-    if (err) {
-      console.log('error de conexión' +err);
-    }
-    else {
-      console.log('conexión exitosa');
-      dbase = db;
-    }
-  });
-*/
 
 var conexion = function(mbeis) {
   var d = Q.defer();
@@ -83,7 +72,7 @@ module.exports = {
   },
 
   dups_aggregate :  function(coleccion, group, match, sort, limit, metodo, callback) {
-    promesa_conexion.done(function(){
+    promesa_conexion.done(function() {
       var colect = dbase.collection(coleccion);
       colect.aggregate([{$group: group}, {$match: match}, {$sort: sort}, {$limit: limit}], {allowDiskUse: true}, function(error, data) {
 	if (error) {
@@ -174,7 +163,7 @@ module.exports = {
 	  return callback('error');
 	}
 	else{
-	  return callback(inserta);
+	  return callback(inserta.ops);
 	}
       });
     });

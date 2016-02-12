@@ -4,7 +4,7 @@
 var ApplicationConfiguration = (function() {
 	// Init module configuration options
 	var applicationModuleName = 'likeable-crm';
-	var applicationModuleVendorDependencies = ['ngResource', 'ngCookies',  'ngAnimate',  'ngTouch',  'ngSanitize',  'ui.router', 'ui.bootstrap', 'ui.utils','btford.socket-io','dcbImgFallback','gettext','highcharts-ng'];
+	var applicationModuleVendorDependencies = ['ngResource', 'ngCookies',  'ngAnimate',  'ngTouch',  'ngSanitize',  'ui.router', 'ui.bootstrap', 'ui.utils','btford.socket-io','dcbImgFallback','gettext','highcharts-ng','ovts'];
 
 	// Add a new vertical module
 	var registerModule = function(moduleName, dependencies) {

@@ -18,4 +18,10 @@ module.exports = function(app) {
 	
 	app.route('/updateInfluencer')
 		.post(influencers.updateInfluencer);
+
+	app.route('/actualizaRangoInfluencers')
+		.post(influencers.actualizaRangoInfluencers);
+
+	app.route('/obtieneCuenta')
+		.post(influencers.obtieneCuenta);
 };

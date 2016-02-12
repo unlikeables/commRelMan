@@ -1,0 +1,5 @@
+*.DS_Store
+config/env/development.js
+config/env/all.js
+escuchador/config.js
+escuchador/configt.js

@@ -332,6 +332,7 @@ router.get('/', function(req, res, next) {
     // mongod insertamos post
     function insertaPost(datosPost, nombreSistema, pa_id, callback){
 	datosPost.post.obj = 'facebook';
+      datosPost.post.tipo = 'post';
 	datosPost.post.coleccion_orig = nombreSistema+'_fb_comment';
 	datosPost.post.coleccion = nombreSistema+'_consolidada';
 	classdb.inserta(nombreSistema+'_consolidada', datosPost.post, 'solicitudes/getautopp/insertaPost', function(inserta){
@@ -518,7 +519,7 @@ router.get('/', function(req, res, next) {
 	}
     }
 
-    var ctascriterio = {$and: [{datosPage:{$exists: true}}, {datosPage: {$ne: ''}}, {'datosPage.id':{$exists: true}}]};
+    var ctascriterio = {$and: [{datosPage:{$exists: true}}, {datosPage: {$ne: ''}}, {'datosPage.id':{$exists: true}}, {'datosPage.id': {$ne: ''}}]};
     classdb.buscarToArray('accounts', ctascriterio, {nombreSistema: 1}, 'solicitudes/getautomu.main', function(cuentas){
 	console.log('**************** solicitudes/getautopp/GET - getFacebook Posts Pending de todas las cuentas conectadas a facebook *****************');
 	if (cuentas === 'error' || cuentas.length < 1) {

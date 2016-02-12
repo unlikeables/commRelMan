@@ -11,8 +11,11 @@ angular.module(ApplicationConfiguration.applicationModuleName).config(['$locatio
 ]);
 
 angular.module(ApplicationConfiguration.applicationModuleName).constant('CONSTANT', {
-    host:'https://pruebas.likeable.mx',
-    fbapiversion: '/v2.4/'
+    host: 'pruebas.likeable.mx', //globales.options_likeable.hostname,
+    fbapiversion: '2.4', //globales.fbapiversion,
+    csv: 'pruebas-csvs.likeable.mx', //globales.options_likeable_csvs,
+    charts: 'pruebas-charts.likeable.mx'
+    //urls: $window.globals
 });
 
 //Then define the init function for starting up the application
@@ -23,3 +26,5 @@ angular.element(document).ready(function() {
 	//Then init the app
 	angular.bootstrap(document, [ApplicationConfiguration.applicationModuleName]);
 });
+
+//console.log(globales);

@@ -170,5 +170,8 @@ module.exports = function(app) {
     app.route('/actualizaImgTwitter')
     .post(feeds.actualizaImgTwitter);
 
+    app.route('/actualizaImagenInbox')
+    .post(feeds.actualizaImagenInbox);
+
 
 };

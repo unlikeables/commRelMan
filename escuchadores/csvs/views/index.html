@@ -1,0 +1,88 @@
+<html>
+<head>
+	<title>Generando CSV</title>
+	<style type="text/css">
+	body{
+		margin: 0;
+		padding: 0;
+		background: #EBEEF3;
+		font-family: 'Lato', sans-serif !important;
+	}
+	.carga{
+		width: 60%;
+		font-size: 30px;
+		margin: 0 auto;
+		margin-top: 10%;
+		text-align: center;
+	}
+	#porcentaje{
+		font-size: 50px;
+		font-family: sans-serif; 
+	}
+	#descarga{
+		position: absolute;
+		left: 40%;
+		top: 40%;
+		display: none;
+	}
+	a{
+		display: inline;
+	    color: #0DBEC8;
+	    font-weight: bold;
+	    margin-left: -25px;
+	    font-size: 38px;
+	}
+	</style>
+	<script type="text/javascript" src="https://code.jquery.com/jquery-2.2.0.min.js"></script>
+	<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/1.4.5/socket.io.js"></script>
+	<script type="text/javascript">
+	$(document).on('ready', function(){
+		var url_csv = '<%=url.hostname%>';
+		//alert(url_csv);
+		console.log('URL');
+		console.log(url_csv)
+		var socket = io();
+		socket.on('update',function(data){
+			$('#porcentaje').html(data.toFixed(2)+' %');
+		});
+		var socket_client;
+		socket.on('connection',function(socket){
+			socket_client = socket.toString();
+		});
+
+
+
+		var url = window.location;
+		url = url.toString();
+		var params = url.substring(url.indexOf('?'));
+		var timeout = 600000;
+
+		$.ajax({
+		    url: "http://"+url_csv+"/getcsvs/node"+params,
+		    error: function(err){
+		        alert('Error en el ajax');
+		        console.log(err);
+		    },
+		    success: function(data){
+		        $('#porcentaje').html('100 %');
+				$('#descarga').attr('href','http://<%=url.hostname%>/getcsvs/download?filename='+data.filename);
+				$('#engrane,#porcentaje,#h').fadeOut();
+				$('#descarga').fadeIn();
+		    },
+		    timeout: timeout // sets timeout to 3 seconds
+		});
+
+	});
+	</script>
+</head>
+<body>
+	<div class="carga">
+		<h1 id="h">Procesando...</h1>
+		<span id="porcentaje"></span><br><br>
+		<img src="http://<%=url.hostname%>/gears.gif" id="engrane">
+		<a href="" id="descarga" target="_blank">Descarga Archivo</a>
+	</div>
+	
+	
+</body>
+</html>

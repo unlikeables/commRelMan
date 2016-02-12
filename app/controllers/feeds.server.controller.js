@@ -1,6 +1,6 @@
 'use strict';
 /**
- * Module dependencies.
+ * Dependencias del Controlador / Module dependencies.
  */
 var _ = require('lodash');
 var querystring = require('querystring');
@@ -11,43 +11,54 @@ var Twit = require('twit');
 var comprueba = require('./feeds.server.controller.js');
 var imagesize = require('imagesize');
 
-// default twitter
+// getUserPageAT(fb_cuenta, idUsuario, nombreSistema, facebookUserId, access_token, function(pat) {
+/**
+ * Si no hay datos de access_token de twitter en base de datos, 
+ * hacemos fallback a estos Default twitter
+ */
 var tck_def = 'J6s0rQHWLsD2wJ5LT7ScTerL9';
 var tcs_def = 'IEVhbW9qfHGU7nbVS4kNfZFVwkkvGnUZQUOjYjwI8ybNjQjuwi';
 var tat_def = '1694381664-qUYMFtqtJET7ky0Nnw7etwAYBNIjQFsl7VTfpLj';
 var tats_def = 'nPYv16f64w54YTerqk2fGlbGKcefGz2TIBgnNqjLYVfWa';
 
+// Dependencias locales, de base de datos y configuración
 var bst = require('better-stack-traces').install();
 var globales = require('../../config/globals.js');
 var classdb = require('../../config/classdb.js');
+var accesstokens = require('../../config/accesstokens.js');
 
-//Funcion que obtiene 5 publicaciones 
+// Función que obtiene 5 publicaciones de Facebook de la base de datos
 exports.get5PublicacionesFB = function(req,res){
-    var nombreSistema = req.body.nombreSistema;
-    var coleccion = nombreSistema+'_fb_publicaciones';
-    classdb.buscarToStreamLimit(coleccion, {}, {}, 5, 'feeds/get5PublicacionesFB', function(items){
-	res.jsonp(items);
-    });
+  var nombreSistema = req.body.nombreSistema;
+  var coleccion = nombreSistema+'_fb_publicaciones';
+  classdb.buscarToStreamLimit(coleccion, {}, {}, 5, 'feeds/get5PublicacionesFB', function(items){
+    res.jsonp(items);
+  });
 };
 
-//Funcion que obtiene 5 publicaciones 
+// Función que obtiene 5 publicaciones de Twitter de la base de datos
 exports.get5PublicacionesTW = function(req,res){
-    var nombreSistema = req.body.nombreSistema;
-    var coleccion = nombreSistema+'_propio';
-    classdb.buscarToStreamLimit(coleccion, {}, {}, 5, 'feeds/get5PublicacionesFB', function(items){
-	res.jsonp(items);
-    });
+  var nombreSistema = req.body.nombreSistema;
+  var coleccion = nombreSistema+'_propio';
+  classdb.buscarToStreamLimit(coleccion, {}, {}, 5, 'feeds/get5PublicacionesFB', function(items){
+    res.jsonp(items);
+  });
 };
 
-
+// Función que obtiene la ruta a la imagen de perfil de un usuario de la base de datos
 exports.getUserData = function(req, res){
-	if(req.query.userId !== 'direct-facebook' && req.query.userId !== 'null'){
-	    var userId = new ObjectID(req.query.userId);
-	    var criterio = {'_id':userId};
-	    var fields = {'imagen_src':1};
+	if(req.query.userId){
+		if(req.query.userId !== 'direct-facebook' && req.query.userId !== 'null'){
+	    	var userId = req.query.userId;
+	    	var criterio = {'_id':userId};
+	    	var fields = {'imagen_src':1};
     	    classdb.buscarToArrayFields('users', criterio, fields, {}, 'feeds/getUserData', function(items){
-		res.jsonp(items);
-    	});
+				res.jsonp(items);
+    		});
+    	}
+          else {
+            res.jsonp('error');
+          }
     }
 };
 
@@ -55,677 +66,543 @@ exports.getUserData = function(req, res){
  * Feed authorization middleware
  */
 exports.hasAuthorization = function(req, res, next) {
-    if (req.feed.user.id !== req.user.id) {
-	return res.status(403).send('User is not authorized');
-    }
-    next();
+  if (req.feed.user.id !== req.user.id) {
+    return res.status(403).send('User is not authorized');
+  }
+  next();
 };
 
+/**
+ * Función que actualiza clasificación y añade respuesta a un mensaje en la base de datos 
+ */
 exports.respondePostFb = function(req, res){
-    var id_cuenta = '', extra = '', coleccion = '', id = '';
-    if (typeof req.body.id_cuenta !== 'undefined') { id_cuenta = req.body.id_cuenta; }
-    if (typeof req.body.clas !== 'undefined') { extra = req.body.clas; }
-    if (typeof req.body.coleccion !== 'undefined') { coleccion = req.body.coleccion; }
-    if (typeof req.body.id !== 'undefined') { id = req.body.id; }
-    if (coleccion === '') {
-	console.log('Error, no recibimos todos los datos en el post');
-	res.jsonp('error');
+  var id_cuenta = req.body.id_cuenta;
+  var extra = req.body.clas;
+  var coleccion = req.body.coleccion;
+  var id = req.body.id;
+  var criterio = {id:id};
+  var set_clas = {clasificacion:{tema:extra.tema,subtema:extra.subtema,user_name:extra.username,user_id:extra.userid}};
+  var set_resps = {respuestas:{user_name:extra.username,user_id:extra.userid,texto:decodeURI(req.body.resp),timestamp:new Date(),id_str:req.body.id_str}};
+  classdb.actualiza(coleccion, criterio, set_clas, 'feed/respondePostFb.clasificacion', function(updated){
+    if (updated === 'error') {
+      console.log('error en el update de la clasificacion');
+      res.jsonp('error');
     }
     else {
- 	var criterio = {id:id};
-	var set_clas = {clasificacion:{tema:extra.tema,subtema:extra.subtema,user_name:extra.username,user_id:extra.userid}};
-	var set_resps = {respuestas:{user_name:extra.username,user_id:extra.userid,texto:decodeURI(req.body.resp),timestamp:new Date(),id_str:req.body.id_str}};
-	classdb.actualiza(coleccion, criterio, set_clas, 'feed/respondePostFb', function(updated){
-	    if (updated === 'error') {
-		console.log('error en el update de la clasificacion');
-		res.jsonp('error');
-	    }
-	    else {
-		classdb.actualizaAddToSet(coleccion, criterio, set_resps, 'feed/respondePostFb', function(rupdated){
-		    if (rupdated === 'error') {
-			console.log('error en el update de las respuestas');
-			res.jsonp('error');
-		    }
-		    else {
-			res.json(rupdated);
-		    }
-		});
-	    }
-	});
+      classdb.actualizaAddToSet(coleccion, criterio, set_resps, 'feed/respondePostFb.ats_respuesta', function(rupdated){
+	if (rupdated === 'error') {
+	  console.log('error en el update de las respuestas');
+	  res.jsonp('error');
+	}
+	else {
+	  res.json(rupdated);
+	}
+      });
     }
+  });
 };
 
+// Función para responder los varios mensajes del mailbox
 exports.respondeMailbox = function(req, res){
-	//console.log('Los datos del mailbox');
-	//console.log(req.body);
-	var coleccion = req.body.coleccion;
-	var tipoRedSocial = req.body.tipoRedSocial;
-	var tipoMensajeRedSocial = req.body.tipoMensajeRedSocial;
-	var tema = req.body.clasificacion.tema;
-	var subtema = req.body.clasificacion.subtema;
-	var sentiment = req.body.sentiment;
-	var idUsuario = new ObjectID(req.body.usuario._id);
-	var nombreUsuario = req.body.usuario.username;
-	var idMensaje = req.body.idMensaje;
-	var respuesta = req.body.respuesta;
-	var fecha = req.body.timestamp;
-	var opcion = req.body.opcion;
-	var nombreSistema = req.body.nombreSistema;
-	var cuenta = new ObjectID(req.body.account_id);
-	var facebookUserId = '';
-	if(req.body.usuario.additionalProvidersData){
-		facebookUserId = req.body.usuario.additionalProvidersData.facebook.id;
+  // Variables que sacamos del body de este post
+  var coleccion = req.body.coleccion;
+  var tipoRedSocial = req.body.tipoRedSocial;
+  var tipoMensajeRedSocial = req.body.tipoMensajeRedSocial;
+  var tema = req.body.clasificacion.tema;
+  var subtema = req.body.clasificacion.subtema;
+  var sentiment = req.body.sentiment;
+  var idUsuario = new ObjectID(req.body.usuario._id);
+  var idUsuarioStr = req.body.usuario._id;
+  var nombreUsuario = req.body.usuario.username;
+  var idMensaje = req.body.idMensaje;
+  var respuesta = req.body.respuesta;
+  var fecha = req.body.timestamp;
+  var opcion = req.body.opcion;
+  var nombreSistema = req.body.nombreSistema;
+  var cuenta = new ObjectID(req.body.account_id);
+  var mensaje = req.body.mensaje;
+  var conv_id = mensaje.conversation_id;
+  var imagenUsuario = req.body.imagenUsuario;
+  var facebookUserId = '';
+  var access_token = '';
+  if(req.body.usuario.additionalProvidersData){
+    facebookUserId = req.body.usuario.additionalProvidersData.facebook.id;
+    access_token = req.body.usuario.additionalProvidersData.facebook.accessToken;
+    var get_data = querystring.stringify({'access_token' : access_token });
+  }
+  var obj = {};
+
+  /**
+   * Guardamos el sentiment de un mensaje
+   * @param {string} coleccion nombre de la colección en la que está el mensaje
+   * @param {string} sentiment positivo, negativo o neutro
+   * @param {string} idMensaje el mongo_id del mensaje que estamos respondiendo
+   * @param {string} username username del usuario que responde a este mensaje
+   * @param {string} imagenUsuario ruta a la imagen de perfil del usuario
+   * @return {string} Mandamos en el callback el string 'error' o 'ok'
+   * @guardaSentiment
+   */
+  function guardaSentiment(coleccion, sentiment, idMensaje, username, idUsuario, imagenUsuario, callback){
+    var id = new ObjectID(idMensaje);
+    var criterio = {'_id':id};
+    //var elset = { sentiment:{ 'sentiment_tipo' : sentiment, 'sentiment_user_name' : username, 'sentiment_user_id' : idUsuario, 'sentiment_fecha' : new Date(), 'imagen_usuario' : imagenUsuario }};
+    var elset = {
+      'sentimiento' :{
+	'tipo' : sentiment,
+	'user_name' : username, 
+	'user_id' : idUsuario, 
+	'fecha' : new Date(),
+	'imagen_usuario' : imagenUsuario	
+      },
+      'sentiment' : sentiment,
+      'sentiment_user_name' : username, 
+      'sentiment_user_id' : idUsuario, 
+      'sentiment_fecha' : new Date(),
+      'sentiment_imagen_usuario' : imagenUsuario
+    };
+    classdb.actualiza(coleccion, criterio, elset, 'feeds/respondeMailbox/guardaSentiment', function(respuestaSentiment){
+      return callback(respuestaSentiment);
+    });
+  }
+
+  /**
+   * Guardamos la clasificacion de un mensaje
+   * @param {string} coleccion nombre de la colección en la que está el mensaje
+   * @param {string} tema asignado por el community al mensaje
+   * @param {string} subtema asignado por el communtiy al mensaje
+   * @param {string} username username del usuario que responde a este mensaje
+   * @param {string} idUsuario id en mongo del usuario que responde a este mensaje
+   * @param {string} idMensaje el mongo_id del mensaje que estamos respondiendo
+   * @param {string} imagenUsuario ruta a la imagen de perfil del usuario
+   * @return {string} Mandamos en el callback el string 'error' o 'ok'
+   * @guardaClasificacion
+   */
+  function guardaClasificacion(coleccion, tema, subtema, username, idUsuario, idMensaje, imagenUsuario, callback){
+    var id = new ObjectID(idMensaje);
+    var criterio = {'_id':id};
+    var elset = {	
+      clasificacion:{
+	'tema' : tema,
+	'subtema' : subtema,
+	'user_name' : username,
+	'user_id' : idUsuario,
+	'imagen_usuario' : imagenUsuario,
+	'fecha' : new Date()
+      }
+    };
+    classdb.actualiza(coleccion, criterio, elset, 'feeds/respondeMailbox/guardaClasificacion', function(respuestaClasificacion){
+      return callback(respuestaClasificacion);	
+    });
+  }
+
+  /**
+   * Obtenemos el id de la Página de Facebook para la cuenta en la que está trabajando el usuario
+   * @param {string} account_name nombre corto de la cuenta que se está trabjando
+   * @param {string} account_id id de mongo de la cuenta en cuestión
+   * @return {string} ya sea mandamos la cadena 'error' o el id de facebook de la página conectada a la cuenta
+   * @getFacebookPageByCuenta
+   */
+  function getFacebookPageByCuenta(account_name, account_id, callback){
+    var acc_id = new ObjectID(account_id);
+    var criterio = {$and : [{ _id : acc_id }, { nombreSistema : account_name }]};
+    classdb.buscarToArray('accounts', criterio, {}, 'accounts/procesaPendientes/getFacebookPageByCuenta', function(items){
+      if (items === 'error' || items.length < 1) {
+	console.log('accounts/procesaPendientes/getFacebookPageByCuenta - hubo error o el arreglo con la cuenta llegó vacío');
+	return callback('error');
+      }
+      else {
+	if (items[0].datosPage && items[0].datosPage.id) {
+	  return callback(items[0].datosPage.id);
 	}
-	var  access_token = '';
-	var mensaje = req.body.mensaje;
-	var conv_id = mensaje.conversation_id;
-	var imagenUsuario = req.body.imagenUsuario;
-	if(req.body.usuario.additionalProvidersData){
-		access_token = req.body.usuario.additionalProvidersData.facebook.accessToken;
-		var get_data = querystring.stringify({'access_token' : access_token });
+	else {
+	  console.log('accounts/procesaPendientes/getFacebookPageByCuenta - si existe la cuenta pero no tiene conectada ninguna cuenta de facebook por RTUs');
+	  return callback('error');
 	}
-	var obj = {};
-	
-	function guardaSentiment(coleccion, sentiment, idMensaje, username, idUsuario, imagenUsuario, callback){
-	    var id = new ObjectID(idMensaje);
-	    var criterio = {'_id':id};
-	   /* var elset = {
-	    	sentiment:{
-	    		'sentiment_tipo' : sentiment,
-	    		'sentiment_user_name' : username, 
-	    		'sentiment_user_id' : idUsuario,
-	    		'sentiment_fecha' : new Date(),
-	    		'imagen_usuario' : imagenUsuario
-	    	}
-	    };*/
-	    var elset = {
-	    	'sentimiento' :{
-	    		'tipo' : sentiment,
-	    		'user_name' : username, 
-	    		'user_id' : idUsuario, 
-	    		'fecha' : new Date(),
-				'imagen_usuario' : imagenUsuario	
-	    	},
-	    	'sentiment' : sentiment,
-	    	'sentiment_user_name' : username, 
-	    	'sentiment_user_id' : idUsuario, 
-	    	'sentiment_fecha' : new Date(),
-			'sentiment_imagen_usuario' : imagenUsuario
+      }
+    });
+  }
 
-	    };
+  /**
+   * Función que manda respuesta a facebook y la guarda en mongo
+   * @param {string} coleccion colección en la que hay que guardar la respueta
+   * @param {object} post_data objeto de datos que mandar en el post a facebook
+   * @param {string} conv_id id de la conversación a la que vamos a responder
+   * @param {object} mensaje objeto con el mensaje al que vamos a responder
+   * @param {string} nombreUsuario usuario en crm
+   * @param {string} idUsuario id de usuario en crm
+   * @param {string} respuesta texto de la respuesta que mandamos a facebook
+   * @param {string} imagenUsuario ruta a la imagen de perfil del usuario
+   * @return {string} regresa ok o error
+   */
+  function respondeInbox (coleccion, post_data, conv_id, mensaje, nombreUsuario, idUsuario, respuesta, imagenUsuario, callback) {
+    globales.options_graph.method = 'POST';
+    globales.options_graph.path = globales.fbapiversion+conv_id+'/messages';
+    globales.options_graph.headers = {
+      'Content-Type': 'application/x-www-form-urlencoded',
+      'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+      'Content-Length': post_data.length
+    };
 
-	    classdb.actualiza(coleccion, criterio, elset, 'feeds/respondeMailbox/guardaSentiment', function(respuestaSentiment){
-			if (respuestaSentiment === 'error') {
-				return callback('error');
-			}
-			else {
-				return callback(respuestaSentiment);
-			}
-	    });
-	}
+    var post_req = https.request(globales.options_graph, function(response) {
+		     response.setEncoding('utf8');
+		     var resp = [];
+		     var id_respuesta_facebook;
+		     response.on('data', function (chunk) {
+		       resp.push(chunk);
+		     });
+		     response.on('end', function(){
+		      // id_respuesta_facebook = JSON.parse(Buffer.concat(resp));
+		       id_respuesta_facebook = JSON.parse(resp);
+			if(id_respuesta_facebook.error){
+			 id_respuesta_facebook.tipo = 'facebook';
+          console.log(JSON.stringify(id_respuesta_facebook))
+			     return callback(id_respuesta_facebook);
+         //return callback('error');
+		       }else{
+			 var criterio = {'_id':new ObjectID(mensaje._id)};
+			 var eladdtoset = {	
+			   respuestas: {
+			     'user_name' : nombreUsuario,
+			     'user_id' : idUsuario,
+			     'texto' : respuesta,
+			     'timestamp' : new Date(),
+			     'id_respuesta' :id_respuesta_facebook.id,
+			     'imagen_usuario' : imagenUsuario
+			   }
+			 };
+			 classdb.actualizaAddToSetcresult(coleccion, criterio, eladdtoset, 'feed/respinbox/responde', function(addedtoset){
+        console.log('Se actualizo la respuesta en mongo de inbox FB !!!!!!');
+        //console.log(addedtoset)
+			   //return callback(addedtoset);
+         return callback(mensaje._id);
+			 });
+		       }
+		     });
+		   });
+    post_req.write(post_data);
+    post_req.end();
+    post_req.on('error', function(e){
+      console.log('feeds/respInbox/responde error: '+e);
+      console.log('Error: ' +e.message); 
+      console.log( e.stack ); 
+//      return callback('error');
+      return callback(e);
+    });
+  }
 
-	function guardaClasificacion(coleccion, tema, subtema, username, idUsuario, idMensaje, imagenUsuario, callback){
-		var id = new ObjectID(idMensaje);
-	    var criterio = {'_id':id};
-		var elset = {	
-			clasificacion:{
-			   'tema' : tema,
-			   'subtema' : subtema,
-			   'user_name' : username,
-			   'user_id' : idUsuario,
-			   'imagen_usuario' : imagenUsuario,
-			   'fecha' : new Date()
-		    }
-		};
-		
-		classdb.actualiza(coleccion, criterio, elset, 'feeds/respondeMailbox/guardaClasificacion', function(respuestaClasificacion){
-		    if (respuestaClasificacion === 'error') {
-				return callback('error');
-		    }
-		   	else {
-		   		return callback(respuestaClasificacion);	
-		   	}
-		});
-	}
+  /**
+   * Función que manda respuesta a facebook y la guarda en mongo
+   * @param {string} coleccion colección en la que hay que guardar la respueta
+   * @param {string} access_token access_token de la página de facebook
+   * @param {object} post_data objeto de datos que mandar en el post a facebook
+   * @param {string} conv_id id de la conversación a la que vamos a responder
+   * @param {object} mensaje objeto con el mensaje al que vamos a responder
+   * @param {string} nombreUsuario usuario en crm
+   * @param {string} idUsuario id de usuario en crm
+   * @param {string} respuesta texto de la respuesta que mandamos a facebook
+   * @param {string} imagenUsuario ruta a la imagen de perfil del usuario
+   * @return {string} regresa ok o error
+   */
+  function respondeFacebook(coleccion, access_token, post_data, conv_id, mensaje, nombreUsuario, idUsuario, respuesta, imagenUsuario, callback){
+    //    console.log('entramos a la función respondeFacebook');
+    var parent = '';
+    if(mensaje.parent_comment === mensaje.parent_post){
+      parent =  mensaje.id;
+    }else{
+      parent = ((mensaje.parent_comment)?mensaje.parent_comment:mensaje.id);
+    }
+    var resp_sin_encode = respuesta;
+    var encodedrespuesta = encodeURIComponent(respuesta);
+    globales.options_graph.method = 'POST';
+    globales.options_graph.path = globales.fbapiversion+parent+'/comments?message='+encodedrespuesta+'&access_token='+access_token;
+    delete globales.options_graph.headers;
+    var post_req = https.request(globales.options_graph, function(response) {
+                     response.setEncoding('utf8');
+                     var resp = [];
+		     response.on('data', function (chunk) {
+		       resp.push(chunk);
+		     });
+		     response.on('end', function(){
+                       // console.log(resp);
+                       // console.log(JSON.parse(resp));
+                       var id_respuesta_facebook = JSON.parse(resp);
+		       // var id_respuesta_facebook = JSON.parse(Buffer.concat(resp));
+                       console.log(id_respuesta_facebook);
+		       if(id_respuesta_facebook.error){
+                         return callback(id_respuesta_facebook);
+		       }else{
+                         var criterio = {'_id':new ObjectID(mensaje._id)};
+                         var eladdtoset = {	
+                           respuestas: {
+                             'user_name' : nombreUsuario,
+                             'user_id' : idUsuario,
+                             'texto' : resp_sin_encode,
+                             'timestamp' : new Date(),
+                             'id_respuesta' :id_respuesta_facebook.id,
+                             'imagen_usuario' : imagenUsuario
+                           }
+                         };
+                         classdb.actualizaAddToSetcresult(coleccion, criterio, eladdtoset, 'feed/respinbox/responde', function(addedtoset){
+                                                                                                                  return callback(addedtoset);
+                         });
+                       }
+                     });
+                   });
+    //post_req.write(post_data);
+    post_req.end();
+    post_req.on('error', function(e){
+      console.log('feeds/respInbox/responde error: '+e);
+      console.log('Error: ' +e.message); 
+      console.log( e.stack );
+      console.log('error numero dos');
+      return callback(e);
+    });
+  }
 
-	function getFacebookPageByCuenta(account_name, account_id, callback){
-		var acc_id = new ObjectID(account_id);
-    	var criterio = {$and : [{ _id : acc_id }, { nombreSistema : account_name }]};
-    	classdb.buscarToArray('accounts', criterio, {}, 'accounts/procesaPendientes/getFacebookPageByCuenta', function(items){
-      		if (items === 'error') {
-				return callback(items);
-      		}
-      		else {
-				if (items.length < 1) {
-	  				console.log('accounts/procesaPendientes/getFacebookPageByCuenta - arreglo con la cuenta llegó vacío... raro');
-	  				return callback('error');
-				}
-				else {
-	  				if (typeof items[0].datosPage !== 'undefined' && typeof items[0].datosPage.id !== 'undefined') {
-	    				var page_id = items[0].datosPage.id;
-	    				return callback(page_id);
-	  				}
-	  				else {
-	    				console.log('accounts/procesaPendientes/getFacebookPageByCuenta - si hubo cuenta pero no hay datosPage, tal vez datosMonitoreo o solo twitter');
-	    				return callback('error');
-	  				}
-				}
-      		}
-    	});
-  	}
+  /**
+   * Función que manda respuesta de direct Message a Twitter y la guarda en Mongo
+   * @param {string} idMensaje id del mensaje que tenemos guardado en mongo
+   * @param {object} accesos_twitter tiene los datos de acceso de twitter
+   * @param {string} coleccion nombre de la colección en que se tiene que actualizar la info
+   * @param {object} mensaje el tweet completo al que se va a responder
+   * @param {string} respuesta texto de la respuesta
+   * @param {string} idUsuario id de usuario del crm
+   * @param {string} nombreUsuario nombre de usuario del crm
+   * @param {string} imagenUsuario ruta a la imagen de perfil del usuario del crm
+   * @return {string} regresa ok o error
+   */
+  function respondeDM(idMensaje, accesos_twitter, coleccion, mensaje, respuesta, idUsuario, nombreUsuario, imagenUsuario, callback ){
+    var obj = {};
+    var item_id = new ObjectID(idMensaje);
+    var T  = new Twit({
+      'consumer_key' : accesos_twitter.twitter_consumer_key,
+      'consumer_secret' : accesos_twitter.twitter_consumer_secret,
+      'access_token' : accesos_twitter.twitter_access_token,
+      'access_token_secret' : accesos_twitter.twitter_access_token_secret
+    });
+    var parametros_twitter = {
+      'user_id' : mensaje.sender.id_str, 
+      'screen_name' : mensaje.sender.screen_name, 
+      'text' : respuesta
+    };
+    T.post('direct_messages/new', parametros_twitter, function(err_twit, reply) {
+      if(err_twit){
+	obj.error = err_twit; obj.tipo = 'twitter'; console.log(JSON.stringify(obj));
+	return callback(obj);
+      } else {
+	var criteriou = {'_id' : item_id};
+	var addtosetu = {
+	  respuestas : {
+	    'user_name' : nombreUsuario,
+	    'user_id' : idUsuario,
+	    'texto' : reply.text,
+	    'timestamp' : new Date(),
+	    'id_respuesta' : reply.id,
+	    'imagen_usuario' : imagenUsuario
+	  }
+	};
+	classdb.actualizaAddToSetcresult(coleccion, criteriou, addtosetu, 'feed/respInbox', function(addedtoset){
+	    return callback(addedtoset);
+	});	
+      }
+    });	    
+  }
 
-	function getUserPageAT(idCuenta ,user_id, account_name, fbuserid, fbuserAT, callback) {
-    	var criteriof = { $and : [ { user_id : user_id }, { account_name : account_name } ] };
-    	classdb.buscarToArray('verifica_user_at', criteriof, {}, 'feeds/respInbox/getUserPageAT', function(token){
-      		if (token === 'error') {
-				console.log('feeds/respInbox/getUserPageAT - error en consulta de bd, no obtuvimos user-token');
-				return callback(token);
-      		}
-      		else {
-				if (token.length < 1) {
-	  				// token todavía no existe en la base de datos
-	  				requestUserPages(fbuserid, fbuserAT, function(cuentas) {
-	    				if(cuentas === 'error') {
-	    	  				console.log('feeds/respInbox/getUserPageAT.at_nuevo - error al conseguir las fanpages en facebook, tal vez no se otorgó el permiso de pages-admin');
-	      					return callback('error');
-	    				}
-	    				else if(cuentas === 'error-face') {
-	      					console.log('Error de facebook, favor de intentar mas tarde');
-	      					return callback('error-face');
-	    				}
-	    				else if(cuentas.length < 1) {
-	    	  				console.log('feeds/respInbox/getUserPageAT.at_nuevo - arreglo venía vacío, usuario no administra ninguna página');
-	      					return callback('error');
-	    				}
-	    				else {
-	      					// hubo respuesta de facebook, ya tenemos fanpages administradas, ahora veamos si la cuenta coincide con alguna
-	      					descartaCuentas(idCuenta, cuentas, 0, function(cuenta){
-	        					if (cuenta === 'cuentas ok') {
-	          						console.log('feeds/respInbox/getUserPageAT.at_nuevo - el usuario administra cuentas pero ninguna coincide con la cuenta solicitada');
-	          						return callback('error');
-	        					}
-	        					else {
-	          						var pageAccessToken = cuenta.access_token;
-	          						var objeto = {
-	              						user_at: fbuserAT,
-	              						page_at: pageAccessToken,
-	            						user_id: user_id,
-	            						account_name: account_name,
-	            						timestamp: new Date()
-	          						};
-	          						classdb.inserta('verifica_user_at', objeto, 'feeds/respInbox/getUserPageAT.at_nuevo', function(inserta){
-	            						if (inserta === 'error') {
-		      								console.log('feeds/respInbox/getUserPageAT.at_nuevo - error en insert a la bd, no insertamos nuevo token');
-	            						}
-	            						return callback(pageAccessToken);
-	          						});
-	        					}
-	      					});
-	    				}
-	  				});
-				}
-				else {
-	  				var ts = token[0].timestamp.getTime();
-	  				var tsm1 = (ts) + 1800000;
-	  				var ahora = new Date().getTime();
-	  				if (tsm1 < ahora) {
-	    				// pero ya venció, lo pedimos a fb
-	    				requestUserPages(fbuserid, fbuserAT, function(cuentas) {
-	      					// hubo respuesta de facebook, ya tenemos fanpages administradas, ahora veamos si la cuenta coincide con alguna
-	      					if (cuentas === 'error') {
-								console.log('feeds/respInbox/getUserPageAT.at_updated - error al conseguir las fanpages en facebook, tal vez no se otorgó el permiso pages-admin');
-								return callback('error');
-	      					}
-	      					else if (cuentas.length < 1) {
-								console.log('feeds/respInbox/getUserPageAT.at_updated - arreglo venía vacío, usuario no administra ninguna página');
-								return callback('error');
-	    		  			}
-	      					else {
-								descartaCuentas(idCuenta, cuentas, 0, function(cuenta){
-		  							if (cuenta === 'cuentas ok') {
-		    							console.log('feeds/respInbox/getUserPageAT.at_updated - el usuario administra cuentas pero ninguna coincide con la cuenta solicitada');
-		    							return callback('error');
-		  							}
-		  							else {
-		    							var pageAccessToken = cuenta.access_token;
-		    							var criteriou = { 'user_id' : token[0].user_id };
-		    							var objeto = {
-		      								user_at: fbuserAT,
-		      								page_at: pageAccessToken,
-		      								user_id: user_id,
-		      								account_name: account_name,
-		      								timestamp: new Date()
-		    							};
-		    							classdb.actualiza('verifica_user_at', criteriou, objeto, 'feeds/respInbox/getUserPageAT.at_updated', function(inserta){
-		      								if (inserta === 'error'){
-												console.log('feeds/respInbox/getUserPageAT.at_updated - error en insert a la bd, no insertamos nuevo token');
-		      								}
-		      								return callback(pageAccessToken);
-		    							});
-		  							}
-								});
-	      					}
-	    				});
-	  				}
-	  				else {
-	    				// y sigue vigente
-	    				return callback(token[0].page_at);
-	  				}
-				}
-      		}
-    	});
-  	}
-
-	function requestUserPages(fbuserid, fbuserAT, callback) {
-    	var path = globales.fbapiversion+'me/accounts?access_token='+fbuserAT;
-    	globales.options_graph.method = 'GET';
-    	globales.options_graph.path = path;
-    	delete globales.options_graph.headers;
-    	var solicitud = https.request(globales.options_graph, function(risposta) {
-			var chunks = [];
-			var chunks2 = '';
-			risposta.on('data', function(dati) {
-				if(dati){
-					chunks2 += dati;
-					chunks.push(dati);
-				}
-			}).on('end', function() {
-				var primero = chunks2.substr(0,1);
-				if(primero === '{'){
-					var contenido = JSON.parse(Buffer.concat(chunks));
-					if (typeof contenido.error !== 'undefined') {
-						console.log('feeds/respInbox/requestUserPages - '+JSON.stringify(contenido.error));
-						return callback('error');
-					}
-					else {
-						return callback(contenido.data);
-					}
-				}else{
-					return callback('error-face');
-		        }
-			});
-		});
-		solicitud.on('socket', function(socket){
-			socket.setTimeout(5000);
-			socket.on('timeout', function(){
-				solicitud.abort();
-      		});
-    	});
-    
-    	solicitud.end();
-    	solicitud.on('error', function(err){
-      		console.log('facebookPost/requestAT - error en el request: '+err);
-      		return callback('error');
-    	});
-  	}
-	
-	function descartaCuentas(idCuenta, arregloCuentas, index, callback) {
-    	var cuantas = arregloCuentas.length;
-    	var more = index+1;
-    	if (more > cuantas) {
-      		return callback('cuentas ok');
-    	}
-    	else {
-    		setImmediate(function(){
-        		if (arregloCuentas[index].id === idCuenta) {
-          			return callback(arregloCuentas[index]);
-        		}
-				else {
-	  				return descartaCuentas(idCuenta, arregloCuentas, more, callback);
-				}
-      		});
-    	}
-  	}
-
-	function respondeInbox (coleccion, post_data, conv_id, mensaje, nombreUsuario, idUsuario, respuesta, imagenUsuario, callback) {
-    	globales.options_graph.method = 'POST';
-    	globales.options_graph.path = globales.fbapiversion+conv_id+'/messages';
-    	globales.options_graph.headers = {
-      		'Content-Type': 'application/x-www-form-urlencoded',
-      		'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-      		'Content-Length': post_data.length
-    	};
-
-    	var post_req = https.request(globales.options_graph, function(response) {
-			response.setEncoding('utf8');
-			var resp = [];
-			var id_respuesta_facebook;
-			response.on('data', function (chunk) {
-				resp.push(chunk);
-			});
-			response.on('end', function(){
-				id_respuesta_facebook = JSON.parse(Buffer.concat(resp));
-				if(id_respuesta_facebook.error){
-					id_respuesta_facebook.tipo = 'facebook';
-					return callback(id_respuesta_facebook);
-				}else{
-					var criterio = {'_id':new ObjectID(mensaje._id)};
-					var eladdtoset = {	
-						respuestas: {
-							'user_name' : nombreUsuario,
-							'user_id' : idUsuario,
-							'texto' : respuesta,
-							'timestamp' : new Date(),
-							'id_respuesta' :id_respuesta_facebook.id,
-							'imagen_usuario' : imagenUsuario
-						}
-					};
-			   		classdb.actualizaAddToSetcresult(coleccion, criterio, eladdtoset, 'feed/respinbox/responde', function(addedtoset){
-						return callback(addedtoset);
-					});
-			   	}
-		    });
-		});
-		post_req.write(post_data);
-		post_req.end();
-		post_req.on('error', function(e){
-			console.log('feeds/respInbox/responde error: '+e);
-			console.log('Error: ' +e.message); 
-			console.log( e.stack ); 
-			return callback('error');
-		});
-	}
-
-	function respondeDM(idMensaje, cuenta, coleccion, mensaje, respuesta, idUsuario, nombreUsuario, imagenUsuario, callback ){
-		var obj = {};
-    	var item_id = new ObjectID(idMensaje);
-    	classdb.buscarToArray('accounts', {'_id' : cuenta}, {}, 'feeds/respondeDM', function(items){
-			if (items === 'error') {
-	    		obj = {'error': 'feed/respInbox - hicimos post pero algo malo pasó'};
-	    		return callback(obj);
-			}
-			else {
-	    		var accesos_twitter = items[0].datosTwitter;
-	    		var T  = new Twit({
-					'consumer_key' : accesos_twitter.twitter_consumer_key,
-					'consumer_secret' : accesos_twitter.twitter_consumer_secret,
-					'access_token' : accesos_twitter.twitter_access_token,
-					'access_token_secret' : accesos_twitter.twitter_access_token_secret
-	    		});
-	    		var parametros_twitter = {
-	    			'user_id' : mensaje.sender.id_str, 
-	    			'screen_name' : mensaje.sender.screen_name, 
-	    			'text' : respuesta
-	    		};
-	    		T.post('direct_messages/new', parametros_twitter, function(err_twit, reply) {
-					if(err_twit){
-						obj.error = err_twit;
-						obj.tipo = 'twitter';
-		    			console.log(obj);
-		    			return callback(obj);
-					}else{
-		    			var criteriou = {'_id' : item_id};
-		    			var addtosetu = {
-							respuestas : {
-			    				'user_name' : nombreUsuario,
-			    				'user_id' : idUsuario,
-			    				'texto' : reply.text,
-			    				'timestamp' : new Date(),
-			    				'id_respuesta' : reply.id,
-			    				'imagen_usuario' : imagenUsuario
-							}
-		    			};
-			    		classdb.actualizaAddToSetcresult(coleccion, criteriou, addtosetu, 'feed/respInbox', function(addedtoset){
-							if (addedtoset === 'error') {
-				    			obj = {'error': 'no pudimos guardar la respuesta en mongo'};
-				    			return callback(obj);
-							}
-							else {
-				    			return callback(addedtoset);
-							}
-			    		});	
-					}
-	    		});	    
-			}
-    	});		
-	}
-
-	function respondeTweet(idMensaje, cuenta, coleccion, mensaje, respuesta, idUsuario, nombreUsuario, imagenUsuario, callback){
-    	var item_id = new ObjectID(idMensaje);
-		classdb.buscarToArray('accounts', {'_id' : cuenta}, {}, 'feeds/respondeTweet', function(cuenta) {
-	    	if (cuenta === 'error') {
-				return callback(cuenta);
-	    	}
-	    	else {
-				var accesos_twitter = cuenta[0].datosTwitter;
-				if (accesos_twitter.twitter_consumer_key !== '') {
-		    		var T  = new Twit({
-						'consumer_key'        : accesos_twitter.twitter_consumer_key,
-						'consumer_secret'     : accesos_twitter.twitter_consumer_secret,
-						'access_token'        : accesos_twitter.twitter_access_token,
-						'access_token_secret' : accesos_twitter.twitter_access_token_secret
-		    		});
-		    		T.post('statuses/update', {'status': respuesta, 'in_reply_to_status_id' : mensaje.id_str, 'wrap_links':'true' }, function(error_twit, reply) {
-                                  var obj = {};
-						if(error_twit){
-							console.log(error_twit);
-							obj.error = error_twit;
-							obj.tipo = 'twitter';
-			    			console.log(obj);
-			    			return callback(obj);
-						}else{
-			    			var criteriou = {'_id' : item_id};
-				    		var eladdtoset = {
-				    			respuestas : {
-			    					'user_name' : nombreUsuario,
-			    					'user_id' : idUsuario,
-			    					'texto' : reply.text,
-			    					'timestamp' : new Date(),
-			    					'id_respuesta' : reply.id_str,
-			    					'imagen_usuario' : imagenUsuario
-								}
-				    		};
-				    		classdb.actualizaAddToSet(coleccion, criteriou, eladdtoset, 'feeds/respondeTweet', function(larespuesta){
-								return callback(larespuesta);
-				    		});
-						}
-			    	});
-				}
-				else {
-		    		console.log('feeds/respondeTweet - Error: por algún motivo no obtuvimos datos para publicar en twitter');
-		    		var obj = {code: 8082,message:'No tienes permisos para responder a esta cuenta'};
-		    		return callback(obj);
-				}
-	    	}
-		});	
-	}
-
-	function respondeFacebook(coleccion, access_token, post_data, conv_id, mensaje, nombreUsuario, idUsuario, respuesta, imagenUsuario, callback){
-		console.log('La respuesta');
-		console.log(mensaje);
-		console.log(respuesta);
-		var parent = '';
-		if(mensaje.parent_comment === mensaje.parent_post){
-			parent =  mensaje.id;
-		}else{
-			parent = ((mensaje.parent_comment)?mensaje.parent_comment:mensaje.id);
-		}
-		var resp_sin_encode = respuesta;
-		respuesta = encodeURIComponent(respuesta);
-
-		var options = {
-			'hostname' : 'graph.facebook.com',
-		  	'port' : 443,
-		  	'path' : globales.fbapiversion+parent+'/comments?message='+respuesta+'&access_token='+access_token,
-		  	'method' : 'POST'
-		};
-
-    	var post_req = https.request(options, function(response) {
-			response.setEncoding('utf8');
-			var resp = [];
-			var id_respuesta_facebook;
-			response.on('data', function (chunk) {
-				resp.push(chunk);
-			});
-			response.on('end', function(){
-				id_respuesta_facebook = JSON.parse(Buffer.concat(resp));
-				if(id_respuesta_facebook.error){
-					id_respuesta_facebook.tipo = 'facebook';
-					console.log('Hay un error en la respuesta');
-					console.log(id_respuesta_facebook);
-
-					return callback(id_respuesta_facebook);
-				}else{
-					var criterio = {'_id':new ObjectID(mensaje._id)};
-					var eladdtoset = {	
-						respuestas: {
-							'user_name' : nombreUsuario,
-							'user_id' : idUsuario,
-							'texto' : resp_sin_encode,
-							'timestamp' : new Date(),
-							'id_respuesta' :id_respuesta_facebook.id,
-							'imagen_usuario' : imagenUsuario
-						}
-					};
-				   	classdb.actualizaAddToSetcresult(coleccion, criterio, eladdtoset, 'feed/respinbox/responde', function(addedtoset){
-						return callback(addedtoset);
-					});
-				}
-		    });
-		});
-		//post_req.write(post_data);
-		post_req.end();
-		post_req.on('error', function(e){
-			console.log('feeds/respInbox/responde error: '+e);
-			console.log('Error: ' +e.message); 
-			console.log( e.stack );
-			return callback('error');
-		});
-	}
-
-	//Funciones que nos sirven para actualizar el sentiment y la clasificacion
-	guardaSentiment(coleccion, sentiment, idMensaje, nombreUsuario, idUsuario, imagenUsuario, function(mensajeSentiment){
-		if(mensajeSentiment === 'error'){
-			console.log('Error al actualizar el sentiment');
-		}
-		guardaClasificacion(coleccion, tema, subtema, nombreUsuario, idUsuario, idMensaje, imagenUsuario, function(mensajeClasificacion){
-			if(mensajeClasificacion === 'error'){
-				console.log('Error al actualizar clasificacion');
-			}
-		});
+  /**
+   * Función que manda respuesta a twitter y la guarda en mongo
+   * @param {string} idMensaje id del mensaje que tenemos guardado en mongo
+   * @param {object} accesos_twitter tiene los datos de acceso de twitter
+   * @param {string} coleccion nombre de la colección en que se tiene que actualizar la info
+   * @param {object} mensaje el tweet completo al que se va a responder
+   * @param {string} respuesta texto de la respuesta
+   * @param {string} idUsuario id de usuario del crm
+   * @param {string} nombreUsuario nombre de usuario del crm
+   * @param {string} imagenUsuario ruta a la imagen de perfil del usuario del crm
+   * @return {string} regresa ok o error
+   */
+  function respondeTweet(idMensaje, accesos_twitter, coleccion, mensaje, respuesta, idUsuario, nombreUsuario, imagenUsuario, callback){
+    var obj = {};
+    var item_id = new ObjectID(idMensaje);
+    var T  = new Twit({
+      'consumer_key'        : accesos_twitter.twitter_consumer_key,
+      'consumer_secret'     : accesos_twitter.twitter_consumer_secret,
+      'access_token'        : accesos_twitter.twitter_access_token,
+      'access_token_secret' : accesos_twitter.twitter_access_token_secret
+    });
+    T.post('statuses/update', {'status': respuesta, 'in_reply_to_status_id' : mensaje.id_str, 'wrap_links':'true' }, function(error_twit, reply) {
+      if(error_twit){
+        console.log('ERROR DE TWITTER');
+        console.log(error_twit);
+	obj.error = error_twit; obj.tipo = 'twitter'; console.log(JSON.stringify(obj));
+	return callback(obj);
+      }else{
+	var criteriou = {'_id' : item_id};
+	var eladdtoset = {
+	  respuestas : {
+	    'user_name' : nombreUsuario,
+	    'user_id' : idUsuario,
+	    'texto' : reply.text,
+	    'timestamp' : new Date(),
+	    'id_respuesta' : reply.id_str,
+	    'imagen_usuario' : imagenUsuario
+	  }
+	};
+	classdb.actualizaAddToSet(coleccion, criteriou, eladdtoset, 'feeds/respondeTweet', function(larespuesta){
+	  return callback(larespuesta);
 	});
- 
-	if(tipoRedSocial === 'facebook'){
-		if(tipoMensajeRedSocial === 'facebook_inbox'){
-			if(respuesta.length !== 0){
-    			getFacebookPageByCuenta(nombreSistema, cuenta, function(fb_cuenta){
-					if (fb_cuenta === 'error') {
-						console.log('accounts/procesapendientes.main - no conseguimos la cuenta con id de facebook válido');
-						res.jsonp('error');
-				    } else {
-						getUserPageAT(fb_cuenta, idUsuario, nombreSistema, facebookUserId, access_token, function(pat) {
-							if(pat === 'error-face'){
-								obj = {
-									'error' : {
-										'message' : 'Error en respuesta de facebook, intenta mas tarde'
-									},
-									'tipo' : 'facebook'
-								};
-							    res.jsonp(obj);
-							}else if (pat === 'error'){
-							    obj = {
-							    	'error': {
-							    		'message' : 'No administras esta pagina'
-							    	}, 
-							    	'tipo' : 'facebook'
-							    };
-							    res.jsonp(obj);
-							}
-							else {
-							  	var post_data = querystring.stringify({ message : respuesta, access_token: pat });
-								respondeInbox(coleccion, post_data, conv_id, mensaje, nombreUsuario, idUsuario, respuesta, imagenUsuario, function(respfb){
-								   	if (respfb === 'error') {
-										obj = {'error': 'feed/respInbox - hicimos post pero algo malo pasó'};
-										res.jsonp(obj);
-								    }
-								    else {
-										res.jsonp(respfb);
-								    }
-								});
-							}
-				    	});
-				   	}    				
-				});
-			}
-			else{
-				console.log('No hay una respuesta');
-				res.jsonp(1);
-			}
-			console.log('Entro a facebook_inbox');
-		}else{
-			if(respuesta.length !== 0){
-    			getFacebookPageByCuenta(nombreSistema, cuenta, function(fb_cuenta){
-					if (fb_cuenta === 'error') {
-						console.log('accounts/procesapendientes.main - no conseguimos la cuenta con id de facebook válido');
-						res.jsonp('error');
-				    } else {
-						getUserPageAT(fb_cuenta, idUsuario, nombreSistema, facebookUserId, access_token, function(pat) {
-							if(pat === 'error-face'){
-								obj = {
-									'error' : {
-										'message' : 'Error en respuesta de facebook, intenta mas tarde'
-									},
-									'tipo' : 'facebook'
-								};
-								res.jsonp(obj);
-							}else if (pat === 'error'){
-							    obj = {
-							    	'error': {
-							    		'message' : 'No administras esta pagina'
-							    	}, 
-							    	'tipo' : 'facebook'
-							    };
-							    res.jsonp(obj);
-							}
-							else {
-								var post_data = querystring.stringify({ message : respuesta, access_token: pat });
-								respondeFacebook(coleccion, pat, post_data, conv_id, mensaje, nombreUsuario, idUsuario, respuesta, imagenUsuario, function(respfb){
-								   	if (respfb === 'error') {
-										obj = {'error': 'feed/respInbox - hicimos post pero algo malo pasó'};
-										res.jsonp(obj);
-								    }
-								    else {
-										res.jsonp(respfb);
-								    }
-								});
-							}
-				    	});
-				   	}    				
-				});
-			}
-			else{
-				console.log('No hay una respuesta');
-				res.jsonp(1);
-			}
-			console.log('Entro a la otra opcion de facebook');
-		}
-	}else if(tipoRedSocial === 'twitter'){
-		if(tipoMensajeRedSocial === 'direct_message'){
-			if(respuesta.length !== 0){
-				console.log('ES DIRECT message');
-				respondeDM(idMensaje, cuenta, coleccion, mensaje, respuesta, idUsuario, nombreUsuario, imagenUsuario, function(respuestaDM){		
-					console.log('La respuesta de los direct messages');
-					res.jsonp(respuestaDM);
-				});
-			}else{
-				res.jsonp(1);
-			}
-		}else if(tipoMensajeRedSocial === 'tracker'){
-			console.log('Entro a trackerssssss');
-			res.jsonp(1);
-		}else{
-			if(respuesta.length !== 0){
-				respondeTweet(idMensaje, cuenta, coleccion, mensaje, respuesta, idUsuario, nombreUsuario, imagenUsuario, function(respuestaTwitter){		
-					console.log('La respuesta de Twitter');
-					res.jsonp(respuestaTwitter);
-				});
-				console.log('Otro twit');
-			}
-			else{
-				res.jsonp(1);
-			}
-		}
-	}
+      }
+    });
+  }
+
+  function erroresFacebook(data, callback){
+    if(data.error.code === 100 || data.error.code === 1705){
+        return callback('Este post ya fue eliminado por el usuario');
+    }else if(data.error.code === 190){
+        return callback('No tienes permiso para contestar esta publicacion');
+    }else{
+      switch(data.error.message){          
+        case 'The access token could not be decrypted':
+          return callback('Error de acceso: Favor de volverte a firmar en Facebook');
+        break;
+                
+      case 'No administras esta pagina':
+       return callback('No cuentas con permisos para administrar esta página y no puedes responder');
+      break;
+
+      case 'Error en respuesta de facebook, intenta mas tarde':
+        return callback('Error en respuesta de facebook, intenta mas tarde');
+      break;
+
+      case '(#200) Permissions error':
+        return callback('El mensaje no se ha podido responder tal vez haya sido eliminado de Facebook');
+      break;
+                
+      default:
+        return callback('Error desconocido favor de contactar al administrador');
+      }
+    }
+  }
+
+
+
+  // Aquí llamamos cada una de las funciones declaradas más arriba que nos sirven para actualizar el sentiment y la clasificacion
+  guardaSentiment(coleccion, sentiment, idMensaje, nombreUsuario, idUsuario, imagenUsuario, function(mensajeSentiment){
+    if(mensajeSentiment === 'error'){
+      console.log('Error al actualizar el sentiment');
+    }
+    guardaClasificacion(coleccion, tema, subtema, nombreUsuario, idUsuario, idMensaje, imagenUsuario, function(mensajeClasificacion){
+      if(mensajeClasificacion === 'error'){
+	       console.log('Error al actualizar clasificacion');
+      }
+    });
+  });
+
+  if(tipoRedSocial === 'facebook'){
+    if (respuesta.length !== 0) {
+      // Si es facebook y la respuesta no viene vacía conseguimos la página
+      getFacebookPageByCuenta(nombreSistema, cuenta, function(fb_cuenta){
+        if (fb_cuenta === 'error') {
+	         console.log('accounts/procesapendientes.main - no conseguimos la cuenta con id de facebook válido');
+	         res.jsonp('error');
+        }else {
+          // Conseguimos el access_token de la página 
+          accesstokens.obtienePagATByUsrAT(nombreSistema, fb_cuenta, idUsuarioStr, facebookUserId, access_token, 'no', function(pat){
+	         if (pat === 'error'){
+	           obj = { 'error': { name:'errorPageAT', 'message' : 'Error de conexión o No administras esta pagina' }, 'tipo' : 'facebook' };
+	           res.jsonp(obj);
+	         }else {
+              if(tipoMensajeRedSocial === 'facebook_inbox'){
+                // Y si es inbox respondemos inbox
+		            var post_data = querystring.stringify({ message : respuesta, access_token: pat });
+		            respondeInbox(coleccion, post_data, conv_id, mensaje, nombreUsuario, idUsuario, respuesta, imagenUsuario, function(respfbi){
+		              if (respfbi.error) {
+                    console.log('Hay un error en inbox');
+                    console.log(respfbi);
+                    console.log('\n\n');
+                    erroresFacebook(respfbi, function(mensaje){
+                      obj = {'error': {name: 'errorRespInbox', message: mensaje}, 'tipo': 'facebook'};
+                      console.log(obj);
+                      res.jsonp(obj);
+                    });
+		              }else {
+                    console.log('Retornando la respuesta de la solicitud respInbox !!!');
+                    console.log(respfbi);
+		                res.jsonp(respfbi);
+		              }
+		            });
+              }else {
+                // O si es otro tipo lo respondemos con un comment
+                console.log('intentando responder por acá...');
+		            var post_data = querystring.stringify({ message : respuesta, access_token: pat });
+		            respondeFacebook(coleccion, pat, post_data, conv_id, mensaje, nombreUsuario, idUsuario, respuesta, imagenUsuario, function(respfb){
+                  if (respfb.error) {
+                    erroresFacebook(respfb, function(mensaje){
+                      obj = {'error': {name: 'errorRespFacebook', message: mensaje}, 'tipo': 'facebook'};
+                      console.log(obj);
+                      res.jsonp(obj);
+                    });
+		              }else {
+		                res.jsonp(respfb);
+		              }
+		            });
+              }
+	         }
+        });
+      }
+    });
+  }else {
+      // respuesta viene vacía, no mandamos nada a ningún lado
+      res.jsonp(1);
+    }
+  } else if(tipoRedSocial === 'twitter'){
+    if (tipoMensajeRedSocial === 'tracker') {
+      // Los trackers no se responden, solo se registra el sentiment / clasificacion
+      res.jsonp(1);        
+    }
+    else {
+      if (respuesta.length !== 0) {
+        // Ahora que si es twitter y la respuesta no viene vacía obtenemos datos de Twitter y mandamos respuesta
+        var item_id = new ObjectID(idMensaje);
+        classdb.buscarToArray('accounts', {'_id' : cuenta}, {}, 'feeds/respondeDM', function(items){
+          if (items === 'error') {
+            // Si hubo un error al conseguir los datos mandamos el error
+	    obj = {'error': {name: 'errorFindAccount', message: 'feeds/respInbox - buscamos Cuenta pero algo malo pasó'}};
+	    return callback(obj);
+          }
+          else {
+            // De lo contrario llenamos la variable de datos de acceso y continuamos
+	    var accesos_twitter = items[0].datosTwitter;
+            // Si no es un tracker revisamos si tenemos los datos de acceso necesarios para responder
+            if (accesos_twitter.twitter_consumer_key !== '') {
+              if (tipoMensajeRedSocial === 'direct_message') {
+                // Si es direct Message lo mandamos a la función correspondiente
+                respondeDM(idMensaje, accesos_twitter, coleccion, mensaje, respuesta, idUsuario, nombreUsuario, imagenUsuario, function(respuestaDM){		
+	          res.jsonp(respuestaDM);
+	        });        
+              }
+              else {
+                // Debe ser un tweet, lo mandamos a respondeTweet
+	        respondeTweet(idMensaje, accesos_twitter, coleccion, mensaje, respuesta, idUsuario, nombreUsuario, imagenUsuario, function(respuestaTwitter){		
+	          console.log(respuestaTwitter);
+            res.jsonp(respuestaTwitter);
+	        });
+              }
+            }
+            else {
+              // Si no tenemos los datos de acceso de Twitter mandamos el error
+              console.log('feeds/respInbox/respondeTweets - Error: no obtuvimos datos para publicar en twitter');
+              var obj = {error: {name: 'errorSinPermisosDeTwitter', message:'No tienes permisos para responder a esta cuenta'}, code: 8082};
+              return callback(obj);
+            }
+          }
+        });
+      }
+      else {
+        // respuesta venía vacía, no hacemos nada
+        res.jsonp(1);
+      }
+    }
+  }
 };
 
 exports.respondeTweet = function(req, res){
@@ -755,8 +632,9 @@ exports.respondeTweet = function(req, res){
 		    });
 		    T.post('statuses/update', {'status': req.body.respuesta, 'in_reply_to_status_id':req.body.id_str, 'wrap_links':'true' }, function(error_twit, reply) {
 			if(error_twit){
-			    console.log('Error en respuesta twitter'); console.log(error_twit);
-			    res.jsonp(error_twit);
+			  console.log('Error en respuesta twitter');
+                          console.log(error_twit);
+			  res.jsonp(error_twit);
 			}else{
 			    var criteriou = {'_id':item_id};
 			    var elset = { clasificacion : {tema : extra.tema, subtema : extra.subtema, user_name : extra.username, user_id : extra.userid }};
@@ -795,11 +673,8 @@ exports.respondeTweet = function(req, res){
 */
 //Método que realiza la actualización del Descarte de algún mensaje
 exports.insertaDescarte=function(req,res){
-	console.log('EL DESCARTEEEE');
-	console.log(req.body);
-	console.log('\n\n');
     function getFacebookPageByCuenta(account_name, account_id, callback){
-		var acc_id = new ObjectID(account_id);
+		var acc_id = new ObjectID();//account_id);
 		var criterio =  { nombreSistema : account_name };
 		classdb.buscarToArray('accounts', criterio, {}, 'accounts/procesaPendientes/getFacebookPageByCuenta', function(items){
 	    	if (items === 'error') {
@@ -821,152 +696,6 @@ exports.insertaDescarte=function(req,res){
 		});
     }   
 
-    function requestUserPages(fbuserid, fbuserAT, callback) {
-		//var path = globales.fbapiversion+fbuserid+'/accounts?access_token='+fbuserAT;
-		var path = globales.fbapiversion+'me/accounts?access_token='+fbuserAT;
-		globales.options_graph.method = 'GET';
-		globales.options_graph.path = path;
-		delete globales.options_graph.headers;
-		var solicitud = https.request(globales.options_graph, function(risposta) {
-	    	var chunks = [];
-	    	var chunks2 = '';
-	    	risposta.on('data', function(dati) {
-				if(dati){
-		    		chunks2 += dati;
-		    		chunks.push(dati);
-				}
-		    }).on('end', function() {
-				var primero = chunks2.substr(0,1);
-				if(primero === '{') {
-			    	var contenido = JSON.parse(Buffer.concat(chunks));
-			    	console.log('feeds/respInbox/requestUserPages - obtenemos paginas del usuario');
-			    	if (typeof contenido.error !== 'undefined') {
-						console.log('feeds/respInbox/requestUserPages - '+JSON.stringify(contenido.error));
-						return callback('error');
-			    	}else {
-						return callback(contenido.data);
-			    	}
-				}else{
-			    	return callback('error-face');
-				}
-		    });
-		});
-		solicitud.end();
-		solicitud.on('error', function(err){
-	    	console.log('facebookPost/requestAT - error en el request: '+err);
-	    	return callback('error-face');
-		});
-    }
-
-    function descartaCuentas(idCuenta, arregloCuentas, index, callback) {
-		var cuantas = arregloCuentas.length;
-		var more = index+1;
-		if (more > cuantas) {
-	    	return callback('cuentas ok');
-		}else {
-			setImmediate(function(){
-		    	if (arregloCuentas[index].id === idCuenta) {
-					return callback(arregloCuentas[index]);
-		    	}else {
-					return descartaCuentas(idCuenta, arregloCuentas, more, callback);
-		    	}
-			});
-		}
-    }
-
-    //Función que nos sirve para obtener el access token de la base de datos o pedirlo a facebook
-    function getUserPageAT(idCuenta ,user_id, account_name, fbuserid, fbuserAT, callback){
-		var criteriof = { $and : [ { user_id : user_id }, { account_name : account_name } ] };
-		classdb.buscarToArray('verifica_user_at', criteriof, {}, 'feeds/respInbox/getUserPageAT', function(token){
-	    	if (token === 'error') {
-				console.log('feeds/respInbox/getUserPageAT - error en consulta de bd, no obtuvimos user-token');
-				return callback(token);
-	    	}else {
-				if (token.length < 1) {
-		    		// token todavía no existe en la base de datos
-		    		requestUserPages(fbuserid, fbuserAT, function(cuentas) {
-		    			if(cuentas === 'error-face'){
-		    				console.log('feeds/respInbox/getUserPageAT.at_nuevo - error de TIEMOUT en facebook');
-		    				return callback('error-face');
-		    			}else if(cuentas === 'error') {
-			    			console.log('feeds/respInbox/getUserPageAT.at_nuevo - error al conseguir las fanpages en facebook, tal vez no se otorgó el permiso de pages-admin');
-			    			return callback('error');
-						}else if(cuentas.length < 1) {
-			    			console.log('feeds/respInbox/getUserPageAT.at_nuevo - arreglo venía vacío, usuario no administra ninguna página');
-			    			return callback('error');
-						}else {
-			    			// hubo respuesta de facebook, ya tenemos fanpages administradas, ahora veamos si la cuenta coincide con alguna
-			    			descartaCuentas(idCuenta, cuentas, 0, function(cuenta){
-								if (cuenta === 'cuentas ok') {
-				    				console.log('feeds/respInbox/getUserPageAT.at_nuevo - el usuario administra cuentas pero ninguna coincide con la cuenta solicitada');
-				    				return callback('error');
-								}else {
-								    var pageAccessToken = cuenta.access_token;
-								    var objeto = {
-										user_at: fbuserAT,
-										page_at: pageAccessToken,
-										user_id: user_id,
-										account_name: account_name,
-										timestamp: new Date()
-								    };
-				    				classdb.inserta('verifica_user_at', objeto, 'feeds/respInbox/getUserPageAT.at_nuevo', function(inserta){
-										if (inserta === 'error'){
-					    					console.log('feeds/respInbox/getUserPageAT.at_nuevo - error en insert a la bd, no insertamos nuevo token');
-										}
-										return callback(pageAccessToken);
-				    				}); 
-								}
-			    			});
-						}
-		    		});
-				}else {
-		    		var ts = token[0].timestamp.getTime();
-				    var tsm1 = (ts) + 3600000;
-				    var ahora = new Date().getTime();
-		    		if (tsm1 < ahora) {
-						// pero ya venció, lo pedimos a fb
-						requestUserPages(fbuserid, fbuserAT, function(cuentas) {
-			    			// hubo respuesta de facebook, ya tenemos fanpages administradas, ahora veamos si la cuenta coincide con alguna
-			    			if (cuentas === 'error') {
-								console.log('feeds/respInbox/getUserPageAT.at_updated - error al conseguir las fanpages en facebook, tal vez no se otorgó el permiso pages-admin');
-								return callback('error');
-			    			}else if (cuentas.length < 1) {
-								console.log('feeds/respInbox/getUserPageAT.at_updated - arreglo venía vacío, usuario no administra ninguna página');
-								return callback('error');
-			    			}else {
-								descartaCuentas(idCuenta, cuentas, 0, function(cuenta){
-				    				if (cuenta === 'cuentas ok') {
-										console.log('feeds/respInbox/getUserPageAT.at_updated - el usuario administra cuentas pero ninguna coincide con la cuenta solicitada');
-										return callback('error');
-									}else {
-										var pageAccessToken = cuenta.access_token;
-										var criteriou = { 'user_id' : token[0].user_id };
-										var objeto = {
-										    user_at: fbuserAT,
-										    page_at: pageAccessToken,
-										    user_id: user_id,
-										    account_name: account_name,
-										    timestamp: new Date()
-										};
-										classdb.actualiza('verifica_user_at', criteriou, objeto, 'feeds/respInbox/getUserPageAT.at_updated', function(inserta){
-										    if (inserta === 'error'){
-												console.log('feeds/respInbox/getUserPageAT.at_updated - error en insert a la bd, no insertamos nuevo token');
-										    }
-										    return callback(pageAccessToken);
-										});
-									}
-								});
-			    			}
-						});
-		    		}else {
-						// y sigue vigente
-						return callback(token[0].page_at);
-		    		}
-				}
-	    	}
-		});
-    }
-
     function borraPost(item, post_data, callback){
 		globales.options_graph.method = 'DELETE';
 		globales.options_graph.path = globales.fbapiversion+item;
@@ -985,7 +714,8 @@ exports.insertaDescarte=function(req,res){
 				resp.push(chunk);
 	    	});
 	    	response.on('end', function(){
-				id_respuesta_facebook = JSON.parse(Buffer.concat(resp));
+			//	id_respuesta_facebook = JSON.parse(Buffer.concat(resp));
+				id_respuesta_facebook = JSON.parse(resp);
 				//console.log('RESPONSE !'); console.log(id_respuesta_facebook);
 				return callback(id_respuesta_facebook);
 	    	});
@@ -1007,7 +737,7 @@ exports.insertaDescarte=function(req,res){
     var coleccion=req.body.coleccion;
     var eliminar = req.body.eliminar;
     var razon_eliminar = req.body.razon_eliminar;
-    var id =new ObjectID(req.body.idPost);
+    var id = new ObjectID(req.body.idPost);
     var fbuserid = req.body.fb_usid;
     var uat = req.body.fb_usat;
     var nsist = req.body.nombreSistema;
@@ -1017,17 +747,14 @@ exports.insertaDescarte=function(req,res){
     var obj = {};
     //Validación que nos ayuda a saber si eliminar el mensaje en facebook o no
     if(eliminar === true){
-    	console.log('Eliminará el mensaje directamente en facebook');
+
     	if (coleccion !== '' && cuenta !== '' && uat !== '' ) {
 	    getFacebookPageByCuenta(nsist, cuenta, function(fb_cuenta){
 		if (cuenta === 'error') {
 		    console.log('accounts/procesapendientes.main - no conseguimos la cuenta con id de facebook válido');
 		    res.jsonp('error');
 		} else {
-		    getUserPageAT(fb_cuenta ,idUsuario, nsist, fbuserid, uat, function(pat) {	
-			// obtenPAT(coleccion, cuenta, uat, function(pat){
-			console.log('Page Access token: ');
-			console.log(pat);
+                  accesstokens.obtienePagATByUsrAT(nsist, fb_cuenta, idUsuario, fbuserid, uat, 'no', function(pat){
 			if(pat === 'error-face'){
 			    obj = {'errorface':'Facebook no responde por el momento, intenta más tarde.'};
 			}
@@ -1194,10 +921,12 @@ exports.descartaLote = function(req, res){
     var lote = req.body.lote;
     var caso;
     var obj = {};
-    console.log('Descartando !!! por lte !!');
+    console.log('El lote es: ');
+    console.log(lote)
+
 
   function descarta(id,cback){
-    console.log('descarta ! ');
+
     var lid =new ObjectID(id);
     var elcriterio = {_id: lid};
     var elset = {
@@ -1206,7 +935,7 @@ exports.descartaLote = function(req, res){
     	'usuario' : username, 
     	'idUsuario' : idUsuario, 
     	'fecha' : new Date(),
-    	'imagenUsuario' : imagenUsuario
+    	'usuario_foto' : imagenUsuario
       }
     };
 
@@ -1221,12 +950,14 @@ exports.descartaLote = function(req, res){
   }
 
   function empiezaDescarte(lote, index, respuesta, cback){
-    console.log('Empezando el descarte !');
+
     var more = index +1;
     if(more <= lote.length){
-      descarta(lote[index]._id, function(resp){
+      //descarta(lote[index]._id, function(resp){
+        descarta(lote[index], function(resp){
     			          if(resp  !== 'error'){
-    				    respuesta.push(lote[index]._id);
+    				    //respuesta.push(lote[index]._id);
+                respuesta.push(lote[index]);
     			          }
     			          empiezaDescarte(lote, more, respuesta, cback);
     		                });
@@ -1236,8 +967,6 @@ exports.descartaLote = function(req, res){
   }
 
   empiezaDescarte(lote,0,[],function(respuesta){
-    console.log('Termino el proceso de descartar por lote');
-    console.log(respuesta);
     res.jsonp(respuesta);
   });
 };
@@ -2497,6 +2226,12 @@ exports.obtieneBuzon = function(req, res) {
 					criteriotipo = { tipo : eltipo};
 				break;
 
+
+				case 'influencer':
+					criterioobj = { obj : 'twitter' };
+					criteriotipo = { influencers : {$exists : true}};
+				break;
+
 				case 'facebook_inbox':
 					criterioobj = { obj : 'facebook' };
 					criteriotipo = { tipo : eltipo};
@@ -2521,7 +2256,6 @@ exports.obtieneBuzon = function(req, res) {
 
 		//Criterio sin fechas
 		elcriterio = consultaTipoBuzon(eltipo, criteriopage, criterioobj, criteriotipo, criterioPalabra, idUsuario, {});
-
 		if(organizacion === 'asc'){
 			elsort = {'created_time': 1};
 			elCreated = {'created_time': {$gt: fecha}};
@@ -2656,13 +2390,7 @@ exports.obtieneBuzon = function(req, res) {
 		var criteriof = {
 			$and : [
 				{'from_user_id':fu_id}, 
-				//{'atendido': {$exists: false}}, 
-			//	{'descartado': {$exists: false}}, 
-			//	{'eliminado': {$exists: false}},
 				{'id': {$ne : m_id}}, 
-		//		{'tipo':mtp}, 
-		//		parent_post,
-		//		{'created_time':{$lte: ctime}}
             ]
         };
 		var sortf = {'created_time': 1};
@@ -2813,10 +2541,6 @@ exports.obtieneBuzon = function(req, res) {
 					classdb.actualiza(cuenta.nombreSistema+'_consolidada', criterio, elset, 'feeds/pideFotoTwitter', function(updated){
 			    		if (updated === 'error') {
 							console.log(updated);	
-			    		}else{
-							console.log('Imagen Actualizada');
-							console.log(updated);
-							console.log('\n\n');
 			    		}
 					});
 
@@ -2828,16 +2552,11 @@ exports.obtieneBuzon = function(req, res) {
 					classdb.actualiza(cuenta.nombreSistema+'_consolidada', criterio, elset, 'feeds/pideFotoTwitter', function(updated){
 			    		if (updated === 'error') {
 							console.log(updated);	
-			    		}else{
-							console.log('Imagen Actualizada');
-							console.log(updated);
-							console.log('\n\n');
 			    		}
+
 					});
 				}else{
-					console.log('EL TIPO');
-					console.log(mensaje.obj);
-					console.log(mensaje.tipo);
+					console.log('EL TIPO / '+mensaje.obj+' / '+mensaje.tipo);
 				}
 				mensaje.imagen = reply.profile_image_url;
   				mensaje.imagen_https = reply.profile_image_url_https;
@@ -2870,7 +2589,7 @@ exports.obtieneBuzon = function(req, res) {
 	    	return callback(mensaje);
 	    }
     }
-	
+
 	getdatoscuenta(id, function(datos_cuenta){
 		var obj = {};
 		var fecha = { firstdate : first_date };
@@ -3130,7 +2849,7 @@ exports.getHistoricoPendientes = function (req, res) {
 		//{'atendido': {$exists: false}}, 
 		//{'descartado': {$exists: false}}, 
 		{'eliminado':{$exists:false}}, 
-		{'id': {$ne : cont_id}}, 
+		{'id': {$ne : cont_id}}
 		//{'tipo':mtp},
 		//{'created_time':{$lte: new Date(ctime)}} 
 	    ]
@@ -3205,7 +2924,7 @@ exports.getMoreComplete = function (req, res) {
 		//{'atendido': {$exists: true}}, 
 		//{'descartado': {$exists: false}}, 
 		{'eliminado':{$exists:false}}, 
-		{'id': {$ne : cont_id}}, 
+		{'id': {$ne : cont_id}} 
 		//{'tipo':mtp}, 
 		//{'created_time':{$lte: new Date(ctime)}} 
 	    ]
@@ -3313,61 +3032,61 @@ exports.getOneContent = function (req, res) {
 		var mid = new ObjectID(mongoid);
 		var criterio = { '_id' : mid };
 		classdb.buscarToArray(coleccion, criterio, {}, 'feeds/getOneContent/queryUno', function(items){
-                  if (items.length < 1) {
-                    return callback([]);
-                  }
-                  else {
-			var parent_post = {id:{$exists:true}};
-			var criterioc = {
-			    $and : [
-					{'from_user_id':items[0].from_user_id}, 
-					//{'atendido': {$exists: false}}, 
-					//{'descartado': {$exists: false}}, 
-					{'eliminado':{$exists: false}},
-					{'id': {$ne : items[0].id}}, 
-					//{'tipo':items[0].tipo}, 
-					//parent_post,
-					{'created_time':{$lte: items[0].created_time}}
-			    ]
-			};
-			classdb.count(coleccion, criterioc, 'feeds/getMailbox/querySecundario', function(combien){
-				if (combien === 'error') {
-					return callback(combien);
-				}
-				else {
-					console.log('CONSOLE !!!!');
-					console.log(items);
-					console.log(combien);
-					items[0].conv_cuenta = combien;
-					return callback(items);
-				}
-			});
-                    }
-		});
-			
+            if (items.length < 1) {
+                return callback([]);
+            }else {
+				var parent_post = {id:{$exists:true}};
+				var criterioc = {
+			    	$and : [
+						{'from_user_id':items[0].from_user_id}, 
+						{'eliminado':{$exists: false}},
+						{'id': {$ne : items[0].id}}, 
+						{'created_time':{$lte: items[0].created_time}}
+			    	]
+				};
+				classdb.count(coleccion, criterioc, 'feeds/getMailbox/querySecundario', function(combien){
+					if (combien === 'error') {
+						return callback(combien);
+					}else {
+						items[0].conv_cuenta = combien;
+						return callback(items);
+					}
+				});
+            }
+        });	
     }
 
     function querysecundario(cole, cont_id, fu_id, ctime, tipo, callback) {
-	var criteriof = {
-	    $and : [
-		{'from_user_id':fu_id}, 
-		{'atendido': {$exists: false}}, 
-		{'descartado': {$exists: false}}, 
-		{'eliminado':{$exists: false}},
-		{'id': {$ne : cont_id}}, 
-		{'tipo':tipo}, 
-		{'created_time':{$lte: ctime}}
-	    ]
-	};
-	var sortf = {'created_time': 1};
-	var limitf = 2;
-	classdb.buscarToStreamLimit(cole, criteriof, sortf, limitf, 'feeds/getOneContent/querysecundario', function(conv){
-		return callback(conv);
-	});		
+		var criteriof = {
+	    	$and : [
+				{'from_user_id':fu_id}, 
+				{'atendido': {$exists: false}}, 
+				{'descartado': {$exists: false}}, 
+				{'eliminado':{$exists: false}},
+				{'id': {$ne : cont_id}}, 
+				{'tipo':tipo}, 
+				{'created_time':{$lte: ctime}}
+	    	]
+		};
+		var sortf = {'created_time': 1};
+		var limitf = 2;
+		classdb.buscarToStreamLimit(cole, criteriof, sortf, limitf, 'feeds/getOneContent/querysecundario', function(conv){
+			return callback(conv);
+		});		
     }
-    //Termina QUerySecundario !
-
+    
     function actualizaMensaje(mensaje){
+    	//Validacion que nos sirve para saber en que buzon esta
+    	if(mensaje.descartado){    
+			mensaje.tipoMensaje = 'descartado';
+        }else if(!mensaje.descartado && !mensaje.eliminado && (mensaje.respuestas || mensaje.sentiment || mensaje.clasificacion || mensaje.atendido)){
+			mensaje.tipoMensaje = 'atendido';
+        }else if(!mensaje.descartado && !mensaje.atendido && !mensaje.eliminado && !mensaje.sentiment && !mensaje.clasificacion){
+			mensaje.tipoMensaje = 'nuevo';
+		}else{
+			console.log('No entro a un buzon valido');
+		}
+		
 		if (mensaje.obj === 'twitter') {
 			switch(mensaje.tipo) {
 
@@ -3433,7 +3152,7 @@ exports.getOneContent = function (req, res) {
 					mensaje.imagen_https = mensaje.foto;
 					mensaje.texto = mensaje.message;
                           console.log(mensaje.from.id);
-					mensaje.urlUsuario = 'https://www.facebook.com/'+mensaje.from.id;                                                          $
+					mensaje.urlUsuario = 'https://www.facebook.com/'+mensaje.from.id;                                                    
 					mensaje.urlEnlace = 'https://www.facebook.com/'+idSeparado[0]+'/post/'+idSeparado[1];
 				break;
 				
@@ -3446,6 +3165,8 @@ exports.getOneContent = function (req, res) {
 					mensaje.urlEnlace = mensaje.rating_link;
 				break;
 
+
+
 				default:
 					console.log('Entro a una opcion invalida en switch Faceboook');
 					console.log('Tipo');
@@ -3454,32 +3175,30 @@ exports.getOneContent = function (req, res) {
 		}//if facebook  
 		return mensaje;  	
     }
+
     if (coleccion !== null && mongoid !== null) {
-	queryUno(coleccion, mongoid, function(datos){
-	    if (datos !== 'error' && datos.length > 0) {
-		var contenido = datos[0];
-		querysecundario(coleccion, contenido.id, contenido.from_user_id, contenido.created_time, contenido.tipo, function(conversacion){
-		    if (conversacion === 'error') {
-			obj = {'error': 'feeds/getOneContent - no obtuvimos datos secundarios de la bd'};
-			res.jsonp(obj);
-		    }
-		    else {
-			contenido.conversacion = conversacion;
-			obj = contenido;
-			res.jsonp(obj);
-		    }
-		});
-	    }
-	    else {
-		obj = {'error': 'feeds/getOneContent - no obtuvimos nada de la bd'};
+		queryUno(coleccion, mongoid, function(datos){
+	    	if (datos !== 'error' && datos.length > 0) {
+				var contenido = datos[0];
+				querysecundario(coleccion, contenido.id, contenido.from_user_id, contenido.created_time, contenido.tipo, function(conversacion){
+		    		if (conversacion === 'error') {
+						obj = {'error': 'feeds/getOneContent - no obtuvimos datos secundarios de la bd'};
+						res.jsonp(obj);
+		    		}else {
+						contenido.conversacion = conversacion;
+						obj = contenido;
+						var mensajeActualizado = actualizaMensaje(obj);
+						res.jsonp(mensajeActualizado);
+		    		}
+				});
+	    	}else {
+				obj = {'error': 'feeds/getOneContent - no obtuvimos nada de la bd'};
+				res.jsonp(obj);
+	    	}
+		});	
+    }else {
+		obj = {'error' : 'feeds/getOneContent - no recibimos los parámetros'};
 		res.jsonp(obj);
-	    }
-	});
-	
-    }
-    else {
-	obj = {'error' : 'feeds/getOneContent - no recibimos los parámetros'};
-	res.jsonp(obj);
     }
 };
 /*               _              _    ____              _____            _             _   
@@ -3673,184 +3392,8 @@ var obj = {}, mensaje = '', respuesta = '', coleccion = '', conv_id = '', cuenta
     });
   }
 
-
-  function requestUserPages(fbuserid, fbuserAT, callback) {
-    //var path = globales.fbapiversion+fbuserid+'/accounts?access_token='+fbuserAT;
-    var path = globales.fbapiversion+'me/accounts?access_token='+fbuserAT;
-    globales.options_graph.method = 'GET';
-    globales.options_graph.path = path;
-    delete globales.options_graph.headers;
-    var solicitud = https.request(globales.options_graph, function(risposta) {
-	              var chunks = [];
-	              var chunks2 = '';
-	              //console.log('REGISTRANDO setTimeout+++++++++++++++++++++++++++++++++++++++++++++');
-	              risposta.on('data', function(dati) {
-	    	        //console.log('DATI !!!!!!!!!!!!!!!!!!!!!');
-	    	        //console.log(dati);
-	    	        if(dati){
-	    	          chunks2 += dati;
-		          chunks.push(dati);
-	    	        }
- 	              }).on('end', function() {
-	    	        var primero = chunks2.substr(0,1);
-		        if(primero === '{'){
-		          var contenido = JSON.parse(Buffer.concat(chunks));
-		          //console.log('¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡ Respuesta de responde inbox !!!!!!!!!!!!!!!!!');
-		          //console.log(contenido);
-		          //console.log('feeds/respInbox/requestUserPages - obtenemos paginas del usuario');
-		          if (typeof contenido.error !== 'undefined') {
-			    //console.log('feeds/respInbox/requestUserPages - '+JSON.stringify(contenido.error));
-			    return callback('error');
-		          }
-		          else {
-			    return callback(contenido.data);
-		          }
-		        }else{
-			  console.log('Error en peticion de access_token ++++++++++++++++++++++++++');
-			  console.log(primero);
-			  console.log(chunks2);
-		          return callback('error-face');
-		        }
-	              });
-	            });
-    solicitud.on('socket', function(socket){
-      socket.setTimeout(5000);
-      socket.on('timeout', function(){
-	solicitud.abort();
-	console.log('-+-+-+-+++-****_*__*_*_*__*_+-*_');
-	console.log('EVENTO !!!!! valio timestamps');
-      });
-    });
-    
-    solicitud.end();
-    solicitud.on('error', function(err){
-      console.log('facebookPost/requestAT - error en el request: '+err);
-      return callback('error');
-    });
-  }
-
-  function descartaCuentas(idCuenta, arregloCuentas, index, callback) {
-    var cuantas = arregloCuentas.length;
-    var more = index+1;
-    if (more > cuantas) {
-      return callback('cuentas ok');
-    }
-    else {
-      setImmediate(function(){
-        if (arregloCuentas[index].id === idCuenta) {
-          return callback(arregloCuentas[index]);
-        }
-	else {
-	  return descartaCuentas(idCuenta, arregloCuentas, more, callback);
-	}
-      });
-    }
-  }
-
-  function getUserPageAT(idCuenta ,user_id, account_name, fbuserid, fbuserAT, callback) {
-    var criteriof = { $and : [ { user_id : user_id }, { account_name : account_name } ] };
-    classdb.buscarToArray('verifica_user_at', criteriof, {}, 'feeds/respInbox/getUserPageAT', function(token){
-      if (token === 'error') {
-	console.log('feeds/respInbox/getUserPageAT - error en consulta de bd, no obtuvimos user-token');
-	return callback(token);
-      }
-      else {
-	if (token.length < 1) {
-	  // token todavía no existe en la base de datos
-	  requestUserPages(fbuserid, fbuserAT, function(cuentas) {
-	    if(cuentas === 'error') {
-	      console.log('feeds/respInbox/getUserPageAT.at_nuevo - error al conseguir las fanpages en facebook, tal vez no se otorgó el permiso de pages-admin');
-	      return callback('error');
-	    }
-	    else if(cuentas === 'error-face') {
-	      console.log('Error de facebook, favor de intentar mas tarde');
-	      return callback('error-face');
-	    }
-	    else if(cuentas.length < 1) {
-	      console.log('feeds/respInbox/getUserPageAT.at_nuevo - arreglo venía vacío, usuario no administra ninguna página');
-	      return callback('error');
-	    }
-	    else {
-	      // hubo respuesta de facebook, ya tenemos fanpages administradas, ahora veamos si la cuenta coincide con alguna
-	      descartaCuentas(idCuenta, cuentas, 0, function(cuenta){
-	        if (cuenta === 'cuentas ok') {
-	          console.log('feeds/respInbox/getUserPageAT.at_nuevo - el usuario administra cuentas pero ninguna coincide con la cuenta solicitada');
-	          return callback('error');
-	        }
-	        else {
-	          var pageAccessToken = cuenta.access_token;
-	          var objeto = {
-	              user_at: fbuserAT,
-	              page_at: pageAccessToken,
-	            user_id: user_id,
-	            account_name: account_name,
-	            timestamp: new Date()
-	          };
-	          classdb.inserta('verifica_user_at', objeto, 'feeds/respInbox/getUserPageAT.at_nuevo', function(inserta){
-	            if (inserta === 'error') {
-		      console.log('feeds/respInbox/getUserPageAT.at_nuevo - error en insert a la bd, no insertamos nuevo token');
-	            }
-	            return callback(pageAccessToken);
-	          });
-	        }
-	      });
-	    }
-	  });
-	}
-	else {
-	  var ts = token[0].timestamp.getTime();
-	  var tsm1 = (ts) + 1800000;
-	  var ahora = new Date().getTime();
-	  if (tsm1 < ahora) {
-	    // pero ya venció, lo pedimos a fb
-	    requestUserPages(fbuserid, fbuserAT, function(cuentas) {
-	      // hubo respuesta de facebook, ya tenemos fanpages administradas, ahora veamos si la cuenta coincide con alguna
-	      if (cuentas === 'error') {
-		console.log('feeds/respInbox/getUserPageAT.at_updated - error al conseguir las fanpages en facebook, tal vez no se otorgó el permiso pages-admin');
-		return callback('error');
-	      }
-	      else if (cuentas.length < 1) {
-		console.log('feeds/respInbox/getUserPageAT.at_updated - arreglo venía vacío, usuario no administra ninguna página');
-		return callback('error');
-	      }
-	      else {
-		descartaCuentas(idCuenta, cuentas, 0, function(cuenta){
-		  if (cuenta === 'cuentas ok') {
-		    console.log('feeds/respInbox/getUserPageAT.at_updated - el usuario administra cuentas pero ninguna coincide con la cuenta solicitada');
-		    return callback('error');
-		  }
-		  else {
-		    var pageAccessToken = cuenta.access_token;
-		    var criteriou = { 'user_id' : token[0].user_id };
-		    var objeto = {
-		      user_at: fbuserAT,
-		      page_at: pageAccessToken,
-		      user_id: user_id,
-		      account_name: account_name,
-		      timestamp: new Date()
-		    };
-		    classdb.actualiza('verifica_user_at', criteriou, objeto, 'feeds/respInbox/getUserPageAT.at_updated', function(inserta){
-		      if (inserta === 'error'){
-			console.log('feeds/respInbox/getUserPageAT.at_updated - error en insert a la bd, no insertamos nuevo token');
-		      }
-		      return callback(pageAccessToken);
-		    });
-		  }
-		});
-	      }
-	    });
-	  }
-	  else {
-	    // y sigue vigente
-	    return callback(token[0].page_at);
-	  }
-	}
-      }
-    });
-  }
-
   function responde (coleccion, post_data, conv_id, mensaje, callback) {
-    console.log(coleccion);	console.log(post_data);	console.log(conv_id); console.log(mensaje._id);	console.log('!!!!!!!! CONVER');	console.log(conv_id);
+    //console.log(coleccion);	console.log(post_data);	console.log(conv_id); console.log(mensaje._id);	console.log('!!!!!!!! CONVER');	console.log(conv_id);
     globales.options_graph.method = 'POST';
     globales.options_graph.path = globales.fbapiversion+conv_id+'/messages';
     globales.options_graph.headers = {
@@ -3859,19 +3402,19 @@ var obj = {}, mensaje = '', respuesta = '', coleccion = '', conv_id = '', cuenta
       'Content-Length': post_data.length
     };
 
-    console.log(globales.options_graph);
+    // console.log(globales.options_graph);
     var post_req = https.request(globales.options_graph, function(response) {
 	             console.log('Respuesta de la solicitud inbox !!!!!! !! ! ! ! ! ! ! !');
 	             response.setEncoding('utf8');
 	             var resp = [];
 	             var id_respuesta_facebook;
 	             response.on('data', function (chunk) {
-	    	       console.log('A');
+	    	       // console.log('A');
 		       resp.push(chunk);
 	             });
 	             response.on('end', function(){
 		       id_respuesta_facebook = JSON.parse(Buffer.concat(resp));
-	    	       console.log('RESPONSE !'); console.log(id_respuesta_facebook); console.log(mensaje._id);
+	    	       // console.log('RESPONSE !'); console.log(id_respuesta_facebook); console.log(mensaje._id);
 		       var criterio = {'_id':new ObjectID(mensaje._id)};
 		       var elset = {	
 		         clasificacion:{
@@ -3890,16 +3433,16 @@ var obj = {}, mensaje = '', respuesta = '', coleccion = '', conv_id = '', cuenta
 			   id_respuesta:id_respuesta_facebook.id
 		         }
 		       };
-		       console.log('Apunto de actualizar clasificacion');
+		       // console.log('Apunto de actualizar clasificacion');
 		       classdb.actualiza(coleccion, criterio, elset, 'feed/respinbox/responde', function(actualized){
-		         console.log(actualized);
+		         // console.log(actualized);
 		         if (actualized === 'error') {
 			   return callback('error');
 		         }
 		         else {
-		    	   console.log('Apunto de actualizar respuesta');
+		    	   // console.log('Apunto de actualizar respuesta');
 			   classdb.actualizaAddToSetcresult(coleccion, criterio, eladdtoset, 'feed/respinbox/responde', function(addedtoset){
-			     console.log(addedtoset);
+			     // console.log(addedtoset);
 			     return callback(addedtoset);
 			   });
 		         }
@@ -3916,26 +3459,26 @@ var obj = {}, mensaje = '', respuesta = '', coleccion = '', conv_id = '', cuenta
     });
   }
 
-  console.log('Respondiendo inbox Imprimiendo el valor de req.body++++++++++++++++++++++++++++++++++++++');
-  console.log(req.body);
+  // console.log('Respondiendo inbox Imprimiendo el valor de req.body++++++++++++++++++++++++++++++++++++++');
+  // console.log(req.body);
   if (coleccion !== '' && cuenta !== '' && uat !== '' ) {
-    console.log('iniciando getFacebookPageByCuenta ++++++++');
+    // console.log('iniciando getFacebookPageByCuenta ++++++++');
     getFacebookPageByCuenta(nsist, cuenta, function(fb_cuenta){
-      console.log('El resutado de getFacebookPageByCuenta ++++++++++ id de la cuenta facebook');
-      console.log(cuenta);
+      //console.log('El resutado de getFacebookPageByCuenta ++++++++++ id de la cuenta facebook');
+      // console.log(cuenta);
       if (cuenta === 'error') {
 	console.log('accounts/procesapendientes.main - no conseguimos la cuenta con id de facebook válido');
 	res.jsonp('error');
       } else {
-	console.log('Obteniendo el accesToken de la pagina +++++++++++');
-	console.log('+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-');
-	console.log('+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-');
-	console.log('+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-');
-	console.log('+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-');
-	getUserPageAT(fb_cuenta ,usid, nsist, fbuserid, uat, function(pat) {	
+	//console.log('Obteniendo el accesToken de la pagina +++++++++++');
+	//console.log('+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-');
+	//console.log('+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-');
+	//console.log('+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-');
+	//console.log('+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-');
+        accesstokens.obtienePagATByUsrAT(nsist, fb_cuenta, usid, fbuserid, uat, 'no', function(pat) {
 	  // obtenPAT(coleccion, cuenta, uat, function(pat){
-	  console.log('REGRESANDO DE OBTENPAT !!!!');
-	  console.log(pat);
+	  // console.log('REGRESANDO DE OBTENPAT !!!!');
+	  // console.log(pat);
 	  if(pat === 'error-face'){
 	    obj = {'error-face': 'Error en respuesta de facebook, intenta mas tarde'};
 	    res.jsonp(obj);
@@ -3966,7 +3509,7 @@ var obj = {}, mensaje = '', respuesta = '', coleccion = '', conv_id = '', cuenta
 };
 
 exports.respDM = function(req, res){
-    console.log('Respondiendo Direct MEssa');
+  // console.log('Respondiendo Direct MEssa');
     var obj = {};
     var item_id = new ObjectID(req.body.item._id);
     var cuenta_id = new ObjectID(req.body.cuenta);
@@ -3993,7 +3536,7 @@ exports.respDM = function(req, res){
 		    console.log(err_twit);
 		    res.jsonp(err_twit);
 		}else{
-			console.log(comprueba.compruebaDescartado(item_id, consol));
+			// console.log(comprueba.compruebaDescartado(item_id, consol));
 		    var criteriou = {'_id':item_id};
 		    var setu = {
 			clasificacion:{
@@ -4038,16 +3581,16 @@ exports.respDM = function(req, res){
 
 exports.compruebaDescartado = function(id, coleccion){
 	//var ObjectID = require('mongodb').ObjectID;
-	console.log('Llamando a comprueba descartado !!!!!!!!!!!! ');
-	console.log(id);
-	console.log(coleccion);
+	//console.log('Llamando a comprueba descartado !!!!!!!!!!!! ');
+	//console.log(id);
+	//console.log(coleccion);
 	id  = new ObjectID(id);
 	var criterio = {'_id': id};
 	classdb.buscarToStream(coleccion, criterio, {}, 'feeds/compruebaDescartado', function(item){
 		if(item === 'error'){
 			console.log('Error en compruebaDescartado');
 		}else{
-		    console.log(item[0]);
+		    //console.log(item[0]);
 		    if(typeof item[0] !== 'undefined' && item[0].descartado){
 				var id_post = new ObjectID(item[0]._id);
 				var criterio = {'_id':id_post};
@@ -4056,8 +3599,8 @@ exports.compruebaDescartado = function(id, coleccion){
 			    	if(actualizado === 'error'){
 			    		console.log('error');
 			    	}else{
-			    		console.log('Descartado eliminado !!!!!!!');
-			    		console.log(actualizado);
+			    		//console.log('Descartado eliminado !!!!!!!');
+			    		//console.log(actualizado);
 			    		return true;
 			    	}	
 			    });
@@ -4110,17 +3653,20 @@ exports.finalizar = function(req, res){
 	    		}
 			};
 			classdb.actualizacresult(coleccion, criterious, setus, 'feeds/finalizar/finalizaConversacion', function(updated){
-		    	if(updated === 'error'){
+		    	console.log('actualizando el resultado en finalizaConversacion');
+          console.log(updated);
+          if(updated === 'error'){
 		    		return cback('error');
-		    	}else if(updated === 1){
+		    	//}else if(updated === 1){
+          }else{
 					var cuenta = coleccion.split('_');
 					if(twit.influencers || twit.asignado){
 						var socketio = req.app.get('socketio'); // take out socket instance from the app container
-						socketio.sockets.emit('auxiliarNotificacion',{_id:id,cuenta:cuenta[0]});
+						socketio.sockets.in(cuenta[0]).emit('auxiliarNotificacion',{_id:id,cuenta:cuenta[0]});
 					}
+            console.log('Se actualizo el siguiente twit !!!');
+            console.log(conversacion._id);
 		    		return cback(conversacion._id);
-		    	}else{
-		    		return cback('error');
 		    	}
 			});
 		}else{
@@ -4136,7 +3682,11 @@ exports.finalizar = function(req, res){
 		}else {
 			setImmediate(function(){
 		    	finalizaConversacion(coleccion, contenido, contenidos[index], user_id, user_name, objectId, imagenUsuario, sentimientoGeneral, clasificacionGeneral, function(conv){
-					if (conv === 'error'){
+					
+             console.log('Regresando de procesaConversaciones prubas');
+        console.log(conv);
+
+          if (conv === 'error'){
 			    		return procesaConversaciones(coleccion, contenido, user_id, user_name, objectId, contenidos, more, contenidosprocesados, imagenUsuario, sentimientoGeneral, clasificacionGeneral, callback);
 					}else{
 			    		contenidosprocesados.push(conv);
@@ -4186,14 +3736,14 @@ exports.finalizar = function(req, res){
 		    res.jsonp(obj);
 		}else {
 			mensajeActualizado(coleccion, twit_id, function(mensajeActualizado){
-				if(mensajeActualizado === 'error'){
-					obj = {'error': 'no pudimos pedir el mensaje actualizado'};
-		    		res.jsonp(obj);
+				if(mensajeActualizado.error || mensajeActualizado.length < 1){
+				  obj = {'error': 'no pudimos pedir el mensaje actualizado'};
+		    		  res.jsonp(obj);
 				}else{
-					mensajeActualizado = mensajeActualizado[0];
-					var clasificacionGeneral = mensajeActualizado.clasificacion;
-    				var sentimientoGeneral = mensajeActualizado.sentimiento;
-					var tipo = {};
+				  mensajeActualizado = mensajeActualizado[0];
+				  var clasificacionGeneral = mensajeActualizado.clasificacion;
+    				  var sentimientoGeneral = mensajeActualizado.sentimiento;
+				  var tipo = {};
 					if(mensajeActualizado.obj === 'facebook'){
 						if(mensajeActualizado.tipo !== 'facebook_inbox'){
 							tipo = { 
@@ -4233,13 +3783,16 @@ exports.finalizar = function(req, res){
 				    
 				    classdb.buscarToArray(coleccion, criteriof, {}, 'feeds/finalizar', function(items){
 						if(items === 'error'){
-							console.log(obj);
+							//console.log(obj);
 					    	obj = {'error': 'se actualizó correctamente pero no el historial'};
 					    	res.jsonp(obj);
 						}else {
 					    	if (items.length > 0) {
+                console.log('Si tiene historial !!! ');
 								procesaConversaciones(coleccion, mensajeActualizado, user_id, user_name, objectId, items, 0, [], imagenUsuario, sentimientoGeneral, clasificacionGeneral, function(resp_pc){
-						    		res.jsonp(resp_pc);
+						    		console.log('Se actualizaron estos registros ');
+                    console.log(resp_pc);
+                    res.jsonp(resp_pc);
 								});
 					    	}else {
 								obj = {'ok': 'se actualizó contenido, y no tenía historial'};
@@ -4279,18 +3832,20 @@ exports.follow = function(req, res){
 		    		console.log('Error en follow');
 		    		res.jsonp(err_follow);
 		    	}else{
-		    		console.log('Correcto !');
-		    		console.log(reply);
+		    		//console.log('Correcto !');
+		    		//console.log(reply);
 		    		res.jsonp(reply);
 		    	}
 		    });
 		}
 	});
 };
-exports.totalPendientes = function(req,res){
+exports.totalPendientesEscondido = function(req,res){
+	console.log(socketio.sockets)
 	console.log('METODO VACIO TOTAL PENDIENTES ');
 }
-exports.totalPendientesEscondido = function(req,res){
+exports.totalPendientes = function(req,res){
+	var socketio = req.app.get('socketio');
 	var coleccion = req.body.coleccion;
 	var id_cuenta = req.body.id_cuenta;
 	var criteriopage = { id : { $exists : true }};
@@ -4308,7 +3863,10 @@ exports.totalPendientesEscondido = function(req,res){
 				$or: [ 
 					{'tipo':{$eq: 'comment'}}, 
 					{'tipo':{$eq:'post'}},
-					{'tipo':{$eq:'rating'}}
+					{'tipo':{$eq:'rating'}},
+          {type:"video"},
+          {type:"link"},
+          {type:"status"}
 				]
 			};
 		break;
@@ -4353,7 +3911,9 @@ exports.totalPendientesEscondido = function(req,res){
 			{'clasificacion':{$exists: false}},
 			{'eliminado':{$exists: false}},
 			{'retweeted_status':{$exists:false}},
-			{sentiment:{$exists:false}},
+			{'sentiment':{$exists:false}},
+      //{'tipo':{$exists:true}},
+    //{'obj':{$exists:true}},
 			criteriopage, 
 			criterioobj, 
 			criteriotipo,
@@ -4417,10 +3977,11 @@ exports.totalPendientesEscondido = function(req,res){
 			    };
 			//criterio = {$and : [{{'from_user_id' : {$ne : datosCuenta[0].datosPage.id}},'descartado':{$exists: false}}, {'atendido':{$exists: false}}, {'eliminado':{$exists: false}},{'clasificacion.tema':{$exists:false}},{'clasificacion.tema':{$ne:'Tema'}},{sentiment:{$exists:false}},criteriopage, criterioobj, criteriotipo ]};
 		}
-	    // console.log('Imprimiento query');
-		//console.log('Criterio de busqueda');
+	    //console.log('Imprimiento query para obtener Nuevos del metodo');
+      //console.log(coleccion.split('_')[0]);
+		//console.log('criterioerio de busqueda');
 		//console.log();
-		 //console.log(JSON.stringify(criterio));
+		// console.log(JSON.stringify(criterio));
 	    classdb.count(coleccion,criterio,{},function(count){
 		 //console.log('count !!!!!!!!!');
 		 //console.log(count);
@@ -4428,6 +3989,8 @@ exports.totalPendientesEscondido = function(req,res){
 		    console.log('error');
 		}else{
 		    res.jsonp(count);
+		    var cuenta = coleccion.split('_')[0];
+		    socketio.sockets.in(cuenta).emit('socketPendientes',count);
 		}
 	    });
 	});
@@ -4439,7 +4002,7 @@ exports.guardaFollow = function(req, res){
 		if(inserta === 'error'){
 			console.log('Error al insertar influencer');
 		}else{
-			console.log('Influencer agregado correctamente !!!!');
+			// console.log('Influencer agregado correctamente !!!!');
 			res.jsonp('Correcto');
 		}
 	});
@@ -4481,7 +4044,7 @@ exports.unfollow = function(req, res){
 						if(inserta === 'error'){
 							console.log('Error al eliminar influencer');
 						}else{
-							console.log('Influencer agregado correctamente !!!!');
+							//console.log('Influencer agregado correctamente !!!!');
 							res.jsonp('Correcto');
 						}
 					});
@@ -4491,16 +4054,16 @@ exports.unfollow = function(req, res){
 	});
 };
 exports.isFollow = function(req, res){
-	console.log('Is follow !!!!!!!!!!!!!!!!!!!!!!!');
-	console.log(req.body);
+	//console.log('Is follow !!!!!!!!!!!!!!!!!!!!!!!');
+	//console.log(req.body);
 	var user_id_follow = req.body.user_follow_id;
 	var user_screenname_follow = req.body.user_follow_screenname;
 	var coleccion = req.body.coleccion;
 	
 	var criterio = { $or: [ { 'user_follow_id': user_id_follow}, { 'user_follow_screenname': user_screenname_follow } ] };
 	classdb.existefind(coleccion, criterio,'ClassDb/getFollows',function(existe){
-		console.log('LLamando a isFollow SErvers');
-		console.log(existe);
+		//console.log('LLamando a isFollow SErvers');
+		//console.log(existe);
 		if(existe === 'error'){
 			res.jsonp('false');
 		}else{
@@ -4549,8 +4112,8 @@ exports.cambiaInbox = function(req, res) {
           };
           var lacuenta = ctas[index].nombreSistema+'_consolidada';
           classdb.buscarToArray(lacuenta, critere, {}, 'feeds/cambiaInbox/iteraCtasGetConsolidadas', function(items){
-            console.log('**************************** items de la cuenta: '+lacuenta);
-            console.log(JSON.stringify(items));
+            //console.log('**************************** items de la cuenta: '+lacuenta);
+            //console.log(JSON.stringify(items));
             return iteraCtasGetConsolidadas(ctas, more, callback);
           });
         }
@@ -4571,7 +4134,7 @@ exports.cambiaInbox = function(req, res) {
   getAccounts(function(cuentas){
     iteraCtasGetConsolidadas(cuentas, 0, function(respuesta){
       if (respuesta === 'ok') {
-        console.log(cuentas);
+        //console.log(cuentas);
         res.jsonp(cuentas);
       }
     });
@@ -4586,8 +4149,8 @@ exports.changeString = function(req,res){
     if(array.length > index){
       setImmediate(function(){
 	if(array[index].tipo === 'comment' && array[index].from){
-          console.log('CAMBIANDO !!!!!!!!!');
-          console.log(array[index]);
+          //console.log('CAMBIANDO !!!!!!!!!');
+          //console.log(array[index]);
 	  var criterio = {_id: array[index]._id};
 	  var set = {from_user_id: array[index].from.id.toString()};
 	  classdb.actualiza(coleccion,criterio,set, 'Actualizando elemento '+index, function(actualiza){
@@ -4632,6 +4195,8 @@ exports.asignaMensaje = function(req, res){
 			    return procesaConversaciones(coleccion, asignado, contenidos, more, contenidosprocesados, callback);
 			}
 			else{
+        console.log('El resultado de finalizaConversacion conv');
+        console.log(conv);
 			    contenidosprocesados.push(conv);
 			    return procesaConversaciones(coleccion,asignado, contenidos, more, contenidosprocesados, callback);
 			}
@@ -4651,32 +4216,30 @@ exports.asignaMensaje = function(req, res){
 	    console.log(updated);
 	    if(updated === 'error'){
 	    	return cback('error');
-	    }else if(updated === 1){
-	    	return cback(mensaje._id);
 	    }else{
-	    	return cback('error');
+	    	return cback(mensaje._id);
 	    }
 	});
     }	
 	function asignaConversacion(obj,cback){
 		var tipo;
 		if(obj.obj === 'facebook'){
-			console.log('Es tipo facebook !!!');
+			//console.log('Es tipo facebook !!!');
 			if(obj.tipo !== 'facebook_inbox'){
 				tipo = { $or: [ { tipo:'comment' }, { tipo:'post' } ] };
 			}else{
 				tipo = {tipo:'facebook_inbox'};
 			}
 		}else{
-			console.log('Es tipo twitter');
+			//console.log('Es tipo twitter');
 			if(obj.tipo === 'direct_message'){
 				tipo = {tipo: 'direct_message'};
 			}else{
 				tipo = {tipo: 'twit'};
 			}
 		}
-		console.log('Se asigno un tipo y es !! ');
-		console.log(tipo);
+		//console.log('Se asigno un tipo y es !! ');
+		//console.log(tipo);
 
 
 	    var criteriof = {
@@ -4691,10 +4254,10 @@ exports.asignaMensaje = function(req, res){
 			 tipo
 		]
 	    };
-		console.log('STRINGIFU !!!!');
-		console.log(JSON.stringify(criteriof));
-		console.log(coleccion);
-		console.log(obj);
+		//console.log('STRINGIFU !!!!');
+		//console.log(JSON.stringify(criteriof));
+		//console.log(coleccion);
+		//console.log(obj);
 	    classdb.buscarToArray(coleccion, criteriof, {}, 'feeds/finalizar', function(items){
 		if(items === 'error'){
 		    obj = {'error': 'se actualizó correctamente pero no el historial'};
@@ -4702,13 +4265,13 @@ exports.asignaMensaje = function(req, res){
 		}
 		else {
 		    if (items.length > 0) {
-		    	console.log('++++++++++++   Items a resolver !!!!!!');
-		    	console.log(items);
-		    	console.log('NUMERO !!!');
-		    	console.log(items.length);
+		    	//console.log('++++++++++++   Items a resolver !!!!!!');
+		    	//console.log(items);
+		    	//console.log('NUMERO !!!');
+		    	//console.log(items.length);
 			procesaConversaciones(coleccion,obj.asignado,items, 0, [], function(resp_pc){
-			    console.log('Imprimiendo el resultado de finalizaConversacion !!!! +++++++++++');
-			    console.log(resp_pc);
+			   //console.log('Imprimiendo el resultado de finalizaConversacion !!!! +++++++++++');
+			    //console.log(resp_pc);
 			    res.jsonp(resp_pc);
 			});
 		    }
@@ -4722,7 +4285,7 @@ exports.asignaMensaje = function(req, res){
 	
 	
 
-  console.log('Asignando mensaje ++++++++++++');
+  // console.log('Asignando mensaje ++++++++++++');
   var id = new ObjectID(req.body.id);
   var coleccion = req.body.coleccion+'_consolidada';
   var asignado = req.body.asignado;
@@ -4740,7 +4303,7 @@ exports.asignaMensaje = function(req, res){
       res.jsonp(error);
     }
     else {
-      console.log(respuesta);
+      //console.log(respuesta);
       //Obtenemos el mensaje asignado
       classdb.buscarToStream(coleccion, criterio, {}, 'Obteniendo el mensaje asignado', function(mensaje){
         if (mensaje === 'error') {
@@ -4751,7 +4314,7 @@ exports.asignaMensaje = function(req, res){
 	  res.jsonp(error);
         }
         else {
-	  console.log(mensaje);
+	  //console.log(mensaje);
 	  var notificacion = {
 	    mongo_id: req.body.id,
 	    coleccion: coleccion,
@@ -4771,16 +4334,16 @@ exports.asignaMensaje = function(req, res){
 	      };
 	      res.jsonp(error);
 	    }else{
-	      console.log(existe);
+	      //console.log(existe);
 	      if(existe === 'existe'){
-		console.log('Entro a eliminar notificacion!');
+		//console.log('Entro a eliminar notificacion!');
 		var id_notificacion = req.body.id;
-		console.log('Eliminando notificacion en el server !!! ');
-		console.log(id_notificacion);
+		//console.log('Eliminando notificacion en el server !!! ');
+		//console.log(id_notificacion);
 		var critere = {$or:[{'_id': new ObjectID(id_notificacion)},{mongo_id:id_notificacion.toString()}]};
 		classdb.remove('notificaciones', critere, 'express/.main', function(removed) {
 		  if (removed === 'error') {
-		    console.log('Error al borrar la notificación');
+		    //console.log('Error al borrar la notificación');
                     error = {
 		      code:100,
 		      message: 'Error al borrar la notificacion'
@@ -4788,20 +4351,18 @@ exports.asignaMensaje = function(req, res){
 	            res.jsonp(error);
 		  }
 		  else {
-		    console.log('Notificacion eliminada');
+		    //console.log('Notificacion eliminada');
 		    socketio.sockets.emit('quitaNotificacion', id_notificacion);
 		    classdb.insertacresult('notificaciones', notificacion, 'core/notificacion.main', function(data){
 		      if (data === 'error') {
-			console.log('Error al insertar notificacion');
-                        error = {
+		      	console.log('Error al insertar notificacion');
+            error = {
 		          code:100,
 		          message: 'Error al insertar la notificacion'
 	                };
 			res.jsonp(error);
 		      }else{
-			console.log('Notificacion insertada correctamente');
-			console.log(data);
-			socketio.sockets.emit('notify', data); // emit an event for all connected client
+			socketio.sockets.emit('notify', data[0]); // emit an event for all connected client
 			asignaConversacion(obj_asigna, function(items){
 				console.log('Se asignaran estos elementos');
 				res.jsonp(items);
@@ -4813,7 +4374,7 @@ exports.asignaMensaje = function(req, res){
 		});
 	      }
               else {
-		console.log('La notificacion no existe vamos a insertarla');
+		//console.log('La notificacion no existe vamos a insertarla');
 		classdb.insertacresult('notificaciones', notificacion, 'core/notificacion.main', function(data){
 		  if (data === 'error') {
 		    console.log('Error al insertar notificacion');
@@ -4825,10 +4386,10 @@ exports.asignaMensaje = function(req, res){
 		  }else{
 		    console.log('Notificacion insertada correctamente');
 		    console.log(data);
-		    socketio.sockets.emit('notify', data); // emit an event for all connected client
+		    socketio.sockets.in(data[0].cuenta).emit('notify', data[0]); // emit an event for all connected client
 		    //res.jsonp(data);
 			asignaConversacion(obj_asigna, function(items){
-				console.log('Se asignaran estos elementos')
+				//console.log('Se asignaran estos elementos')
 				res.jsonp(items);
 			});
 		  }
@@ -4869,7 +4430,7 @@ exports.buscar = function(req, res){
     }
     switch(tipo){
       case 'entrada':
-      console.log('Es entrada !!');
+      //console.log('Es entrada !!');
       query = {$and:[
 	{'clasificacion':{$exists:false}},
 	{'respuestas':{$exists: false}},
@@ -4886,7 +4447,7 @@ exports.buscar = function(req, res){
       ]};
       break;
       case 'proceso':
-      console.log('Es proceso !!');
+      //console.log('Es proceso !!');
       query = {$and:[
 	{'retweeted_status':{$exists: false}},
 	{'atendido':{$exists:false}},
@@ -4905,7 +4466,7 @@ exports.buscar = function(req, res){
       ]};
       break;
       case 'resueltos':
-      console.log('Es resueltos !!');
+      //console.log('Es resueltos !!');
       query = {$and:[
 	{'retweeted_status':{$exists: false}},
 	{$or:[
@@ -4918,7 +4479,7 @@ exports.buscar = function(req, res){
       ]};
       break;
       case 'descartados':
-      console.log('Es descartados !!');
+      //console.log('Es descartados !!');
       query = {$and:[
 	{'retweeted_status':{$exists: false}},
 	{'from_user_name':new RegExp(regex(criterio),'i')},
@@ -5036,13 +4597,13 @@ exports.nuevosPosts = function(req, res){
 
 
     getdatoscuenta(id_cuenta, function(datos_cuenta){
-    	console.log('Llamando a getdatoscuenta');
+    	//console.log('Llamando a getdatoscuenta');
 	    if(datos_cuenta[0]){	
 			var cuenta = datos_cuenta[0].nombreSistema;
 			var obj = {};
 			if (datos_cuenta !== 'error' & datos_cuenta.length > 0) {
 			    var coleccion = datos_cuenta[0].nombreSistema+'_consolidada';
-			    console.log(coleccion +' '+ new Date());
+			    //console.log(coleccion +' '+ new Date());
 			    var page_id = '';
 			    if (typeof datos_cuenta[0].datosPage !== 'undefined' && typeof datos_cuenta[0].datosPage.id !== 'undefined' && datos_cuenta[0].datosPage.id !== -1) {
 				//console.log('tiene datosPage y es válido');
@@ -5053,7 +4614,7 @@ exports.nuevosPosts = function(req, res){
 				page_id = datos_cuenta[0].datosMonitoreo.id;
 			    }
 			    if (page_id === '') {
-			    	console.log('Page Id es igual a vacio');
+			    	//console.log('Page Id es igual a vacio');
 				res.jsonp(obj);
 			    }
 			    else {
@@ -5081,8 +4642,8 @@ exports.nuevosPosts = function(req, res){
 		    criteriored = {'from_user_id' : {$ne: page_id}};
 		}
 		var newDate = new Date(fecha);
-		console.log('Fecha');
-		console.log(fecha);
+		//console.log('Fecha');
+		//console.log(fecha);
 		var criterio = {$and:
 				[ 
 				    {'descartado':{$exists: false}}, 
@@ -5097,9 +4658,9 @@ exports.nuevosPosts = function(req, res){
 				    criterio_tipo
 				]
 			       };
-		console.log(JSON.stringify(criterio));
+		//console.log(JSON.stringify(criterio));
 	 	classdb.buscarToArray(cole, criterio,{}, 'feeds/getCuentaNuevos/querybuzon', function(cuenta){
-	 		console.log(cuenta.length);
+	 		//console.log(cuenta.length);
 		    return callback(cuenta);
 		});
     }
@@ -5115,8 +4676,7 @@ exports.nuevosPosts = function(req, res){
 };
 
 exports.nuevosPostsFiltered = function(req, res){
-	//console.log('PIDIENDO LOS NUEVOS FILTRADOS');
-	//console.log(req.query);
+
 	var last_ct = null;
     var tipo = null;
     var obj = null;
@@ -5127,7 +4687,7 @@ exports.nuevosPostsFiltered = function(req, res){
     if (typeof req.query.id_cuenta !== 'undefined') { id_cuenta =req.query.id_cuenta; }
 
     function querybuzon (cole, fecha, page_id, tipo,callback) {
-    	
+    	console.log('DENTRO DE QUERY BUZON');
     	var criterio_tipo = { created_time: {$exists : true} };
     	var criteriored_page = { id : {$exists : true} };
     	var criteriored = { _id : {$exists : true} };
@@ -5157,9 +4717,11 @@ exports.nuevosPostsFiltered = function(req, res){
 		criteriored_page
 	    ]
 	};
+  console.log('PETICION QUERY !!');
+  console.log(JSON.stringify(criterio));
 	classdb.buscarToArray(cole, criterio,{created_time:1}, 'feeds/getCuentaNuevos/querybuzon', function(cuenta){
 	    console.log('cuenta !');
-	    console.log(cuenta.length);
+	    console.log(cuenta);
 	    return callback(cuenta);
 	});
     }
@@ -5172,26 +4734,25 @@ exports.nuevosPostsFiltered = function(req, res){
 		});
     }
     getdatoscuenta(id_cuenta, function(datos_cuenta){
+      console.log('DATOS DE LA CUENTA');
+      console.log(datos_cuenta);
 	    if(datos_cuenta[0]){	
 			var cuenta = datos_cuenta[0].nombreSistema;
 			var obj = {};
 			if (datos_cuenta !== 'error' & datos_cuenta.length > 0) {
 			    var coleccion = datos_cuenta[0].nombreSistema+'_consolidada';
-			    console.log(coleccion +' '+ new Date());
+          console.log('COLECCION ');
+          console.log(coleccion);
+			  //console.log(coleccion +' '+ new Date());
 			    var page_id = '';
 			    if (typeof datos_cuenta[0].datosPage !== 'undefined' && typeof datos_cuenta[0].datosPage.id !== 'undefined' && datos_cuenta[0].datosPage.id !== -1) {
-				//console.log('tiene datosPage y es válido');
+				console.log('tiene datosPage y es válido');
 				page_id = datos_cuenta[0].datosPage.id;
 			    }
 			    else if (typeof datos_cuenta[0].datosMonitoreo !== 'undefined' && datos_cuenta[0].datosMonitoreo.id !== 'undefined') {
-				//console.log('tiene datosMonitoreo y es válido');
+				console.log('tiene datosMonitoreo y es válido');
 				page_id = datos_cuenta[0].datosMonitoreo.id;
 			    }
-			    if (page_id === '') {
-			    	console.log('Page Id es igual a vacio');
-				res.jsonp(obj);
-			    }
-			    else {
 				querybuzon(coleccion, last_ct, page_id, tipo, function(lacuenta) {
 					if (lacuenta === 'error') {
 						res.jsonp(obj);
@@ -5277,96 +4838,246 @@ exports.nuevosPostsFiltered = function(req, res){
 				    }
 				});		
 			    }
-			}
-		}
+			}		
     });
 };
+
 exports.obtienePorClick = function(req, res){
-	console.log('CLICK !!');
-	console.log(req.body);
-	var tipoMensaje;
-	var criterio_busqueda = {};
-	var opcion = req.body.opcion;
-	var criterio_obj = {};
-	var criterio_exists = {};
-	var criterio_usuario = {};
-	var cuenta = req.body.cuenta;
-	var criterio_palabra = {};
-	var criterio_sentiment = {};
-	var skip = req.body.skip;
-	if(opcion !== 'general'){
-		criterio_obj = {obj:opcion};
-	}
-	//si es de nube de terminos
-	if(req.body.palabra){
-		console.log('PALABRA !!!!!!');
-		console.log(req.body.palabra);
-	criterio_palabra = 
-	{$or: 
-	     		[
-		 		{'message' : new RegExp(req.body.palabra,'i')}, 
-		 		{'text' : new RegExp(req.body.palabra,'i')}
-	     		]
-	};
-	}
-	//si es de sentimiento
-	if(req.body.sentiment){
-		criterio_busqueda = {sentiment:{$exists:true}};
-		criterio_sentiment = {sentiment:{$eq:req.body.sentiment}};
-		tipoMensaje = 'atendido';
-	}
-	//si es desempeño de usuario
-	else if (req.body.usuario){
-		var usuario = req.body.usuario;
-		var tipo = req.body.tipo;
-		switch(tipo){
-			case 'descartado':
-				criterio_busqueda = {descartado:{$exists:true}};
-				criterio_usuario = {'descartado.idUsuario':usuario};
-				tipoMensaje = 'descartado';
-				
+
+	function consultaTipoBuzon(criteriopage, criterioobj, tipoBuzon, idUsuario, fechaInicial, fechaFinal){
+		var elcriterio = '';
+		switch(tipoBuzon){
+			case 'nuevos':
+				elcriterio = {
+					$and : [
+						{'retweeted_status': {$exists: false}},
+						{'descartado':{$exists: false}}, 
+						{'atendido':{$exists: false}}, 
+						{'eliminado':{$exists: false}},
+						{'sentiment' : {$exists : false}},
+						{'clasificacion' : {$exists : false}},
+						{'respuestas' : {$exists:false}},
+						criteriopage, 
+						criterioobj, 
+						fechaInicial,
+						fechaFinal
+					] 
+				};	
 			break;
-			case 'atendido':
-				criterio_busqueda = {atendido:{$exists:true}};
-				criterio_usuario = {'atendido.usuario_id':usuario};
-				tipoMensaje = 'atendido';
+
+			case 'atendidos':
+				elcriterio = {
+					$and:[ 
+						{'retweeted_status': {$exists: false}},
+						{'descartado':{$exists: false}}, 
+						{'atendido':{$exists: true}}, 
+						{'eliminado':{$exists: false}},
+						{'atendido.usuario_id':idUsuario}, 
+						{$or: [
+							{'sentiment' : { $exists : true }}, 
+							{'clasificacion' : { $exists : true }},
+							{'respuestas' : { $exists: true }}				
+						]},
+						criteriopage, 
+						criterioobj, 
+						fechaInicial,
+						fechaFinal
+					]
+				};
 			break;
+
+			case 'descartados':
+				elcriterio = {
+					$and:[
+						{'retweeted_status': {$exists: false}},
+						{'descartado':{$exists: true}}, 
+						{'descartado.idUsuario' : idUsuario},
+						criteriopage, 
+						criterioobj, 
+						fechaInicial,
+						fechaFinal
+					]
+				};
+			break;
+
+			case 'asignados':
+				elcriterio ={
+					$and : [
+						{'retweeted_status': {$exists: false}},
+						{'eliminado':{$exists: false}},
+						{'asignado':{$exists:true}},
+						{'asignado.usuario_asignado_id':idUsuario},
+						{'atendido':{$exists: false}},
+						{'descartado':{$exists: false}},
+						{'sentiment' : { $exists : false }}, 
+						{'clasificacion' : { $exists : false }},
+						{'respuestas' : { $exists: false }},
+						criteriopage, 
+						criterioobj, 
+						fechaInicial,
+						fechaFinal
+					]
+				}; 
+			break;
+
+			case 'todos':
+				elcriterio ={
+					$and : [
+						{'retweeted_status': {$exists: false}},
+						{'eliminado':{$exists: false}}, 
+						criteriopage, 
+						criterioobj, 
+						fechaInicial,
+						fechaFinal
+					]
+				};
+			break;
+
+			default:
+				elcriterio ={
+					$and : [
+						{'retweeted_status': {$exists: false}},
+						{'eliminado':{$exists: false}}, 
+						criteriopage, 
+						criterioobj, 
+						fechaInicial,
+						fechaFinal
+					]
+				};
 		}
+		return elcriterio;
 	}
-	//si no es desemepeño buscamos tipo de datos
-	else if(req.body.descartado){
-		tipoMensaje = 'descartado';
-		criterio_exists = {descartado:{$exists:true}};
-		criterio_busqueda = {'descartado.motivo':req.body.descartado};
-	}else if(req.body.tema){
-		tipoMensaje = 'atendido';
-		criterio_exists = {clasificacion:{$exists:true}};
-		criterio_busqueda = {'clasificacion.tema':req.body.tema};	
-	}else if(req.body.subtema){
-		tipoMensaje = 'atendido';
-		criterio_exists = {clasificacion:{$exists:true}};
-		criterio_busqueda = {'clasificacion.subtema':req.body.subtema};
+    
+    function actualizaMensaje(mensaje){
+    	//Validacion que nos sirve para saber en que buzon esta
+    	if(mensaje.descartado){    
+			mensaje.tipoMensaje = 'descartado';
+        }else if(!mensaje.descartado && !mensaje.eliminado && (mensaje.respuestas || mensaje.sentiment || mensaje.clasificacion || mensaje.atendido)){
+			mensaje.tipoMensaje = 'atendido';
+        }else if(!mensaje.descartado && !mensaje.atendido && !mensaje.eliminado && !mensaje.sentiment && !mensaje.clasificacion){
+			mensaje.tipoMensaje = 'nuevo';
+		}else{
+			console.log('No entro a un buzon valido');
+		}
+		
+		if (mensaje.obj === 'twitter') {
+			switch(mensaje.tipo) {
+				case 'direct_message':
+					mensaje.nombre = mensaje.sender.name;
+					mensaje.imagen = mensaje.sender.profile_image_url;
+					mensaje.imagen_https = mensaje.sender.profile_image_url_https;
+					mensaje.texto = mensaje.text;
+					mensaje.urlEnlace = '#';
+					mensaje.urlUsuario = 'https://twitter.com/' + mensaje.sender.screen_name;
+				break;
+									
+				case 'twit':
+					mensaje.nombre = mensaje.user.name;
+					mensaje.imagen = mensaje.user.profile_image_url;
+					mensaje.imagen_https = mensaje.user.profile_image_url_https;
+					mensaje.texto = mensaje.text;
+					mensaje.urlEnlace = mensaje.tw_url;
+					mensaje.urlUsuario = 'https://twitter.com/' + mensaje.user.screen_name;
+				break;
+
+				case 'tracker':
+					mensaje.nombre = mensaje.user.name;
+					mensaje.imagen = mensaje.user.profile_image_url;
+					mensaje.imagen_https = mensaje.user.profile_image_url_https;
+					mensaje.texto = mensaje.text;
+					mensaje.urlEnlace = mensaje.tw_url;
+					mensaje.urlUsuario = 'https://twitter.com/' + mensaje.user.screen_name;
+				break;
+									
+				default:
+					console.log('Entro a una opcion invalida en switch twitter');
+					console.log('Tipo');
+					console.log(mensaje.tipo);
+			}//switch
+		}else if (mensaje.obj === 'facebook') {
+			switch(mensaje.tipo) {
+
+				case 'facebook_inbox':
+					mensaje.nombre = mensaje.from.name;
+					mensaje.imagen = mensaje.foto;
+					mensaje.imagen_https = mensaje.foto;
+					mensaje.texto = mensaje.message;
+					mensaje.urlEnlace = mensaje.conversation_link;
+					mensaje.urlUsuario = 'https://www.facebook.com/'+mensaje.from.id;
+				break;
+
+				case 'comment':
+					mensaje.nombre = mensaje.from.name;
+					mensaje.imagen = mensaje.foto;
+					mensaje.imagen_https = mensaje.foto;
+					mensaje.texto = mensaje.message;
+					mensaje.urlUsuario = 'https://www.facebook.com/'+mensaje.from.id;
+					var post = mensaje.parent_post.split('_');
+					var id = mensaje.id.split('_');
+					mensaje.urlEnlace = 'https://www.facebook.com/'+post[0]+'/posts/'+post[1]+'?comment_id='+id[1];
+				break;
+									
+				case 'post':
+					var idSeparado = mensaje.id.split('_');
+					mensaje.nombre = mensaje.from.name;
+					mensaje.imagen = mensaje.foto;
+					mensaje.imagen_https = mensaje.foto;
+					mensaje.texto = mensaje.message;
+					mensaje.urlUsuario = 'https://www.facebook.com/'+mensaje.from.id;
+					mensaje.urlEnlace = 'https://www.facebook.com/'+idSeparado[0]+'/posts/'+idSeparado[1];
+				break;
+				
+				case 'rating':
+					mensaje.nombre = mensaje.from.name;
+					mensaje.imagen = mensaje.foto;
+					mensaje.imagen_https = mensaje.foto;
+					mensaje.texto = mensaje.message;
+					mensaje.urlUsuario = 'https://www.facebook.com/'+mensaje.from.id; 
+					mensaje.urlEnlace = mensaje.rating_link;
+				break;
+
+				default:
+					console.log('Entro a una opcion invalida en switch Faceboook');
+					console.log('Tipo');
+					console.log(mensaje.tipo);
+			}//switch
+		}//if facebook  
+		return mensaje;  	
+    }
+
+
+	var tipoBuzon = req.body.tipo;
+	var opcion = req.body.opcion;
+	var cuenta = req.body.cuenta;
+	var skip = req.body.skip;
+	var fechaInicial = {created_time: {$gte: new Date(req.body.first)}};
+	var fechaFinal = {created_time : {$lte: new Date(req.body.second)}}; 
+	var criteriopage = { id : { $exists : true }};
+	var criteriotipo = { _id : {$exists : true }};
+	var criterioobj = { obj : {$exists : true }};
+	var page_id = req.body.iCuenta;
+	var idUsuario = req.body.usuario;
+	var lositems = [];
+
+	if (page_id) {
+		criteriopage  = {from_user_id : {$ne : page_id}};
+	}
+		
+	if (opcion !== 'general') {
+		criterioobj = { obj : opcion };
 	}
 
-	var criterio =  {$and : [
-		criterio_sentiment,
-		criterio_obj,
-		criterio_exists, 
-		criterio_usuario,
-		criterio_busqueda,
-		criterio_palabra,
-		{created_time : {$lte: new Date(req.body.second)}}, 
-		{created_time: {$gte: new Date(req.body.first)}}
-	]};
-	console.log('CRITERIO !');
-	console.log(JSON.stringify(criterio));
-	
-	classdb.buscarToStreamLimitSkip(cuenta, criterio,{created_time:1},15, skip,'feeds/getUserData', function(items){
-	//classdb.buscarToArrayFields(cuenta, criterio, {}, {}, 'feeds/getUserData', function(items){
+	var elcriterio = '';
+
+	//Criterio
+	elcriterio = consultaTipoBuzon(criteriopage, criterioobj, tipoBuzon, idUsuario, fechaInicial, fechaFinal);
+
+	var arregloMensajes = [];
+	classdb.buscarToStreamLimitSkip(cuenta, elcriterio, {created_time:1}, 15, skip,'feeds/getUserData', function(items){
 		for(var i in items){
-			items[i].tipoMensaje = tipoMensaje;
+			arregloMensajes.push(actualizaMensaje(items[i]));
 		}
-		res.jsonp(items);
+		res.jsonp(arregloMensajes);
     });
 };
 
@@ -5387,7 +5098,7 @@ exports.actualizaImgTwitter = function(req, res){
 		});
     }
 
-function pideFotoTwitter(cuenta, mensaje, callback){
+	function pideFotoTwitter(cuenta, mensaje, callback){
 	   	var accesos_twitter =  cuenta.datosTwitter;
 	   	if(accesos_twitter.twitter_consumer_secret !== '' && accesos_twitter.twitter_consumer_key !== '' && accesos_twitter.twitter_access_token && accesos_twitter.twitter_access_token_secret !== ''){
 		    var T  = new Twit({
@@ -5428,11 +5139,8 @@ function pideFotoTwitter(cuenta, mensaje, callback){
 					classdb.actualiza(cuenta.nombreSistema+'_consolidada', criterio, elset, 'feeds/pideFotoTwitter', function(updated){
 			    		if (updated === 'error') {
 							console.log(updated);	
-			    		}else{
-							console.log('Imagen Actualizada');
-							console.log(updated);
-							console.log('\n\n');
 			    		}
+
 					});
 
 				}else if(mensaje.obj === 'twitter' && (mensaje.tipo === 'tracker' || mensaje.tipo === 'twit')){					
@@ -5443,16 +5151,11 @@ function pideFotoTwitter(cuenta, mensaje, callback){
 					classdb.actualiza(cuenta.nombreSistema+'_consolidada', criterio, elset, 'feeds/pideFotoTwitter', function(updated){
 			    		if (updated === 'error') {
 							console.log(updated);	
-			    		}else{
-							console.log('Imagen Actualizada');
-							console.log(updated);
-							console.log('\n\n');
 			    		}
+
 					});
 				}else{
-					console.log('EL TIPO');
-					console.log(mensaje.obj);
-					console.log(mensaje.tipo);
+					console.log('EL TIPO / '+mensaje.obj+' / '+mensaje.tipo);
 				}
 				mensaje.imagen = reply.profile_image_url;
   				mensaje.imagen_https = reply.profile_image_url_https;
@@ -5472,4 +5175,156 @@ function pideFotoTwitter(cuenta, mensaje, callback){
     		});
     	}
     });
+};
+
+exports.actualizaImagenInbox = function(req, res){
+
+	function getFacebookPageByCuenta(account_name, account_id, callback){
+		var acc_id = new ObjectID(account_id);
+    	var criterio = {$and : [{ _id : acc_id }, { nombreSistema : account_name }]};
+    	classdb.buscarToArray('accounts', criterio, {}, 'accounts/procesaPendientes/getFacebookPageByCuenta', function(items){
+      		if (items === 'error') {
+				return callback(items);
+      		}
+      		else {
+				if (items.length < 1) {
+	  				console.log('accounts/procesaPendientes/getFacebookPageByCuenta - arreglo con la cuenta llegó vacío... raro');
+	  				return callback('error');
+				}
+				else {
+	  				if (typeof items[0].datosPage !== 'undefined' && typeof items[0].datosPage.id !== 'undefined') {
+	    				var page_id = items[0].datosPage.id;
+	    				return callback(page_id);
+	  				}
+	  				else {
+	    				console.log('accounts/procesaPendientes/getFacebookPageByCuenta - si hubo cuenta pero no hay datosPage, tal vez datosMonitoreo o solo twitter');
+	    				return callback('error');
+	  				}
+				}
+      		}
+    	});
+  	}
+
+  	function actualizaMensaje(mensaje, imagenActualizada, nombreSistema, callback){
+		var criterio = {'_id' : new ObjectID(mensaje._id)};
+		var elset = {
+			'image_attachment' : imagenActualizada
+		};
+
+		classdb.actualiza(nombreSistema+'_consolidada', criterio, elset, 'feeds/actualizaImagenInbox/actualizaMensaje', function(updated){
+			if (updated === 'error') {
+				return callback(updated);	
+			}else{
+				mensaje.image_attachment = imagenActualizada;
+				return callback(mensaje);  		
+			}
+		});
+  	}
+
+	var  access_token = '';
+	var nombreSistema = req.body.cuenta.marca;
+	var obj = {};
+	var cuenta = req.body.cuenta._id;
+	var idUsuario = new ObjectID(req.body.usuario._id);
+	var facebookUserId = '';
+	var mensaje = req.body.mensaje;
+
+	if(req.body.usuario.additionalProvidersData){
+		facebookUserId = req.body.usuario.additionalProvidersData.facebook.id;
+	}
+	if(req.body.usuario.additionalProvidersData){
+		access_token = req.body.usuario.additionalProvidersData.facebook.accessToken;
+		var get_data = querystring.stringify({'access_token' : access_token });
+	}
+
+	if(req.body.usuario.additionalProvidersData){
+    	getFacebookPageByCuenta(nombreSistema, cuenta, function(fb_cuenta){
+			if (fb_cuenta === 'error') {
+				obj = {
+					'error' : {
+						'message' : 'Error con la cuenta de Facebook'
+					}
+				};
+				res.jsonp(obj);
+			}else {
+                          accesstokens.obtienePagATByUsrAT(nombreSistema, fb_cuenta, idUsuario, facebookUserId, access_token, 'no', function(pat){
+					if(pat === 'error-face'){
+						obj = {
+							'error' : {
+								'message' : 'Error en respuesta de facebook, intenta más tarde'
+							}
+						};
+					   res.jsonp(obj);
+					}else if (pat === 'error'){
+						obj = {
+							'error': {
+							    'message' : 'No administras esta página'
+							}
+						};
+						res.jsonp(obj);
+					}else {
+						var path = globales.fbapiversion+req.body.mensaje.id+'?access_token='+pat+'&fields=attachments';
+						globales.options_graph.method = 'GET';
+						globales.options_graph.path = path;
+						delete globales.options_graph.headers;
+						var solicitud = https.request(globales.options_graph, function(respuestaIMGInbox) {
+							var chunks = [];
+							var chunks2 = '';
+							respuestaIMGInbox.on('data', function(data) {
+								if(data){
+									chunks2 += data;
+									chunks.push(data);
+								}
+							}).on('end', function() {
+								var primero = chunks2.substr(0,1);
+								if(primero === '{'){
+									var contenido = JSON.parse(Buffer.concat(chunks));
+									if (typeof contenido.error !== 'undefined') {
+										console.log('feeds/respInbox/requestUserPages - '+JSON.stringify(contenido.error));
+										res.jsonp(contenido.error);
+									}else {
+										actualizaMensaje(mensaje, contenido.attachments.data[0].image_data.preview_url, nombreSistema, function(mensajeActualizado){
+											if(mensajeActualizado === 'error'){
+												obj = {
+													'error': {
+														'message' : 'Error al actualizar'
+													}
+												};
+												res.jsonp(obj);
+											}else{
+												res.jsonp(mensajeActualizado);
+											}
+										});
+									}
+								}else{
+									obj = {
+										'error': {
+											'message' : 'Error de Facebook'
+										}
+									};
+								}
+							});
+						});
+						solicitud.end();
+						solicitud.on('error', function(err){
+							obj = {
+								'error': {
+									'message' : err
+								}
+							};
+							console.log('facebookPost/requestAT - error en el request: '+err);
+							res.jsonp(obj);
+						});
+					}
+				});
+			}    				
+		});
+	}else{
+		obj = {
+			'error': {
+				'message' : 'La cuenta no esta conectada a Facebook'
+			}
+		};
+		res.jsonp(obj);
+	}
 };

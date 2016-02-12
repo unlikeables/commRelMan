@@ -5,6 +5,7 @@ var under = require('underscore');
 var http=require('http');
 var https=require('https');
 var ObjectID = require('mongodb').ObjectID;
+var cmd = require('cmd-exec').init();
 
 var bst = require('better-stack-traces').install();
 var globales = require('../../config/globals.js');
@@ -274,3 +275,53 @@ exports.isInfluencer = function(req,res) {
   \___|_| |_|\__,_| |_|___/_____|_| |_|_| |_|\__,_|\___|_| |_|\___\___|_|   
                                                                             
 */
+exports.actualizaRangoInfluencers = function(req, res){
+  function obtieneCuenta(nombreSistema, callback) {
+    var criterio = {'nombreSistema': nombreSistema};
+    classdb.buscarToArray('accounts', criterio, {}, 'influencers/actualizaRangoInfluencers/obtieneCuenta', function(datos){
+      return callback(datos);
+    });
+  }
+
+  function actualizaCuenta(nombreSistema, total, callback){
+    var criterio = {'nombreSistema': nombreSistema};
+    var elset = {
+      'rango_influencers' : total  
+    };
+    classdb.actualiza('accounts', criterio, elset, 'influencers/actualizaRangoInfluencers/actualizaCuenta', function(updated){
+      return callback(updated);
+    });
+  }
+
+  var nombreSistema = req.body.nombreSistema;
+  var total = req.body.total;
+  obtieneCuenta(nombreSistema, function(datosCuenta){
+    if(datosCuenta){
+      actualizaCuenta(nombreSistema, total, function(actualizacion){
+        if (actualizacion === 'error') {
+   	  res.jsonp(actualizacion);
+        }
+        else {
+          cmd.exec('pm2 restart escuchador_cuentas', function(error_restart, respu_restart) {
+            if (error_restart) {
+              console.log(error_restart);
+              res.jsonp('error');
+            } else {
+              console.log(respu_restart);
+              res.jsonp(actualizacion);
+            }
+          });          
+        }
+      });
+    }else{
+      res.jsonp(datosCuenta);
+    }
+  });
+};
+
+exports.obtieneCuenta = function(req, res){
+	var criterio = {'nombreSistema': req.body.nombreSistema};
+	classdb.buscarToArray('accounts', criterio, {}, 'influencers/actualizaRangoInfluencers/obtieneCuenta', function(datos){
+		res.jsonp(datos[0]);
+	});
+};

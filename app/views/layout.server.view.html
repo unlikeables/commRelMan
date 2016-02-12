@@ -35,7 +35,7 @@
 	<script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
 	<![endif]-->
   </head>
-  <body class="ng-cloak">
+  <body class="ng-cloak" data-ng-controller="FeedsController">
     <!--preload de imagenes-->
     <div style="display: none;">
       <img src="modules/core/img/conversacion.png" />
@@ -47,13 +47,16 @@
     <!--Embedding The User Object-->
     <script type="text/javascript">
       var user = {{ user | json | safe }};
+      var globals = {{globals | json | safe}};
     </script>
     <!--Application JavaScript Files-->
     {% for jsFile in jsFiles %}<script type="text/javascript" src="{{jsFile}}"></script>{% endfor %} 
     <!--<script src="https://code.highcharts.com/highcharts.js"></script>-->
-    <script src="https://code.highcharts.com/modules/drilldown.js"></script>
-    <script src="https://code.highcharts.com/highcharts-more.js"></script>
-    <script src="https://code.highcharts.com/modules/solid-gauge.src.js"></script>
+
+    <script src="//cdn.likeable.mx/drilldown.js"></script>
+    <script src="//cdn.likeable.mx/highcharts-more.js"></script>
+    <script src="//cdn.likeable.mx/solid-gauge.src.js"></script>
+
     <script type="text/javascript">
       /********NOTIFICACIÓN PARA EL USUARIO DE DESCONEXIÓN**********/
       var mostrandoOffline = false;

@@ -1,14 +1,14 @@
-<div class="pure-g alto-100-interno bg-gris" data-ng-controller="MenuLateral" style="overflow: auto;" id="barra-lateral" ng-init="obtieneDesempenioDiario()">
+<div class="pure-g alto-100-interno bg-gris" data-ng-controller="MenuLateral" style="overflow: auto;" id="barra-lateral" ng-hide="authentication.user.roles[0] === 'directivo'">
   <div class="pure-u-md-1-1 pure-u-sm-1-1" style="background-color: #EBEEF3;">
     <div class="pure-u-md-1-1" align="center" id="perfil-lateral" style="background-color:#EBEEF3;">
     
     <!--si ya cuentan con una imagen-->	
     <!--back-img="{{authentication.user.imagen_src}}"-->
-    <div title="{{authentication.user.displayName}}" class="perfil-circular" ng-show="authentication.user.imagen_src.length>0" style=" width: 100px; height: 100px; background-image: url({{authentication.user.imagen_src}});background-size: cover; background-position: center;">
+    <div title="{{authentication.user.displayName}}" class="perfil-circular"  style=" width: 100px; height: 100px; background-image: url({{authentication.user.imagen_src}});background-size: cover; background-position: center;" ng-show="authentication.user.imagen_src.length>0">
     	<!--este link es para simular que es un enlace la imagen de fondo-->
     	<a href="/#!/profile/"></a>
     	<!--este link es para simular que es un enlace la imagen de fondo-->
-    	<a class="alcance-diario" title="Post Atendidos" ng-controller="FeedsController" ng-init="comparaUrl()">{{totalDesempenioDiario}}</a>
+    	<a class="alcance-diario" title="Post Atendidos" ng-init="sideDesempenio()">{{totalDesempenioDiario}}</a>
     </div>
     <!--si ya cuentan con una imagen-->
     
@@ -17,7 +17,7 @@
     	<!--este link es para simular que es un enlace la imagen de fondo-->
     	<a href="/#!/profile/" title="{{authentication.user}}"></a>
     	<!--este link es para simular que es un enlace la imagen de fondo-->
-    	<a class="alcance-diario" title="Post Atendidos" ng-controller="FeedsController" ng-init="comparaUrl()">{{totalDesempenioDiario}}</a>
+    	<a class="alcance-diario" title="Post Atendidos" ng-init="comparaUrl()">{{totalDesempenioDiario}}</a>
     </div>    
     <!--si no cuentan con una imagen se carga la de defecto-->
         
@@ -69,6 +69,6 @@
 
     </div>
 
-    <a href="/#!/feeds/getMailBox" class="complete txt-centro txt-negro likeable-lateral"><img src="/modules/core/img/likeable.png"></a> 
+    <a href="/#!/mailbox" class="complete txt-centro txt-negro likeable-lateral"><img src="/modules/core/img/likeable.png"></a> 
   </div>
 </div>

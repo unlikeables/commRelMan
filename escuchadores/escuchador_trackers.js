@@ -4,13 +4,8 @@ var querystring = require('querystring');
 var _ = require('lodash');
 var classdb = require('./classdb.js');
 var globales = require('./globals.js');
-var llaves = 
-	{
-	    "consumer_key":"ez0J2odrPveKxdsQ5VK0ketDI",
-	    "consumer_secret":"SigQvfTMASiMmG3hEP5UGLaHbK0lx4YWRiXGG4NnAz2fGgiVNr",
-	    "access_token":"1694381664-sNrazyZOYSzTcXBvvgSj6IWG3oIfd2dViZ1AgXV",
-	    "access_token_secret":"0cD8ngoRorVKtNUvRyaj4uxgl6lgxjjcHvF4ZC7QTHVu4"
-	};
+var llaves = globales.llaves_trackers;
+
 var Twit = require('twit');
 var T = new Twit(llaves);
 
@@ -326,7 +321,7 @@ function insertauntweet(coleccion, tweet, callback) {
     tweet.obj = 'twitter';
     tweet.tipo = 'tracker';
     classdb.insertacresult(coleccion, tweet, 'escuchador/escuchador.js/insertauntweet', function(inserta){
-	return callback(inserta);
+	return callback(inserta[0]);
     });  
 };
 
@@ -391,56 +386,60 @@ function procesatweet(tweet, colecciones, index, callback) {
 			    }
 			    else {
 				if (typeof tweet.influencers !== 'undefined') {
-				    var cuenta = basecol;
-				    var mongo_id = ''+insertado[0]._id;
-				    var coleccion_orig = colecciones[index];
-				    var coleccion = basecol+'_consolidada';
-				    var fecha = tweet.created_time.toString();
-				    var post_data = querystring.stringify(
-					{
-					    mongo_id : mongo_id,
-					    tweet_id : tweet.id,
-					    user_id : tweet.user.id,
-					    screen_name : tweet.user.screen_name,
-					    text : tweet.text,
-					    cuenta : cuenta,
-					    coleccion : coleccion,
-					    col_orig : coleccion_orig,
-					    razon : tweet.influencers,
-					    tipo : tweet.tipo,
-					    fecha : fecha,
-					    profile_image : tweet.user.profile_image_url_https,
-					    followers: tweet.user.followers_count
-					}
-				    );
-				    var post_options = {
-					hostname: globales.options_likeable.hostname,
-					port: 443,
-					path: '/notify',
-					method: 'POST',
-					headers: {
-					    'Content-Type': 'application/x-www-form-urlencoded',
-					    'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-					    'Content-Length': post_data.length
-					}
-				    };
-				    var post_req = https.request(post_options, function(res) {
-					res.setEncoding('utf8');
-					res.on('data', function (chunk) {
-					    // console.log('resp: '+ chunk);
-					});
-				    });
-				    post_req.write(post_data);
-				    post_req.end();
-				    post_req.on('error', function(e){
-					console.log('escuchador/postinflu varios error: '+e);
-					console.log("Error: " +e.message); 
-					console.log( e.stack );
-				    });
+				  var cuenta = basecol;
+				  var mongo_id = ''+insertado._id;
+				  var coleccion_orig = colecciones[index];
+				  var coleccion = basecol+'_consolidada';
+				  var fecha = tweet.created_time.toString();
+				  var post_data = querystring.stringify(
+				    {
+				      mongo_id : mongo_id,
+				      tweet_id : tweet.id,
+				      user_id : tweet.user.id,
+				      screen_name : tweet.user.screen_name,
+				      text : tweet.text,
+				      cuenta : cuenta,
+				      coleccion : coleccion,
+				      col_orig : coleccion_orig,
+				      razon : tweet.influencers,
+				      tipo : tweet.tipo,
+				      fecha : fecha,
+				      profile_image : tweet.user.profile_image_url_https,
+				      followers: tweet.user.followers_count
+				    }
+				  );
+                                  var post_options = {};
+                                  if (post_options.headers) {
+                                    delete post_options.headers;
+                                  }
+
+                                  post_options.hostname =  globales.options_likeable.hostname;
+                                  post_options.port = 443;
+                                  post_options.path = '/notify';
+                                  post_options.method = 'POST';
+                                  post_options.headers = {
+				    'Content-Type': 'application/x-www-form-urlencoded',
+				    'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+				    'Content-Length': post_data.length
+				  }
+
+				  var post_req = https.request(post_options, function(res) {
+					           res.setEncoding('utf8');
+					           res.on('data', function (chunk) {
+					             // console.log('resp: '+ chunk);
+					           });
+				                 });
+				  post_req.write(post_data);
+				  post_req.end();
+				  post_req.on('error', function(e){
+				    console.log('escuchador/postinflu varios error: '+e);
+				    console.log("Error: " +e.message); 
+				    console.log( e.stack );
+				  });
 				}
 				
-				var dadate = tweet.created_time.toString();
-				var nm_data = querystring.stringify(
+			      var dadate = tweet.created_time.toString();
+			      var nm_data = querystring.stringify(
 				    {
 					obj: 'twitter',
 					tipo: 'tracker',
@@ -448,25 +447,29 @@ function procesatweet(tweet, colecciones, index, callback) {
 					cuenta: basecol
 				    }
 				);
-				var nm_options = {
-				    hostname: globales.options_likeable.hostname,
-				    port: 443,
-				    path: '/nuevoMensaje',
-				    method: 'POST',
-				    headers: {
-					'Content-Type': 'application/x-www-form-urlencoded',
-					'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-					'Content-Length': nm_data.length
-				    }
-				};
-				var nmpost_req = https.request(nm_options, function(resnm) {
-				    resnm.setEncoding('utf8');
-				    resnm.on('data', function (nmchunk) {
-				    });
-				});
-				nmpost_req.write(nm_data);
-				nmpost_req.end();
-				nmpost_req.on('error', function(e){
+                              var nm_options = {};
+                              if (nm_options.headers) {
+                                delete nm_options.headers;
+                              }
+                              
+
+			      nm_options.hostname = globales.options_likeable.hostname;
+			      nm_options.port = 443;
+			      nm_options.path = '/nuevoMensaje';
+			      nm_options.method = 'POST';
+			      nm_options.headers = {
+				'Content-Type': 'application/x-www-form-urlencoded',
+				'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+				'Content-Length': nm_data.length
+			      };
+			      var nmpost_req = https.request(nm_options, function(resnm) {
+				                 resnm.setEncoding('utf8');
+				                 resnm.on('data', function (nmchunk) {
+				                 });
+				               });
+			      nmpost_req.write(nm_data);
+			      nmpost_req.end();
+			      nmpost_req.on('error', function(e){
 				    console.log('escuchador/post-nuevoMensaje varios error: '+e);
 				    console.log("Error: " +e.message); 
 				    console.log( e.stack );

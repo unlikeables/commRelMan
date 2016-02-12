@@ -11,6 +11,8 @@ module.exports = {
 				'public/lib/ngDialog/css/ngDialog.min.css',
 				'public/modules/core/css/animate.css',
 				'public/lib/jQCloud/dist/jqcloud.min.css',
+				'public/lib/angular-responsive-slider-directive/src/style/style.css'
+
 			],
 			js: [
 				'public/lib/angular/angular.min.js',
@@ -45,7 +47,9 @@ module.exports = {
 				'//code.highcharts.com/mapdata/countries/mx/mx-all.js',
 				'//code.highcharts.com/mapdata/custom/world.js',
 				'//cdnjs.cloudflare.com/ajax/libs/jquery.isotope/2.2.0/isotope.pkgd.min.js',
-				'public/lib/angular-img-fallback/angular.dcb-img-fallback.min.js'
+				'public/lib/angular-img-fallback/angular.dcb-img-fallback.min.js',
+				'public/lib/angular-responsive-slider-directive/src/js/angular-responsive-slider-directive.js'
+
 				//'public/modules/core/js/functions.js'
 			]
 		},

@@ -298,18 +298,19 @@ exports.chartPromedioCasos = function(req, res){
 			 ]
 		};	
 
+      /*
 		classdb.buscarToArray(coleccion, criterio, {}, 'charts/chartRating/obtieneTodos', function(mensajes){		    	
 	    	if(mensajes === 'error'){
-				console.log(mensajes);
-				//return callback('error');
+				// console.log(mensajes);
+				// return callback('error');
 	    	}else{
-				console.log('MENSAJES FACEBOOOK');
-				console.log(mensajes);
+				// console.log('MENSAJES FACEBOOOK');
+				// console.log(mensajes);
 	    	}
 		});
-
+       */
 		classdb.count(coleccion, criterio, 'charts/chartPromedioCasos/obtieneTodos', function(totalFacebook){
-	    	return callback(totalFacebook);
+	    	  return callback(totalFacebook);
 		});
 	}
 
@@ -353,7 +354,7 @@ exports.chartPromedioCasos = function(req, res){
 									    		res.jsonp(facebook);
 									    	}else{
 									    		var obj = {};
-												obj.Todos = todos;
+												//obj.Todos = todos;
 												obj.Entrada = nuevos;
 												obj.Completos = atendidos;
 												//obj.Proceso = enproceso;
@@ -530,10 +531,12 @@ exports.chartDesempenio = function(req, res){
 		else {
 			setImmediate(function(){
 		    	var objetoUsuario = {};
+		    	//console.log(usuarios[index]);
 		    	objetoUsuario.idUsuario = usuarios[index]._id;
 				objetoUsuario.username = usuarios[index].username;
 		    	objetoUsuario.nombre = usuarios[index].displayName;
 		    	objetoUsuario.imagen = usuarios[index].imagen_src;
+		    	objetoUsuario.idCuenta = usuarios[index].cuenta._id;
 		    	arrusuarios.push(objetoUsuario);
 		    	return armaArregloUsuarios(usuarios, more, arrusuarios, callback);
 		    });
@@ -1334,7 +1337,7 @@ exports.chartTwit = function(req, res){
 				console.log('No tiene datosTwitter');
 				res.jsonp({error:true});
 			}else{
-				console.log('Tiene datosTwitter');
+				//console.log('Tiene datosTwitter');
 				var screen_name = cuenta[0].datosTwitter.twitter_screenname_principal;
 				var conexion_propia = false;
 				var T ={};
@@ -1354,7 +1357,7 @@ exports.chartTwit = function(req, res){
 				        'access_token_secret' : 'xKSN3zJK0nkDBedifna0cTu0yqYwDAE5srcpKPhKe6Wua'
 					});
 				}
-				console.log('Realizando post');
+				//console.log('Realizando post');
 				T.get('statuses/user_timeline', {'screen_name': screen_name, 'count':50}, function(error_twit, reply) {
 					if(error_twit){
 						if(conexion_propia){
@@ -1369,16 +1372,16 @@ exports.chartTwit = function(req, res){
 									console.log('Error en el segundo intento');
 									res.jsonp(error2_twit);
 								}else{
-									console.log('Hubo respuesta en el segundo intento de twitter');
+									//console.log('Hubo respuesta en el segundo intento de twitter');
 									res.jsonp(reply2);
 								}
 							});
 						}else{
-							console.log('Error de twitter');
+							//console.log('Error de twitter');
 							res.jsonp(error_twit);
 						}
 					}else{
-						console.log('Respuesta de Twitter');
+						//console.log('Respuesta de Twitter');
 						res.jsonp(reply);	
 					}
 				});
@@ -1405,6 +1408,7 @@ exports.chartTwit = function(req, res){
     	}
     }
 };
+
 exports.getStringTagCloudEspecialTwitter = function(req,res){
     var coleccion = req.query.cuenta;
     var fecha1 = new Date(req.query.fecha);
@@ -1527,8 +1531,167 @@ exports.getStringTagCloudEspecialTwitter = function(req,res){
 };
 
 exports.chartSentiment = function(req,res){
-console.log('LA INFO');
-console.log(req.body);
+    
+    //función opara obtener la cuenta
+    function obtieneCuenta(nombreSistema, callback){
+		var coleccion = 'accounts';
+		var sort = {};
+		classdb.buscarToArray(coleccion, {'nombreSistema':nombreSistema}, sort, 'charts/chartDesempenio/obtieneCuenta', function(cuenta){
+	    	return callback(cuenta);
+		});		
+    }
+
+    function cuentaPositivo(tipo, nombreSistema, fecha_inicial, fecha_final, idCuenta, callback){
+		var criterio = {};
+		if(tipo === 'general'){
+	    	criterio = { $and:
+				[
+					{'created_time' : {$gte : fecha_inicial }},
+			    	{'created_time' : {$lte : fecha_final }},
+				    {'from_user_id' : {$ne: idCuenta}},
+					{'retweeted_status': {$exists : false}},
+					{'eliminado' : {$exists : false}},
+					{'sentiment' : 'positivo'}
+				]
+			 };
+		}else{
+	    	criterio = { $and:
+				[
+					{'created_time' : {$gte : fecha_inicial }},
+			    	{'created_time' : {$lte : fecha_final }},
+				    {'from_user_id' : {$ne: idCuenta}},
+					{'retweeted_status': {$exists : false}},
+					{'eliminado' : {$exists : false}},
+					{'obj' : tipo},
+					{'sentiment' : 'positivo'}
+			 	]
+			 };
+		} 
+		classdb.count(nombreSistema+'_consolidada', criterio, 'charts/chartSentiment/sentimentPositivo', function(sentimentPositivo){	    	  	
+	    	if(sentimentPositivo === 'error'){
+				return callback('error');
+	    	}else{
+				return callback(sentimentPositivo);
+	    	}
+		});
+    }
+
+    function cuentaNeutro(tipo, nombreSistema, fecha_inicial, fecha_final, idCuenta, callback){
+		var criterio = {};
+		if(tipo === 'general'){
+	    	criterio = { $and:
+				[
+					{'created_time' : {$gte : fecha_inicial }},
+			    	{'created_time' : {$lte : fecha_final }},
+				    {'from_user_id' : {$ne: idCuenta}},
+					{'retweeted_status': {$exists : false}},
+					{'eliminado' : {$exists : false}},
+					{'sentiment' : 'neutro'}
+				]
+			 };
+		}else{
+	    	criterio = { $and:
+				[
+					{'created_time' : {$gte : fecha_inicial }},
+			    	{'created_time' : {$lte : fecha_final }},
+				    {'from_user_id' : {$ne: idCuenta}},
+					{'retweeted_status': {$exists : false}},
+					{'eliminado' : {$exists : false}},
+					{'obj' : tipo},
+					{'sentiment' : 'neutro'}
+			 	]
+			 };
+		} 
+		classdb.count(nombreSistema+'_consolidada', criterio, 'charts/chartSentiment/cuentaNeutro', function(sentimentNeutro){	    	  	
+	    	if(sentimentNeutro === 'error'){
+				return callback('error');
+	    	}else{
+				return callback(sentimentNeutro);
+	    	}
+		});
+    }
+
+    function cuentaNegativo(tipo, nombreSistema, fecha_inicial, fecha_final, idCuenta, callback){
+		var criterio = {};
+		if(tipo === 'general'){
+	    	criterio = { $and:
+				[
+					{'created_time' : {$gte : fecha_inicial }},
+			    	{'created_time' : {$lte : fecha_final }},
+				    {'from_user_id' : {$ne: idCuenta}},
+					{'retweeted_status': {$exists : false}},
+					{'eliminado' : {$exists : false}},
+					{'sentiment' : 'negativo'}
+				]
+			 };
+		}else{
+	    	criterio = { $and:
+				[
+					{'created_time' : {$gte : fecha_inicial }},
+			    	{'created_time' : {$lte : fecha_final }},
+				    {'from_user_id' : {$ne: idCuenta}},
+					{'retweeted_status': {$exists : false}},
+					{'eliminado' : {$exists : false}},
+					{'obj' : tipo},
+					{'sentiment' : 'negativo'}
+			 	]
+			 };
+		} 
+		classdb.count(nombreSistema+'_consolidada', criterio, 'charts/chartSentiment/cuentaNegativo', function(sentimentNegativo){	    	  	
+	    	if(sentimentNegativo === 'error'){
+				return callback('error');
+	    	}else{
+				return callback(sentimentNegativo);
+	    	}
+		});
+    }
+
+    var nombreSistema =  req.body.nombreSistema;
+    var fecha_inicial = new Date(req.body.fecha_inicial);
+    var fecha_final = new Date(req.body.fecha_final);
+    var tipo = req.body.tipo;
+    var sentiment = {};
+    obtieneCuenta(nombreSistema, function(account){
+    	if(account){
+    		var idCuenta = '';
+			if(typeof account[0] !== 'undefined' && typeof account[0].datosPage !== 'undefined' && account[0].datosPage !== ''){
+	    		idCuenta = account[0].datosPage.id;
+			}else if(typeof account[0] !== 'undefined' && typeof account[0].datosMonitoreo !== 'undefined'){
+	    		idCuenta = account[0].datosMonitoreo.id;
+			}
+    		cuentaPositivo(tipo, nombreSistema, fecha_inicial, fecha_final, idCuenta, function(sentimentPositivo){
+				if(sentimentPositivo === 'error'){
+					console.log('Error sentimentPositivo');
+				}else{
+					//console.log('SENTIMENT POSITIVO');
+					//console.log(sentimentPositivo);
+					sentiment.positivo = sentimentPositivo;
+					cuentaNeutro(tipo, nombreSistema, fecha_inicial, fecha_final, idCuenta, function(sentimentNeutro){
+						//console.log('SENTIMENT NEUTRO');
+						//console.log(sentimentNeutro);
+						sentiment.neutro = sentimentNeutro;
+						if(sentimentNeutro === 'error'){
+							console.log('Error sentimentNeutro');
+						}else{
+							cuentaNegativo(tipo, nombreSistema, fecha_inicial, fecha_final, idCuenta, function(sentimentNegativo){
+								if(sentimentNegativo === 'error'){
+									console.log('Error en sentimentNegativo');
+								}else{
+									sentiment.negativo = sentimentNegativo;
+									console.log('El objeto que regresa es: ');
+									console.log(sentiment);
+									res.jsonp(sentiment);
+								}
+							});
+						}
+					}); 
+				}
+    			console.log('\n\n');
+    		});
+    	}
+
+
+    });
 };
 
 
@@ -2150,8 +2313,8 @@ exports.chartDesempenioHora = function(req, res){
 */
 
 exports.chartRating = function(req,res){
-	console.log('LA INFO');
-	console.log(req.body);
+	//console.log('LA INFO');
+	//console.log(req.body);
 	
 	function obtieneCuenta(nombreSistema, callback){
 		var coleccion = 'accounts';

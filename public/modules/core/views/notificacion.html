@@ -1,12 +1,12 @@
 
-<div class="pure-u-md-1-1" data-ng-controller="FeedsController" style="height: 54px;">
+<div class="pure-u-md-1-1" style="height: 54px;">
 	
 	
    <div class="pure-u-1-2 izq border-interno-der">
        <a href="/auth/signout" class="complete activate_modal" name="salir" id="btn-salir"></a>
    </div>
   <div class="pure-u-1-2 izq" style="position: relative;"> 
-<div id="compana-cont" data-ng-click="abrirNotificaciones()" ng-keydown="changeIndex($event)" tabindex="0">
+<div id="compana-cont" data-ng-click="abrirNotificaciones()" ng-keydown="changeIndex($event)" tabindex="0" ng-hide="authentication.user.roles[0] === 'directivo'">
 	
 	<a  data ng-if="notificaciones.length <= 0" class="complete border-interno-der  tooltipstered" id="campana-salir" title="{{notificaciones.length}} {{ 'Notifications' | translate }}">
 		
@@ -15,7 +15,13 @@
 	<a data-ng-if="notificaciones.length > 0" id="campana-salir" class="border-interno-der  tooltipstered" style="  height: 55px; display: block;">
 		<span  class="txt-centro txt-blanco txt-negrita">{{notificaciones.length | numeroNotificaciones}}</span>
 	</a>
-	
+	<a data-ng-if="notificaciones.length <= 0" id="campana-salir2" class="border-interno-der  tooltipstered" style="  height: 55px; display: block;">
+		<span  class="txt-centro txt-blanco txt-negrita"></span>
+	</a>	
+
+	    <div data-ng-class="notificaciones.length <= 0">
+      <!--<div data-ng-class="notificaciones.length <= 0 ? '' : 'otraclasemas' ">-->
+
         <div id="notificaciones-cont" data-ng-class="clasesNotificaciones">
         	
          <ul data-ng-init="comparaUrl()" id="lista-notificaciones-principal" >
@@ -58,10 +64,9 @@
         	</li>
         	
         </ul>  
-
-  	
         </div><!--notificaciones-cont-->
-        
+
+	</div>
 
 </div> 
         

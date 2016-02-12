@@ -7,122 +7,102 @@
     overflow: hidden !important;
 }
 </style>
-<!--Finaliza header-->
-<div class="pure-u-md-1-1" id="contenedor-completo" style="height: 100vh !important;">    
-  <!--Llamada del side-->
+<div class="pure-u-md-1-1" id="contenedor-completo">    
+    <div class="pure-u-md-20-24" data-ng-controller="FeedsController" data-ng-init="filtroAccount()" id="contenedor-feed" style="width:100%; margin-top:20px; height:110vh;"  when-scrolled="loadMoreFiltroAccount()">
 
-    <div class="pure-u-md-20-24" data-ng-controller="FeedsController" data-ng-init="filtroAccount()" id="contenedor-feed" style="width:100%; margin-top:20px; height:100vh;"  when-scrolled="loadMoreFiltroAccount()">
-  
         <div class="pure-u-md-1-1 twitsBuzon" when-scrolled="loadMoreFiltroAccount()">
-            <a ng-click="refreshUnificado()" style="position:fixed; z-index: 999; cursor:pointer;left:50%;top:120px;border-radius: 5px; padding: 7px 40px;display:block; opacity: .8" ng-show="nuevos && nuevos != 0" class="bg-naranja txt-blanco"> {{nuevos}} {{ 'New Messages' | translate }}</a>
-            <a style="position:fixed; z-index: 999; cursor:pointer;left:50%;top:70px;border-radius: 5px; padding: 7px 40px;display:block; opacity: .8" ng-show="flash" class="bg-naranja txt-blanco">{{flash_text}}</a>
-            <div class="pure-u-md-1-1"> 
-                <ul class="listado-mensajes" style="padding-top: 15px; padding-bottom:70px;" >
-                    <li ng-class="{'ocupado': evalua_ocupado(twit._id),'no-leido': !twit.clasificacion,'asignado': (twit.asignado && !twit.clasificacion) }" ng-hide="evalOculto(twit._id)" data-ng-repeat="twit in posts" style="position:relative;"  ng-mouseover="(evalua_ocupado(twit._id)?showCheck = false:showCheck = true)" ng-mouseleave="showCheck = false" id="{{ 'object-' + $index }}">
+            <div class="pure-u-md-1-1">
+                <ul class="listado-mensajes" style="padding-top: 15px; padding-bottom:70px;">
                     
-                        <!--<input class="check_selector" /*ng-show="showCheck || (evalua_ocupado(twit._id) && checkt) "*/ ng-hide ="!checkt && evalua_ocupado(twit._id)" type ="checkbox" name="checkt" ng-model="checkt" ng-change="checkLote(checkt,twit)" ng-class="activacheckbox">-->
-                        
-                        <div class="contenedor-checkbox-feed">
-								<input type="checkbox" id="selector_{{twit._id}}" name="selector_{{twit._id}}" class="oculto" value="answered" data-ng-change="checkLote(checkt,twit)" ng-model="checkt" id ="selector_{{twit._id}}">
-                                <label for="selector_{{twit._id}}" class="checkbox checkbox-feed"><span></span></label>
-                        </div>
-                        
-                        
-                        <div ng-class="{bloquea: evalua_ocupado(twit._id)}"><!--<span class="muestra_ocupado_por" ng-show="evalua_ocupado(twit._id)">Ocupado por : {{ocupados[eval(twit._id)].user}}</span>--></div>
+                    <li ng-class="{'ocupado': evalua_ocupado(twit._id),'no-leido': !twit.clasificacion,'asignado': (twit.asignado && !twit.clasificacion) }" ng-hide="evalOculto(twit._id)" data-ng-repeat="twit in posts" style="position:relative;"  ng-mouseover="(evalua_ocupado(twit._id)?showCheck = false:showCheck = true)" ng-mouseleave="showCheck = false" id="{{ 'object-' + $index }}">
+                     
+                        <div ng-class="{bloquea: evalua_ocupado(twit._id)}"></div>
                         <div class="mensaje-cont limpiar">
                             <div class="usuario">
                                 <div class="notificacion" data-ng-show="twit.influencers"></div>
-									
-                                <a ng-switch on="twit.obj">
-                                    <!--fotos twitter-->
-                                    <img data-ng-if="twit.obj == 'twitter' && twit.tipo == 'twit'" ng-src="{{twit.user.profile_image_url_https}}" fallback-image="/modules/core/img/usuario-sem-imagem.png" style="width:44px; height:44px; border:solid 2px #404040 !important; cursor: default !important;" class="circular"/>
-                                    <img data-ng-if="twit.obj == 'twitter' && twit.tipo == 'direct_message'" src="{{(twit.sender.profile_image_url_https)?twit.sender.profile_image_url_https:'/modules/core/img/usuario-sem-imagem.png'}}" style="width:44px; height:44px; border:solid 2px #404040 !important; cursor: default !important;" class="circular"/>
-                                    <!--fotos twitter-->
-                                    <img ng-switch-when="twitter_dm" src="{{(twit.user.profile_image_url_https)?twit.user.profile_image_url_https:'/modules/core/img/usuario-sem-imagem.png'}}" style="width:44px; height:44px; border:solid 2px #404040 !important; cursor: default !important;" class="circular"/>
-                                    <img data-ng-if="twit.obj == 'facebook' && twit.tipo != 'facebook_inbox' " src="{{(twit.foto)?twit.foto:'/modules/core/img/usuario-sem-imagem.png'}}" style="width:44px; height:44px; border:solid 2px #404040 !important; cursor: default !important;" class="circular"/>
-                                  	<!--imagen trackers-->  
-                                   <img data-ng-if="twit.obj === 'twitter' && twit.tipo === 'tracker'" data-ng-src="{{twit.user.profile_image_url_https}}" fallback-image="/modules/core/img/usuario-sem-imagem.png" style="width:44px; height:44px; border:solid 2px #404040 !important; cursor: default !important;" class="circular" />
-                                   <!--imagen trackers-->                                      
-                                </a>
-                                <a data-ng-if ="twit.tipo == 'facebook_inbox'">
-                                     <img fallback-image="/modules/core/img/usuario-sem-imagem.png" ng-src="https://graph.facebook.com/{{twit.from.id}}/picture" style="width:44px; height:44px; border:solid 2px #404040 !important; cursor: default !important;" class="circular"/>
-                                </a>
+                                <!--Imagen -->                
+                                <img ng-src="{{twit.imagen_https}}" fallback-src="/modules/core/img/usuario-sem-imagem.png" ng-if = "twit.obj === 'twitter'" ng-click ="actualizaImgTwitter(twit)" style="width:44px; height:44px; border:solid 2px #404040 !important; cursor: pointer !important;" class="circular" title = "Click para actualizar la foto" /> 
+                                <img ng-src="{{twit | validaImgFacebook}}" ng-if = "twit.obj === 'facebook'" style="width:44px; height:44px; border:solid 2px #404040 !important; cursor: default !important;" class="circular"/> 
                             </div>
-                            <!--datos-->
                             <div class="datos" ng-switch on="twit.obj">
-                                <!--nombre de usuario-->        
-                                <p class="nombre-usuario txt-gris2"><!--<span>{{twit.user.name}}</span>--></p>
-                                <!--mensaje de facebook-->
-
+                                <p class="nombre-usuario txt-gris2"></p>
                                 <div ng-switch-when="facebook">
                                     <div class="izq"  style="clear: both; padding-bottom: 4px;">
                                         <p class="nombre-usuario-red txt-azul1 negrita izq" style="padding: 0px;margin:0px;">
-                                            <a class="izq negrita" href="https://www.facebook.com/{{twit.from.id}}/" target="_blank">{{twit.from.name}}</a>
-                                            <!--si es un comentario-->    
-                                            <a href="{{ twit.parent_post | facebookLinkComment:twit.id }}" data-ng-if="twit.tipo == 'comment'" target="_blank" class="etiqueta-facebook izq etiqueta-facebook-comentario"  style="margin-left: 10px;">Facebook</a>
-                                            <!--si es un comentario-->
-                                            <!--si es un post-->
-                                            <a href="{{ twit.id | facebookLinkPost }}" data-ng-if="twit.tipo == 'post'" target="_blank" class="etiqueta-facebook izq etiqueta-facebook-post"  style="margin-left: 10px;">Facebook</a>
-                                            <!--si es un post-->
-                                            <!--si es un inbox-->
-                                            <a href="{{twit.conversation_link}}" target="_blank" class="etiqueta-facebook izq" data-ng-if="twit.tipo == 'facebook_inbox'" style="margin-left: 10px;" title="{{ 'Direct Message' | translate }}">Facebook</a>
+                                            <a class="izq negrita" href="{{twit.urlUsuario}}" target="_blank">
+                                                {{twit.nombre}}
+                                            </a>
+                                            
+                                            <a href="{{twit.urlEnlace}}" target="_blank" class="etiqueta-facebook izq etiqueta-facebook-comentario"  style="margin-left: 10px;">Facebook</a>
+
                                             <label class="etiqueta-facebook izq" data-ng-if="twit.tipo == 'facebook_inbox'" style="width: 20px; margin-left: 5px;"><i class="fa fa-lock" style="font-size: 10px !important;"></i></label>
-                                            <!--si es un inbox-->
-                                            <!--etiquetas dependiendo del buzón-->
-					    <div class="grupo-etiquetas-hora" data-ng-bind-html="twit.created_time | etiquetasFecha"></div>
-					    <label class="etiqueta-{{twit.tipoMensaje}} izq"  style="margin-left: 5px; text-transform:lowercase; text-transform: capitalize;">{{twit.tipoMensaje}}</label>
-					    <label data-ng-show="twit.descartado" class="etiqueta-{{twit.descartado.motivo}} izq" style="margin-top:0px; float: right; margin-left: 5px; border-radius: 3px; font-size: 9px;font-weight: 300;text-transform: capitalize;">{{twit.descartado.motivo | translate}}</label>
-					    <!--etiquetas dependiendo del buzón-->
+                                            
+                                            <label class="etiqueta-facebook izq" data-ng-if="twit.tipo == 'rating'" style="width: 30px; margin-left: 5px;"><i class="fa fa-star" style="font-size: 10px !important;">{{twit.rating}}</i></label>                                         
+
+                                            <div class="grupo-etiquetas-hora" data-ng-bind-html="twit.created_time | etiquetasFecha"></div>
+
+                                            <label class="etiqueta-{{twit.tipoMensaje}} izq"  style="margin-left: 5px; text-transform:lowercase; text-transform: capitalize;">{{twit.tipoMensaje}}</label>
+                                            
+                                            <label data-ng-show="twit.descartado" class="etiqueta-{{twit.descartado.motivo}} izq" style="margin-top:0px; float: right; margin-left: 5px; border-radius: 3px; font-size: 9px;font-weight: 300;text-transform: capitalize;">{{twit.descartado.motivo | translate}}</label>
+                                            
+                                            <label class="etiqueta-gris izq"  style="margin-left: 5px; background-color: #465769 !important; cursor:pointer;" data-ng-show="twit.clasificacion.tema" title="{{twit.clasificacion.tema}}">Tema</label>
+                                            
+                                            <label class="etiqueta-gris izq"  style="margin-left: 5px; background-color: #465769 !important; cursor:pointer;" data-ng-show="twit.clasificacion.subtema" title="{{twit.clasificacion.subtema}}">Subtema</label>
                                         </p>    
                                     </div>
                                     <div class="izq" style="clear: both;">
                                         <div data-ng-controller="ModalDemoCtrl">
                                             <p class="comentario txt-gris3" style="line-height:17px;"   data-ng-if="twit.message.length < 300" data-ng-bind-html="twit.message | facebookMentions"></p>
+                                           
                                             <p class="comentario txt-gris3" style="line-height:17px;"   data-ng-if="twit.message.length > 300" data-ng-bind-html="twit.message | facebookMentions | limitTo:300"></p>
-                                            <!--imagenes facebook-->
+                                            
                                             <p class="comentario" data-ng-show="twit.image_attachment">
-                                                <a href="{{twit.image_attachment}}" target="_blank"><i class="fa fa-image"></i>&nbsp;Imagen Adjunta</a>
+                                                <a ng-click="actualizaImagenInbox(twit)" style="cursor:pointer;" title="Click para actualizar la imagen">
+                                                    <img ng-src="{{twit.image_attachment}}" style="width:50px!important; height:50px!important;" fallback-att="{{twit._id}}">
+                                                </a>
+                                                <p class="mensajeErrorIMG_{{twit._id}}" style="color:#CC0000 !important:"></p>
                                             </p>
-                                            <p class="comentario" data-ng-show="twit.attachments.data[0].image_data.url">
-                                                <a href="{{twit.attachments.data[0].image_data.url}}" target="_blank"><i class="fa fa-image"></i>&nbsp;Imagen Adjunta</a>
+
+                                             <p class="comentario" data-ng-show="twit.image_sticker">
+                                                <img ng-src="{{twit.image_sticker}}" style="width:50px!important; height:50px!important;">
+                                            </p>
+                                             
+                                             <p class="comentario" data-ng-show="twit.shares.data[0].link && !twit.image_sticker">
+                                                <img ng-src="{{twit.shares.data[0].link}}" style="width:50px!important; height:50px!important;">
                                             </p>
                                             <p class="comentario" data-ng-show="twit.picture">
-                                                <a href="{{twit.link}}" target="_blank"><i class="fa fa-image"></i>&nbsp;Imagen Adjunta</a>
+                                                <a href="{{twit.link}}" target="_blank">
+                                                    <img ng-src="{{twit.picture}}" style="width:50px!important; height:50px!important;">
+                                                </a>
                                             </p> 
-                                            <!--imagenes facebook-->                                          
                                         </div>
                                     </div>
-                                </div>
-                                <!--mensaje de facebook-->
-                                 
-           
+                                </div>                                 
                                 
                                 <!--mensaje de twitter-->
                                 <div ng-switch-when="twitter">
                                     <div class="izq"  style="clear: both;padding-bottom: 4px; width: 100%;">
                                         <p class="nombre-usuario-red txt-azul1 negrita izq" style="padding: 0px;margin:0px;">
-                                            <!--links en nombre del usuario-->
-                                            <a title="@{{twit.user.screen_name}}" data-ng-if="twit.obj == 'twitter' && (twit.tipo == 'twit' || twit.tipo == 'tracker')" class="izq negrita" href="https://twitter.com/{{twit.user.screen_name}}" target="_blank">{{twit.user.name}} <span class="username">@{{twit.user.screen_name}}</span></a>
-                                            <a title="@{{twit.sender.screen_name}}" data-ng-if="twit.obj == 'twitter' && twit.tipo == 'direct_message'" class="izq negrita" href="https://twitter.com/{{twit.sender.screen_name}}" target="_blank">{{twit.sender.name}} <span class="username">@{{twit.sender.screen_name}}</span></a>
-                                            <!--links en nombre del usuario-->
-                                            
-                                            
-                                            
-                                            <!--links etiqueta twitter-->
-                                            <a data-ng-if="twit.obj == 'twitter' && twit.tipo == 'direct_message'" class="etiqueta-twitter izq" style="margin-left: 5px;" target="_blank">Twitter</a>
-                                            <a data-ng-if="twit.obj == 'twitter' && (twit.tipo == 'twit' || twit.tipo == 'tracker')" class="etiqueta-twitter izq" style="margin-left: 5px;" href="{{twit.tw_url}}" target="_blank">Twitter</a>
-                                            <!--links etiqueta twitter-->                                            
+                                           <a title="@{{twit.from_user_screen_name}}" class="izq negrita" href="{{twit.urlUsuario}}" target="_blank">{{twit.nombre}} <span class="username">@{{twit.from_user_screen_name}}</span></a>
+
+                                            <a href="{{twit.urlEnlace}}" class="etiqueta-twitter izq" style="margin-left: 5px;" target="_blank">Twitter</a>
+                                    
                                             
                                             <label class="etiqueta-twitter izq" style="margin-left: 5px;width: 20px; margin-left: 5px;" title="{{ 'Direct Message' | translate }}" data-ng-if="twit.tipo == 'direct_message'"><i class="fa fa-lock" style="font-size: 10px !important;"></i></label>
+                                            
                                             <label class="etiqueta-twitter izq" style="margin-left: 5px;width: 20px; margin-left: 5px;" data-ng-if="twit.retweeted_status" title="Retweet"><i style="font-size: 10px !important;" class="fa fa-retweet"></i></label>
-                                            <!--icono si es un tracker-->
+                                            
                                             <label class="etiqueta-twitter izq" style="margin-left: 5px;width: 20px; margin-left: 5px;" data-ng-if="twit.tipo == 'tracker'" title="Tracker"><i class="fa fa-bullseye" style="font: normal normal normal 12px/1 FontAwesome !important;"></i></label>
-                                            <!--icono si es un tracker-->                                            
-<div class="grupo-etiquetas-hora" data-ng-bind-html="twit.created_time | etiquetasFecha"></div>
+                                            
+                                            <div class="grupo-etiquetas-hora" data-ng-bind-html="twit.created_time | etiquetasFecha"></div>
                                            
-                                           <label class="etiqueta-{{twit.tipoMensaje}} izq"  style="margin-left: 5px;text-transform: capitalize;">{{twit.tipoMensaje}}</label>
-										   <label data-ng-show="twit.descartado" class="etiqueta-{{twit.descartado.motivo}} izq" style="margin-top:0px; float: right; margin-left: 5px; border-radius: 3px; font-size: 9px;font-weight: 300;text-transform: capitalize;">{{twit.descartado.motivo | translate}}</label>
-                                           
+                                            <label class="etiqueta-{{twit.tipoMensaje}} izq"  style="margin-left: 5px;text-transform: capitalize;">{{twit.tipoMensaje}}</label>
+    
+                                            <label data-ng-show="twit.descartado" class="etiqueta-{{twit.descartado.motivo}} izq" style="margin-top:0px; float: right; margin-left: 5px; border-radius: 3px; font-size: 9px;font-weight: 300;text-transform: capitalize;">{{twit.descartado.motivo | translate}}</label>        
+                                            
+                                            <label class="etiqueta-gris izq"  style="margin-left: 5px; background-color: #465769 !important; cursor:pointer;" data-ng-show="twit.clasificacion.tema" title="{{twit.clasificacion.tema}}">Tema</label>
+                                            
+                                            <label class="etiqueta-gris izq"  style="margin-left: 5px; background-color: #465769 !important; cursor:pointer;" data-ng-show="twit.clasificacion.subtema" title="{{twit.clasificacion.subtema}}">Subtema</label>                              
                                         </p> 
                                     </div>
                                     <div class="izq" style="clear: both;">
@@ -133,72 +113,39 @@
                                             <!--esto es si es un retwiter-->
                                             <p class="comentario txt-gris3" style="line-height:17px;" data-ng-if="twit.text.length < 300 && !twit.retweeted_status" data-ng-bind-html="twit.text | linksTwitter:twit.entities:twit.trackers"></p>
                                             <p class="comentario txt-gris3" style="line-height:17px;" data-ng-if="twit.text.length > 300 && !twit.retweeted_status" data-ng-bind-html="twit.text | limitTo:300 | linksTwitter:twit.entities:twit.trackers"></p>
-                                            
-                                            
                                         </div>
                                     </div>                  
                                 </div>
-                                <!--mensaje de twitter-->
-                                
-                                
-                                
-                                <!--nombre de usuario-->
                             </div>
                             <!--datos-->
                             <div class="iconos-lateral">
                                 <ul>
-                                	<li class="descartado-usuario" data-ng-show="twit.tipoMensaje === 'descartado'">
-                                		<p><img ng-src="{{twit.descartado.imagenUsuario}}" fallback-image="/modules/core/img/usuario-sem-imagem.png" class="circular-ligero" /><a title="{{twit.descartado.usuario}}" style="padding: 4px 5px; color:#0DBEC8; min-width:190px;">Descartado por {{twit.descartado.usuario}}</a></p>
-                                	</li>                                  	
-                                	<li class="atendido-usuario" data-ng-show="twit.tipoMensaje === 'completo'">
-                                		<p><img ng-src="{{twit.clasificacion.imagen_usuario}}" fallback-image="/modules/core/img/usuario-sem-imagem.png" class="circular-ligero" /><a title="{{twit.atendido.user_name}}" style="padding: 4px 5px; color:#0DBEC8; min-width:190px;">Atendido por {{twit.atendido.user_name}}</a></p>
-                                	</li>                                	
-                                	<li class="atendido-usuario" data-ng-show="twit.tipoMensaje === 'atendido'">
-                                		<p><img ng-src="{{twit.clasificacion.imagen_usuario}}" fallback-image="/modules/core/img/usuario-sem-imagem.png" class="circular-ligero" /><a title="{{twit.clasificacion.user_name}}" style="padding: 4px 5px; display: block; color:#0DBEC8; min-width:190px;">Atendido por {{twit.clasificacion.user_name}}</a></p>
-                                	</li>
+                                    <li class="descartado-usuario" data-ng-show="twit.tipoMensaje === 'descartado'">
+                                        <p><img ng-src="{{twit.descartado.imagenUsuario | validaImagenDescartado}}" fallback-src="/modules/core/img/usuario-sem-imagem.png" class="circular-ligero" /><a title="{{twit.descartado.usuario}}" style="padding: 4px 5px; color:#0DBEC8; min-width:190px;">Descartado por {{twit.descartado.usuario | capitalize}}</a></p>
+                                    </li>                                   
+                                    <li class="atendido-usuario" data-ng-show="twit.tipoMensaje === 'completo'">
+                                        <p><img ng-src="{{twit.clasificacion.imagen_usuario}}" fallback-src="/modules/core/img/usuario-sem-imagem.png" class="circular-ligero" /><a title="{{twit.atendido.user_name}}" style="padding: 4px 5px; color:#0DBEC8; min-width:190px;">Atendido por {{twit.atendido.usuario_nombre | capitalize}}</a></p>
+                                    </li>                                   
+                                    <li class="atendido-usuario" data-ng-show="twit.tipoMensaje === 'atendido'">
+                                        <p><img ng-src="{{twit | searchResultImg}}" fallback-src="/modules/core/img/usuario-sem-imagem.png" class="circular-ligero" /><a title="{{twit.clasificacion.user_name}}" style="padding: 4px 5px; display: block; color:#0DBEC8; min-width:190px;" >Atendido por {{twit | validaAtendido | capitalize }}</a></p>
+                                    </li>
                                     <li class="asignado-usuario" ng-show="(twit.asignado && !evalua_ocupado(twit._id)) && (twit.tipoMensaje !== 'proceso' && twit.tipoMensaje !== 'completo' && twit.tipoMensaje !== 'descartado' && !twit.clasificacion)">
-                                        <p><img src="{{twit.asignado.usuario_asignado_image}}" class="circular-ligero" /><a class="muestra_ocupado_por" title="{{twit.asignado.usuario_asignado_displayName}}" style="padding: 4px 5px; display: block; color:#0DBEC8; min-width:190px;">Asignado a : {{twit.asignado.usuario_asignado_displayName}}</a></p>
+                                        <p><img ng-src="{{twit.asignado.usuario_asignado_image}}" class="circular-ligero" fallback-src="/modules/core/img/usuario-sem-imagem.png" /><a class="muestra_ocupado_por" title="{{twit.asignado.usuario_asignado_displayName}}" style="padding: 4px 5px; display: block; color:#0DBEC8; min-width:190px;">Asignado a : {{twit.asignado.usuario_asignado_displayName}}</a></p>
                                     </li>
                                     <li class="ocupado-usuario" ng-show="evalua_ocupado(twit._id)">
-                                        <p><img ng-src="{{ocupados[eval(twit._id)].user_image}}" fallback-image="/modules/core/img/usuario-sem-imagem.png" class="circular-ligero" /><a class="muestra_ocupado_por" title="{{ocupados[eval(twit._id)].user}}" style="padding: 4px 5px; display: block; color:#FFA500; min-width:190px;">Ocupado por : {{ocupados[eval(twit._id)].user}}</a></p>
-                                    </li>
-                                    <!--<li class="correcto" ng-show="!evalua_ocupado(twit._id)" ng-class="{'flecha-activo': evalua_clasificacion(twit)}" data-ng-click="finalizar(twit)" >    
-                                            <li  data-ng-click="finalizar(twit)" translate>Complete</li>
-                                        </ul>
-                                    </li>-->
-                                    <li class="globo-conversacion" style="color:#fff; font-weight: 400;" data-ng-controller="ModalDemoCtrl" data-ng-click="open(twit)">
-                                        <p style="margin: 0px;font-size: 21px; line-height:0;" class="txt-centro txt-blanco" >...</p>
-                                        <ul class='menu-globo' style="left:-32px;">
-                                            <li translate>Answer</li>
-                                            <!--<li data-ng-controller="ModalDemoCtrl" data-ng-click="openDescartados({{twit}})">Reject</li>-->
-                                        </ul>
-                                    </li>
-                                    <li class="contenedor-menu-globo settings">
-                                        
-                                        <ul class='menu-globo menu-globo-gris'>
-											<li data-ng-show="(twit.tipo === 'twit' || twit.tipo === 'tracker') && !twit.follower" translate ng-click="follow(twit)">Follow</li>
-                                            <li data-ng-show="(twit.tipo === 'twit' || twit.tipo === 'tracker') && twit.follower" ng-click="unFollow(twit)" style="border-bottom:solid 3px #465769">Dejar de Seguir</li>
-											<li data-ng-show="(twit.tipo === 'twit' || twit.tipo === 'tracker') && !twit.influencer" data-ng-controller="ModalDemoCtrl" data-ng-click="openNuevo(twit)" style="border-bottom:solid 3px #465769">Agregar Influencer</li>
-                                            <li data-ng-show="(twit.tipoMensaje === 'nuevo') && (authentication.user.roles[0] === 'app-manager' ||  authentication.user.roles[0] === 'account-manager')" data-ng-controller="ModalDemoCtrl" data-ng-click="asignarMensaje(twit)">Asignar</li>
-                                            <li data-ng-show="twit.tipoMensaje === 'nuevo' || twit.tipoMensaje === 'atendido'" data-ng-controller="ModalDemoCtrl" data-ng-click="openDescartados({{twit}})" translate>Reject</li>
-                                            <li data-ng-show="twit.tipoMensaje === 'completo' || twit.tipoMensaje === 'descartado'" data-ng-controller="ModalDemoCtrl" ng-click="openRegresaDescartados(twit)">{{ 'Return to entries' | translate }}​</li>
-                                        </ul>
-                                        
+                                        <p>
+                                            <img ng-src="{{ocupados[eval(twit._id)].user_image}}" fallback-src="/modules/core/img/usuario-sem-imagem.png" class="circular-ligero" />
+                                            <a class="muestra_ocupado_por" title="{{ocupados[eval(twit._id)].user}}" style="padding: 4px 5px; display: block; color:#FFA500; min-width:190px;">Ocupado por : {{ocupados[eval(twit._id)].user}}</a>
+                                        </p>
                                     </li>
                                 </ul>
                             </div>
                         </div>
                         <div class="clear"></div>
-                        
-                        
-                        
-                        
-
                     </li>
                 </ul>  
                 <!--Imagen de Carga con scroll-->
                 <div ng-show="muestraLoading" id="muestraLoading" align="center">
-                    <link rel="stylesheet" href="http://css-spinners.com/css/spinners.css" type="text/css">
                     <div class="loader" align="center">
                         <div class="signal"></div>
                           
@@ -212,1026 +159,3 @@
                           
                     </div>      
                 </div>
-                <!--Imagen de Carga donde carga la pagina-->
-<!--
-.___  ___.   ______    _______       ___       __          _______.
-|   \/   |  /  __  \  |       \     /   \     |  |        /       |
-|  \  /  | |  |  |  | |  .--.  |   /  ^  \    |  |       |   (----`
-|  |\/|  | |  |  |  | |  |  |  |  /  /_\  \   |  |        \   \    
-|  |  |  | |  `--'  | |  '--'  | /  _____  \  |  `----.----)   |   
-|__|  |__|  \______/  |_______/ /__/     \__\ |_______|_______/    
-                                                                    
--->                
-
-<div ng-controller="ModalDemoCtrl">
-    <script type="text/ng-template" id="myModalContent.html">
-        <div class="txt-negro" id="detalle_comentarios" ng-switch on="items[0].obj">
-            <div style="width:700px; float: left; clear:both;">
-                <div class="pure-u-md-1-1" style="max-height: 200px; overflow-x: auto;">
-                    <!--comentario de facebook-->                                   
-                    <div ng-switch-when="facebook" class="izq" style="width: 100%; clear:both;float:left;">
-                        <ul class="lista-comentarios-detalle">
-                            <li>
-                                <div class="respuesta-cont">
-                                    <div class="foto">
-                                        <img data-ng-if ="items[0].tipo != 'facebook_inbox'" src="{{(items[0].foto)?items[0].foto:'/modules/core/img/usuario-sem-imagem.png'}}" class="circular" style="width:44px; height: 44px; max-width: 1000px;" />
-                                        <img data-ng-if ="items[0].tipo == 'facebook_inbox'" src="https://graph.facebook.com/{{items[0].from.id}}/picture" class="circular" style="width:44px; height: 44px; max-width: 1000px;"/>
-                                    </div>
-                                    <div class="contenido">
-                                        <div class="pure-u-md-1-1">
-                                            <p class="nombre izq">
-                                                <a href="https://www.facebook.com/{{items[0].from.id}}/" target="_blank" class="izq normal">
-                                                    {{items[0].from.name}}
-                                                </a>
-                                                <!--si es un comment-->
-                                                <a href="{{ items[0].parent_post | facebookLinkComment:items[0].id }}" target="_blank" class="etiqueta-facebook izq" style="margin-left: 5px;" data-ng-if="items[0].tipo == 'comment'">
-                                                    Facebook
-                                                </a>
-                                                <!--si es un post-->
-                                                <a href="{{ items[0].id| facebookLinkPost }}" target="_blank" class="etiqueta-facebook izq" style="margin-left: 5px;" data-ng-if="items[0].tipo == 'post'">
-                                                    Facebook
-                                                </a>
-                                                <!--si es un mensaje privado-->
-                                                <a href="{{items[0].conversation_link}}" target="_blank" class="etiqueta-facebook izq" data-ng-if="items[0].tipo == 'facebook_inbox'" style="margin-left: 10px;" title="{{ 'Direct Message' | translate }}">Facebook
-                                                </a>
-                                                <label data-ng-if="items[0].tipo == 'facebook_inbox'" class="etiqueta-facebook izq txt-blanco"  style="width: 20px; margin-left: 5px;" title="{{ 'Private Message' | translate }}">
-                                                    <i class="fa fa-lock" style="font-size: 10px !important;"></i>
-                                                </label>                                                               
-<div class="grupo-etiquetas-hora" data-ng-bind-html="items[0].created_time | etiquetasFecha"></div>
-                                            <!--etiquetas dependiendo del buzón-->
-					    <label class="etiqueta-{{items[0].tipoMensaje}} izq"  style="margin-left: 5px; margin-top: 14px; text-transform: capitalize;">{{items[0].tipoMensaje}}</label>
-					    <label data-ng-show="items[0].descartado" class="etiqueta-{{items[0].descartado.motivo}} izq" style="margin-top:14px; float: right; margin-left: 5px; border-radius: 3px; font-size: 9px;font-weight: 300;text-transform: capitalize;">{{items[0].descartado.motivo | translate}}</label>
-                                            <!--etiquetas dependiendo del buzón-->
-                                            </p>    
-                                        </div>
-                                        <div class="pure-u-md-1-1">
-                                            <p class="comentarios" ng-bind-html="items[0].message | facebookMentions"></p>
-                                            <!--imagenes facebook-->
-                                            <p class="comentarios" data-ng-show="items[0].image_attachment">
-                                                <a href="{{items[0].image_attachment}}" target="_blank">
-                                                    <i class="fa fa-image"></i>
-                                                    &nbsp;Imagen Adjunta
-                                                </a>
-                                            </p>
-                                            <p class="comentarios" data-ng-show="items[0].attachments.data[0].image_data.url">
-                                                <a href="{{items[0].attachments.data[0].image_data.url}}" target="_blank">
-                                                    <i class="fa fa-image"></i>
-                                                    &nbsp;Imagen Adjunta
-                                                </a>
-                                            </p>
-                                            <p class="comentarios" data-ng-show="items[0].picture">
-                                                <a href="{{items[0].link}}" target="_blank">
-                                                    <i class="fa fa-image"></i>
-                                                    &nbsp;Imagen Adjunta
-                                                </a>
-                                            </p>
-                                        </div>
-                                    </div>
-                                    <div class="caritas">
-                                        <ul>
-                                            <li class="positivo {{clase_pos}} {{(actual_sentiment == 'positivo' )?'positivo-activo':'no'}}" data-ng-click="sentiment('positivo',items[0]._id,items[0].coleccion)" id="positivo-{{items[0]._id}}"></li>
-                                            <li class="neutro {{clase_neu}} {{(actual_sentiment == 'neutro' )?'neutro-activo':'no'}}" data-ng-click="sentiment('neutro',items[0]._id,items[0].coleccion)" id="neutro-{{items[0]._id}}"></li>
-                                            <li class="negativo {{clase_neg}} {{(actual_sentiment == 'negativo' )?'negativo-activo':'no'}}" data-ng-click="sentiment('negativo',items[0]._id,items[0].coleccion)" id="negativo-{{items[0]._id}}"></li> 
-                                        </ul>
-                                    </div>            
-                                </div>
-                                <div class="respuesta-cont respuesta-mensaje" data-ng-repeat="respuesta in items[0].respuestas">
-                                    <div class="foto">
-                                        <img src="{{respuesta.foto}}" class="circular" style="width:44px; height: 44px; max-width: 1000px;" />
-                                    </div>
-                                    <div class="contenido">
-                                        <div class="pure-u-md-1-1">         
-                                            <p class="nombre izq">
-                                                <a target="_blank" class="izq normal">{{respuesta.user_name}}</a>
-                                                <!--respuesta-->
-                                                <a href="{{ items[0].id | facebookLinkComment:respuesta.id_str }}" target="_blank" data-ng-if="items[0].obj == 'facebook' && items[0].tipo == 'post'" class="etiqueta-facebook izq" style="margin-left: 10px;">
-                                                    Facebook
-                                                </a>
-                                                <a href="{{ items[0].conversation_link}}" target="_blank" data-ng-if="items[0].obj == 'facebook' && items[0].tipo == 'facebook_inbox'" class="etiqueta-facebook izq" style="margin-left: 10px;">
-                                                    Facebook
-                                                </a>
-                                                <a href="{{ items[0].id | facebookLinkComment:respuesta.id_str }}" target="_blank" data-ng-if="(items[0].obj == 'facebook' && items[0].tipo === 'comment') && (items[0].parent_comment !== items[0].parent_post)" class="etiqueta-facebook izq" style="margin-left: 10px;">
-                                                    Facebook
-                                                </a>
-                                                <a href="{{ items[0].parent_post | facebookLinkSubComment:respuesta.id_str }}" target="_blank" data-ng-if="(items[0].obj == 'facebook' && items[0].tipo === 'comment') && (items[0].parent_comment === items[0].parent_post)" class="etiqueta-facebook izq" style="margin-left: 10px;">
-                                                    Facebook
-                                                </a>
-                                                <a class="etiqueta-facebook izq" style="width: 20px; margin-left: 5px;">
-                                                    <i class="fa fa-lock" style="font-size: 10px !important;"></i>
-                                                </a>
-                                                <a class="etiqueta-facebook izq" style="width: 20px; margin-left: 5px;">
-                                                    <i class="fa fa-reply" style="font-size: 10px !important;"></i>
-                                                </a>
-                                                <label class="etiqueta-gris izq" style="margin-left: 5px;">
-                                                    {{respuesta.timestamp | date:'d MMM yy'}}
-                                                </label>
-                                                <label class="etiqueta-gris izq"  style="margin-left: 5px;">
-                                                    {{respuesta.timestamp | date:'h:mm a'}}
-                                                </label>
-                                            <!--etiquetas dependiendo del buzón-->
-					    <label class="etiqueta-{{respuesta.tipoMensaje}} izq"  style="margin-left: 5px; margin-top:14px;text-transform: capitalize;">{{respuesta.tipoMensaje}}</label>
-					    <label data-ng-show="respuesta.descartado" class="etiqueta-{{respuesta.descartado.motivo}} izq" style="margin-top:14px; float: right; margin-left: 5px; border-radius: 3px; font-size: 9px;font-weight: 300;text-transform: capitalize;">{{respuesta.descartado.motivo | translate}}</label>
-                                            <!--etiquetas dependiendo del buzón-->                                                
-                                            </p>
-                                        </div>
-                                        <div class="pure-u-md-1-1">
-                                            <p class="comentarios" data-ng-bind-html="respuesta.texto | facebookMentions"></p>
-                                            <p class="comentarios" data-ng-if="respuesta.image_attachment">
-                                                <a target="_blank" href="{{respuesta.image_attachment}}" target="_blank">
-                                                    <i class="fa fa-image"></i>
-                                                    &nbsp;Imagen Adjunta
-                                                </a>    
-                                            </p> 
-                                        </div>
-                                    </div>                      
-                                </div>
-                            </li>
-                            <li ng-repeat="conversacion in items[0].conversacion" data-ng-show="conversacion._id">
-                                <div class="foto">
-                                    <img src="{{(conversacion.foto)?conversacion.foto:'/modules/core/img/usuario-sem-imagem.png'}}" class="circular" style="width:44px; height: 44px; max-width: 1000px;" />
-                                </div>
-                                <div class="contenido">
-                                    <div class="pure-u-md-1-1">
-                                        <p class="nombre izq">
-                                            <a href="https://www.facebook.com/{{conversacion.from.id}}/" target="_blank" class="izq normal">
-                                                {{conversacion.from.name}}
-                                            </a>
-                                            <!--si es un inbox-->
-                                            <a data-ng-if="conversacion.tipo == 'facebook_inbox' && conversacion.obj == 'facebook'" href="{{conversacion.conversation_link}}" target="_blank" class="etiqueta-facebook izq" style="margin-left: 5px;">
-                                                Facebook
-                                            </a>
-                                            <label data-ng-if="conversacion.tipo == 'facebook_inbox' && conversacion.obj == 'facebook'" class="etiqueta-facebook izq" style="width: 20px; margin-left: 5px;" title="{{ 'Private Message' | translate }}">
-                                                <i class="fa fa-lock" style="font-size: 10px !important;"></i>
-                                            </label>
-                                            <!--si es un comment-->
-                                            <a href="{{ conversacion.parent_post | facebookLinkComment:conversacion.id }}" target="_blank" class="etiqueta-facebook izq" style="margin-left: 5px;" data-ng-if="conversacion.tipo == 'comment'">
-                                                Facebook
-                                            </a>
-                                            <!--si es un post-->
-                                            <a href="{{ conversacion.id| facebookLinkPost }}" target="_blank" class="etiqueta-facebook izq" style="margin-left: 5px;" data-ng-if="conversacion.tipo == 'post'">Facebook
-                                            </a>
-<div class="grupo-etiquetas-hora" data-ng-bind-html="conversacion.created_time | etiquetasFecha"></div>
-                                            <!--etiquetas dependiendo del buzón-->
-					    <label class="etiqueta-{{conversacion.tipoMensaje}} izq"  style="margin-left: 5px; margin-top: 14px;text-transform: capitalize;">{{conversacion.tipoMensaje}}</label>
-					    <label data-ng-show="conversacion.descartado" class="etiqueta-{{conversacion.descartado.motivo}} izq" style="margin-top:14px; float: right; margin-left: 5px; border-radius: 3px; font-size: 9px;font-weight: 300;text-transform: capitalize;">{{conversacion.descartado.motivo | translate}}</label>
-                                            <!--etiquetas dependiendo del buzón-->                                            
-                                        </p>    
-                                    </div>
-                                    <div class="pure-u-md-1-1" >
-                                        <p class="comentarios" data-ng-bind-html="conversacion.message | facebookMentions"></p>
-                                        <p class="comentarios" data-ng-if="conversacion.image_attachment">
-                                            <a target="_blank" href="{{conversacion.image_attachment}}" target="_blank">
-                                                <i class="fa fa-image"></i>
-                                                &nbsp;Imagen Adjunta
-                                            </a> 
-                                        </p>                                                        
-                                    </div>
-                                </div>
-                                <div class="caritas">
-                                    <ul>       
-                                        <li class="positivo {{clase_pos}} {{(conversacion.sentiment == 'positivo' )?'positivo-activo':'no'}}" data-ng-click="sentiment('positivo',conversacion._id,items[0].coleccion,'real')" id="positivo-{{conversacion._id}}"></li>
-                                        <li class="neutro {{clase_neu}} {{(conversacion.sentiment == 'neutro' )?'neutro-activo':'no'}}" data-ng-click="sentiment('neutro',conversacion._id,items[0].coleccion,'real')" id="neutro-{{conversacion._id}}"></li>
-                                        <li class="negativo {{clase_neg}} {{(conversacion.sentiment == 'negativo' )?'negativo-activo':'no'}}" data-ng-click="sentiment('negativo',conversacion._id,items[0].coleccion,'real')" id="negativo-{{conversacion._id}}"></li>
-                                    </ul>
-                                </div>
-                                <div class="respuesta-cont respuesta-mensaje" data-ng-repeat="respuesta in conversacion.respuestas">
-                                    <div class="foto">
-                                        <img src="{{respuesta.foto}}" class="circular" style="width:44px; height: 44px; max-width: 1000px;" />
-                                    </div>
-                                    <div class="contenido">
-                                        <div class="pure-u-md-1-1">  
-                                            <p class="nombre izq">
-                                                <!--respuestas facebook-->  
-                                                <a data-ng-if="respuesta.tipo == 'respuesta'" target="_blank" class="izq normal">
-                                                    {{respuesta.user_name}}
-                                                </a>
-                                                <a href="{{ items[0].id | facebookLinkComment:respuesta.id_str }}" target="_blank" data-ng-if="items[0].obj == 'facebook' && items[0].tipo == 'post'" class="etiqueta-facebook izq" style="margin-left: 10px;">
-                                                    Facebook
-                                                </a>
-                                                <a href="{{ items[0].conversation_link}}" target="_blank" data-ng-if="items[0].obj == 'facebook' && items[0].tipo == 'facebook_inbox'" class="etiqueta-facebook izq" style="margin-left: 10px;">
-                                                    Facebook
-                                                </a>
-                                                <a href="{{ items[0].id | facebookLinkComment:respuesta.id_str }}" target="_blank" data-ng-if="(items[0].obj == 'facebook' && items[0].tipo === 'comment') && (items[0].parent_comment !== items[0].parent_post)" class="etiqueta-facebook izq" style="margin-left: 10px;">
-                                                    Facebook
-                                                </a>
-                                                <a href="{{ items[0].parent_post | facebookLinkSubComment:respuesta.id_str }}" target="_blank" data-ng-if="(items[0].obj == 'facebook' && items[0].tipo === 'comment') && (items[0].parent_comment === items[0].parent_post)" class="etiqueta-facebook izq" style="margin-left: 10px;">Facebook
-                                                </a>
-                                                <label class="etiqueta-gris izq"  style="width: 20px; margin-left: 5px;" title="{{ 'Response' | translate }}">
-                                                    <i class="fa fa-reply" style="font-size: 10px !important;"></i>
-                                                </label>
-<div class="grupo-etiquetas-hora" data-ng-bind-html="respuesta.timestamp | etiquetasFecha"></div>
-                                            <!--etiquetas dependiendo del buzón-->
-					    <label data-ng-show="respuesta.tipoMensaje" class="etiqueta-{{respuesta.tipoMensaje}} izq"  style="margin-left: 5px;margin-top: 14px;text-transform: capitalize;">{{respuesta.tipoMensaje}}</label>
-					    <label data-ng-show="respuesta.descartado" class="etiqueta-{{respuesta.descartado.motivo}} izq" style="margin-top:14px; float: right; margin-left: 5px; border-radius: 3px; font-size: 9px;font-weight: 300;text-transform: capitalize;">{{respuesta.descartado.motivo | translate}}</label>
-                                            <!--etiquetas dependiendo del buzón-->                                                
-                                            </p>
-                                        </div>
-                                        <div class="pure-u-md-1-1">
-                                            <p class="comentarios" data-ng-bind-html="respuesta.texto | facebookMentions"></p>
-                                            <p class="comentarios" data-ng-if="respuesta.image_attachment">
-                                                <a target="_blank" href="{{respuesta.image_attachment}}" target="_blank">
-                                                    <i class="fa fa-image"></i>
-                                                    &nbsp;Imagen Adjunta
-                                                </a>    
-                                            </p>                                                   
-                                        </div>
-                                    </div>                      
-                                </div>
-                            </li>   
-                            <li ng-show="carga" style="padding: 0px;">
-                                <button data-ng-click="cargaConversacion(items[0])" style="width: 100%; background-color: #0DBEC8;padding:10px 0px;color:#fff;" translate>
-                                    Read More
-                                </button>  
-                            </li>
-                        </ul>       
-                    </div>
-                    <!--comentario de twitter-->
-                    <div ng-switch-when="twitter" class="izq"  style="width: 100%; clear:both;float:left;">
-                        <ul class="lista-comentarios-detalle" >
-                            <li>
-                                <!--respuesta-->
-                                <div class="respuesta-cont">
-                                    <div class="foto">
-                                        <!--fotos twitter-->
-                                        <img data-ng-if="items[0].obj == 'twitter' && (items[0].tipo == 'twit' || items[0].tipo == 'tracker')" src="{{(items[0].user.profile_image_url_https)?items[0].user.profile_image_url_https:'/modules/core/img/usuario-sem-imagem.png'}}" style="width:44px; height:44px; border:solid 2px #404040 !important; cursor: default !important;" class="circular"/>
-                                        <img data-ng-if="items[0].obj == 'twitter' && items[0].tipo == 'direct_message'" src="{{(items[0].sender.profile_image_url_https)?items[0].sender.profile_image_url_https:'/modules/core/img/usuario-sem-imagem.png'}}" style="width:44px; height:44px; border:solid 2px #404040 !important; cursor: default !important;" class="circular"/>
-                                    </div>
-                                    <div class="contenido">
-                                        <div class="pure-u-md-1-1">
-                                            <p class="nombre izq">
-                                                <a title="@{{items[0].user.screen_name}}" data-ng-if="items[0].obj == 'twitter' && (items[0].tipo == 'twit' || items[0].tipo == 'tracker')" class="izq negrita" href="https://twitter.com/{{items[0].user.screen_name}}" target="_blank">{{items[0].user.name}} 
-                                                    <span class="username">
-                                                        @{{items[0].user.screen_name}}
-                                                    </span>
-                                                </a>
-                                                <a title="@{{items[0].sender.screen_name}}" data-ng-if="items[0].obj == 'twitter' && items[0].tipo == 'direct_message'" class="izq negrita" href="https://twitter.com/{{items[0].sender.screen_name}}" target="_blank">
-                                                    {{items[0].sender.name}} 
-                                                    <span class="username">
-                                                        @{{items[0].sender.screen_name}}
-                                                    </span>
-                                                </a>
-                                                <!--links etiqueta twitter-->
-                                                <a data-ng-if="items[0].obj == 'twitter' && items[0].tipo == 'direct_message'" class="etiqueta-twitter izq" style="margin-left: 5px;" target="_blank">Twitter
-                                                </a>
-                                                <a data-ng-if="items[0].obj == 'twitter' && (items[0].tipo == 'twit' || items[0].tipo == 'tracker')" class="etiqueta-twitter izq" style="margin-left: 5px;" href="{{items[0].tw_url}}" target="_blank">
-                                                    Twitter
-                                                </a>                                              
-                                                <label class="etiqueta-twitter izq" style="margin-left: 10px;width: 20px; margin-left: 5px;" data-ng-if="items[0].retweeted_status" title="Retweet">
-                                                    <i style="font-size: 10px !important;" class="fa fa-retweet"></i>
-                                                </label>
-                                                <label class="etiqueta-twitter izq" style="margin-left: 10px;width: 20px; margin-left: 5px;" title="{{ 'Direct Message' | translate }}" data-ng-if="items[0].tipo == 'direct_message'">
-                                                    <i class="fa fa-lock" style="font-size: 10px !important;"></i>
-                                                </label>
-                                            	<!--icono si es un tracker-->
-                                            	<label class="etiqueta-twitter izq" style="margin-left: 5px;width: 20px; margin-left: 5px;" data-ng-if="items[0].tipo == 'tracker'" title="Tracker"><i class="fa fa-bullseye" style="font: normal normal normal 12px/1 FontAwesome !important;"></i></label>
-                                           		<!--icono si es un tracker-->                                                 
-							<div class="grupo-etiquetas-hora" data-ng-bind-html="items[0].created_time | etiquetasFecha"></div>
-							<!--etiquetas dependiendo del buzón-->
-							<label class="etiqueta-{{items[0].tipoMensaje}} izq"  style="margin-left: 5px;margin-top: 14px;text-transform: capitalize;">{{items[0].tipoMensaje}}</label>
-							<label data-ng-show="items[0].descartado" class="etiqueta-{{items[0].descartado.motivo}} izq" style="margin-top:14px; float: right; margin-left: 5px; border-radius: 3px; font-size: 9px;font-weight: 300;text-transform: capitalize;">{{items[0].descartado.motivo | translate}}</label>
-							<!--etiquetas dependiendo del buzón-->                                                
-                                            </p>    
-                                        </div>
-                                        <div class="pure-u-md-1-1">
-                                            <!--esto es si es un retwiter-->
-                                            <p class="comentarios txt-gris3" data-ng-if="items[0].retweeted_status" data-ng-bind-html="items[0].retweeted_status.text | linksTwitter:items[0].entities:items[0].trackers">
-                                            </p>                     
-                                            <!--comentario principal-->
-                                            <p class="comentarios txt-gris3" data-ng-if="!items[0].retweeted_status" data-ng-bind-html="items[0].text | linksTwitter:items[0].entities:items[0].trackers"></p>
-                                        </div>
-                                    </div>
-                                    <div class="caritas">
-                                        <ul>
-                                            <li class="positivo {{clase_pos}} {{(actual_sentiment == 'positivo' )?'positivo-activo':'no'}}" data-ng-click="sentiment('positivo',items[0]._id,items[0].coleccion)" id="positivo-{{items[0]._id}}"></li>
-                                            <li class="neutro {{clase_neu}} {{(actual_sentiment == 'neutro' )?'neutro-activo':'no'}}" data-ng-click="sentiment('neutro',items[0]._id,items[0].coleccion)" id="neutro-{{items[0]._id}}"></li>
-                                            <li class="negativo {{clase_neg}} {{(actual_sentiment == 'negativo' )?'negativo-activo':'no'}}" data-ng-click="sentiment('negativo',items[0]._id,items[0].coleccion)" id="negativo-{{items[0]._id}}"></li>
-                                        </ul>
-                                    </div>                  
-                                </div>        
-                                <div class="respuesta-cont respuesta-mensaje" data-ng-repeat="respuesta in items[0].respuestas">
-                                    <div class="foto">
-                                        <img src="{{respuesta.foto}}" class="circular" style="width:44px; height: 44px; max-width: 1000px;" />
-                                    </div>
-                                    <div class="contenido">
-                                        <div class="pure-u-md-1-1">
-                                            <p class="nombre izq">
-                                                <label class="izq normal">
-                                                    {{respuesta.user_name}}
-                                                </label>
-                                                <!--respuestas diversas twitter-->
-                                                <a href="{{items[0].tw_url}}" data-ng-show="items[0].tw_url" target="_blank" class="etiqueta-twitter izq" style="margin-left: 5px;">
-                                                    Twitter
-                                                </a>
-                                                <label class="etiqueta-twitter izq" data-ng-show="!items[0].tw_url" style="margin-left: 5px;">
-                                                    Twitter
-                                                </label>
-                                                <label class="etiqueta-gris izq"  style="width: 20px; margin-left: 5px;" title="{{ 'Response' | translate }}">
-                                                    <i class="fa fa-reply" style="font-size: 10px !important;"></i>
-                                                </label>
-                                                <label class="etiqueta-gris izq" style="margin-left: 5px;" data-ng-if="respuesta.timestamp != null">
-                                                    {{respuesta.timestamp | date:'d MMM yy'}}
-                                                </label>
-                                                <label class="etiqueta-gris izq"  style="margin-left: 5px;" data-ng-if="respuesta.timestamp != null">
-                                                    {{respuesta.timestamp | date:'h:mm a'}}
-                                                </label>
-						<!--etiquetas dependiendo del buzón-->
-						<label class="etiqueta-{{respuesta.tipoMensaje}} izq"  style="margin-left: 5px;margin-top: 14px;text-transform: capitalize;">{{respuesta.tipoMensaje}}</label>
-						<label data-ng-show="respuesta.descartado" class="etiqueta-{{respuesta.descartado.motivo}} izq" style="margin-top:14px; float: right; margin-left: 5px; border-radius: 3px; font-size: 9px;font-weight: 300;text-transform: capitalize;">{{respuesta.descartado.motivo | translate}}</label>
-						<!--etiquetas dependiendo del buzón-->                                                
-                                            </p>
-                                        </div>
-                                        <div class="pure-u-md-1-1">
-                                            <p class="comentarios" data-ng-bind-html="respuesta.texto | linksTwitter:respuesta.entities:respuesta.trackers"></p> 
-                                        </div> 
-                                    </div>
-                                </div>          
-                            </li>
-                            <li ng-repeat="conversacion in items[0].conversacion">
-                                <div class="respuesta-cont">
-                                    <div class="foto">
-                                        <img data-ng-if="!conversacion.sender" src="{{(conversacion.user.profile_image_url_https)?conversacion.user.profile_image_url_https:'/modules/core/img/usuario-sem-imagem.png'}}" class="circular" style="width:44px; height: 44px; max-width: 1000px;" />
-                                        <img data-ng-if="conversacion.sender" src="{{(conversacion.sender.profile_image_url_https)?conversacion.sender.profile_image_url_https:'/modules/core/img/usuario-sem-imagem.png'}}" class="circular" style="width:44px; height: 44px; max-width: 1000px;" />
-                                    </div>
-                                    <div class="contenido">
-                                        <div class="pure-u-md-1-1">
-                                            <p class="nombre izq">
-                                                <!--si es un mensaje privado-->
-                                                <a data-ng-if="conversacion.sender" href="https://twitter.com/{{conversacion.sender.screen_name}}" target="_blank" class="izq normal">
-                                                    {{conversacion.sender.name}} 
-                                                    <span class="username">
-                                                        @{{conversacion.sender.screen_name}}
-                                                    </span>
-                                                </a>
-                                                <!--si es un twit-->
-                                                <a data-ng-if="!conversacion.sender" href="https://twitter.com/{{items[0].user.screen_name}}" target="_blank" class="izq normal">
-                                                    {{conversacion.user.name}} @{{items[0].user.screen_name}}
-                                                </a>
-                                                <!--si es un mensaje privado-->
-                                                <a  data-ng-if="conversacion.sender" class="etiqueta-twitter izq" style="margin-left: 5px;" target="_blank">
-                                                    Twitter
-                                                </a>
-                                                <!--si es un twit-->
-                                                <a  data-ng-if="!conversacion.sender" class="etiqueta-twitter izq" style="margin-left: 5px;" href="{{conversacion.tw_url}}" target="_blank">
-                                                    Twitter
-                                                </a>
-                                                <label class="etiqueta-twitter izq" style="margin-left: 10px;width: 20px; margin-left: 5px;" title="{{ 'Direct Message' | translate }}" data-ng-if="conversacion.tipo == 'direct_message'">
-                                                    <i class="fa fa-lock" style="font-size: 10px !important;"></i>
-                                                </label>
-                                                <label class="etiqueta-gris izq" style="margin-left: 5px;">
-                                                    {{conversacion.created_time | date:'d MMM yy'}}
-                                                </label>
-                                                <label class="etiqueta-gris izq"  style="margin-left: 5px;">
-                                                    {{conversacion.created_time | date:'h:mm a'}}
-                                                </label>
-						<!--etiquetas dependiendo del buzón-->
-						<label class="etiqueta-{{conversacion.tipoMensaje}} izq"  style="margin-left: 5px;margin-top: 14px;text-transform: capitalize;">{{conversacion.tipoMensaje}}</label>
-						<label data-ng-show="conversacion.descartado" class="etiqueta-{{conversacion.descartado.motivo}} izq" style="margin-top:14px; float: right; margin-left: 5px; border-radius: 3px; font-size: 9px;font-weight: 300;text-transform: capitalize;">{{conversacion.descartado.motivo | translate}}</label>
-						<!--etiquetas dependiendo del buzón-->                                                
-                                            </p>    
-                                        </div>
-                                        <div class="pure-u-md-1-1">
-                                            <p class="comentarios" data-ng-bind-html="conversacion.text | linksTwitter:conversacion.entities:conversacion.trackers"></p> 
-                                        </div>
-                                    </div>
-                                    <div class="caritas">
-                                        <ul>
-                                            <li class="positivo" data-ng-class="{ 'positivo-activo' : conversacion.sentiment == 'positivo' }"  data-ng-click="sentiment('positivo',conversacion._id,items[0].coleccion,'real')" id="positivo-{{conversacion._id}}">
-                                            </li>
-                                            <li class="neutro" data-ng-class="{ 'neutro-activo' : conversacion.sentiment == 'neutro' }" data-ng-click="sentiment('neutro',conversacion._id,items[0].coleccion,'real')" id="neutro-{{conversacion._id}}">
-                                            </li>
-                                            <li class="negativo" data-ng-class="{ 'negativo-activo' : conversacion.sentiment == 'negativo' }" data-ng-click="sentiment('negativo',conversacion._id,items[0].coleccion,'real')" id="negativo-{{conversacion._id}}">
-                                            </li>
-                                        </ul>
-                                    </div>
-                                </div>
-                            </li> 
-                            <li ng-show="carga" style="padding: 0px;">
-                                <button data-ng-click="cargaConversacion(items[0])" style="width: 100%; background-color: #0DBEC8;padding:10px 0px;color:#fff;" translate>
-                                    Read More
-                                </button>  
-                            </li>  
-                        </ul>
-                    </div>
-                    <!--comentario de twitter_ inbox-->
-                    <div ng-switch-when="twitter_dm" class="izq"  style="width: 100%; clear:both;float:left;">
-                        <ul class="lista-comentarios-detalle">
-                            <li>
-                                <div class="respuesta-cont">            
-                                    <div class="foto">
-                                        <img src="{{(items[0].user.profile_image_url_https)?items[0].user.profile_image_url_https:'/modules/core/img/usuario-sem-imagem.png'}}" class="circular" style="width:44px; height: 44px; max-width: 1000px;" />
-                                    </div>
-                                    <div class="contenido">
-                                        <div class="pure-u-md-1-1">
-                                            <p class="nombre izq">
-                                                <a class="izq normal" href="https://twitter.com/{{items[0].sender_screen_name}}" target="_blank">
-                                                    {{items[0].sender_screen_name}}
-                                                </a>
-                                                <label class="etiqueta-twitter izq" style="margin-left: 5px;">
-                                                    Twitter
-                                                </label>
-                                                <label class="etiqueta-twitter izq" style="margin-left: 10px;width: 20px; margin-left: 5px;" title="{{ 'Direct Message' | translate }}">
-                                                    <i class="fa fa-lock" style="font-size: 10px !important;"></i>
-                                                </label>
-						<div class="grupo-etiquetas-hora" data-ng-bind-html="items[0].created_time | etiquetasFecha"></div>
-						<!--etiquetas dependiendo del buzón-->
-						<label class="etiqueta-{{items[0].tipoMensaje}} izq"  style="margin-left: margin-top. 14px;5px;text-transform: capitalize;">{{items[0].tipoMensaje}}</label>
-						<label data-ng-show="items[0].descartado" class="etiqueta-{{items[0].descartado.motivo}} izq" style="margin-top:14px; float: right; margin-left: 5px; border-radius: 3px; font-size: 9px;font-weight: 300;text-transform: capitalize;">{{items[0].descartado.motivo | translate}}</label>
-						<!--etiquetas dependiendo del buzón-->                                                
-                                            </p>    
-                                        </div>
-                                        <div class="pure-u-md-1-1">
-                                            <p class="comentarios" data-ng-bind-html="items[0].text | linksTwitter:items[0].entities:items[0].trackers | linky:'_blank'"></p> 
-                                        </div>
-                                    </div>
-                                    <div class="caritas">
-                                        <ul>
-                                            <li class="positivo {{clase_pos}} {{(actual_sentiment == 'positivo' )?'positivo-activo':'no'}}" data-ng-click="sentiment('positivo',items[0]._id,items[0].coleccion)" id="positivo-{{items[0]._id}}"></li>
-                                            <li class="neutro {{clase_neu}} {{(actual_sentiment == 'neutro' )?'neutro-activo':'no'}}" data-ng-click="sentiment('neutro',items[0]._id,items[0].coleccion)" id="neutro-{{items[0]._id}}"></li>
-                                            <li class="negativo {{clase_neg}} {{(actual_sentiment == 'negativo' )?'negativo-activo':'no'}}" data-ng-click="sentiment('negativo',items[0]._id,items[0].coleccion)" id="negativo-{{items[0]._id}}"></li>
-                                        </ul>
-                                    </div>          
-                                </div>    
-                                <div class="respuesta-cont respuesta mensaje" data-ng-repeat="respuesta in items[0].respuestas">
-                                    <div class="foto">
-                                        <img src="/modules/core/img/usuario-sem-imagem.png" class="circular" style="width:44px; height: 44px; max-width: 1000px;" />
-                                    </div>
-                                    <div class="contenido">
-                                        <div class="pure-u-md-1-1">
-                                            <p class="nombre izq">
-                                                <label class="izq normal">
-                                                    {{respuesta.user_name}}
-                                                </label>
-                                                <label class="etiqueta-gris izq"  style="width: 20px; margin-left: 5px;" title="{{ 'Response' | translate }}">
-                                                    <i class="fa fa-reply" style="font-size: 10px !important;"></i>
-                                                </label>
-                                                <label class="etiqueta-gris izq" style="margin-left: 5px;">
-                                                    {{respuesta.timestamp | date:'d MMM yy'}}
-                                                </label>
-                                                <label class="etiqueta-gris izq"  style="margin-left: 5px;">
-                                                    {{respuesta.timestamp | date:'h:mm a'}}
-                                                </label>
-						<!--etiquetas dependiendo del buzón-->
-						<label class="etiqueta-{{respuesta.tipoMensaje}} izq"  style="margin-left: 5px;margin-top: 14px;text-transform: capitalize;">{{respuesta.tipoMensaje}}</label>
-						<label data-ng-show="respuesta.descartado" class="etiqueta-{{respuesta.descartado.motivo}} izq" style="margin-top:14px; float: right; margin-left: 5px; border-radius: 3px; font-size: 9px;font-weight: 300;text-transform: capitalize;">{{respuesta.descartado.motivo | translate}}</label>
-						<!--etiquetas dependiendo del buzón-->                                                
-                                            </p>
-                                        </div>
-                                        <div class="pure-u-md-1-1">
-                                            <p class="comentarios" data-ng-bind-html="respuesta.texto | linksTwitter:respuesta.entities:respuesta.trackers"></p> 
-                                        </div> 
-                                    </div>
-                                </div>                 
-                            </li>
-                            <li ng-repeat="conversacion in items[0].conversacion">
-                                <div class="foto">
-                                    <img src="{{(conversacion.user.profile_image_url_https)?conversacion.user.profile_image_url_https:'/modules/core/img/usuario-sem-imagem.png'}}" class="circular" style="width:44px; height: 44px; max-width: 1000px;" />
-                                </div>
-                                <div class="contenido">
-                                    <div class="pure-u-md-1-1">
-                                        <p class="nombre izq">
-                                            <a href="https://twitter.com/{{items[0].user.screen_name}}"  target="_blank" class="izq normal negrita">
-                                                {{conversacion.sender_screen_name}}
-                                            </a>
-                                            <a class="etiqueta-twitter izq" style="margin-left: 5px;" href="{{items[0].tw_url}}" target="_blank">
-                                                Twitter
-                                            </a>
-					    <div class="grupo-etiquetas-hora" data-ng-bind-html="conversacion.created_time | etiquetasFecha"></div>
-					    <!--etiquetas dependiendo del buzón-->
-					    <label class="etiqueta-{{conversacion.tipoMensaje}} izq"  style="margin-left: margin-top: 14px; 5px;text-transform:lowercase;">{{conversacion.tipoMensaje}}</label>
-					    <label data-ng-show="conversacion.descartado" class="etiqueta-{{conversacion.descartado.motivo}} izq" style="margin-top:14px; float: right; margin-left: 5px; border-radius: 3px; font-size: 9px;font-weight: 300;">{{conversacion.descartado.motivo | translate}}</label>
-					    <!--etiquetas dependiendo del buzón-->                                            
-                                        </p>    
-                                    </div>
-                                    <div class="pure-u-md-1-1">
-                                        <p class="comentarios" data-ng-bind-html="conversacion.text | linksTwitter:conversacion.entities:conversacion.trackers"></p> 
-                                    </div>
-                                </div>
-                                <div class="caritas">
-                                    <ul>
-                                        <li class="positivo" data-ng-class="{ 'positivo-activo' : conversacion.sentiment == 'positivo' }"  data-ng-click="sentiment('positivo',items[0].conversacion[0]._id,items[0].coleccion,'real')" id="positivo-{{items[0].conversacion[0]._id}}"></li>
-                                        <li class="neutro" data-ng-class="{ 'neutro-activo' : conversacion.sentiment == 'neutro' }" data-ng-click="sentiment('neutro',items[0].conversacion[0]._id,items[0].coleccion,'real')" id="neutro-{{items[0].conversacion[0]._id}}"></li>
-                                        <li class="negativo" data-ng-class="{ 'negativo-activo' : conversacion.sentiment == 'negativo' }" data-ng-click="sentiment('negativo',items[0].conversacion[0]._id,items[0].coleccion,'real')" id="negativo-{{items[0].conversacion[0]._id}}"></li>
-                                    </ul>
-                                </div>
-                            </li> 
-                            <li ng-show="carga" style="padding: 0px;">
-                                <button data-ng-click="cargaConversacion(items[0])" style="width: 100%; background-color: #0DBEC8;padding:10px 0px;color:#fff;" translate>
-                                    Read More
-                                </button>  
-                            </li>  
-                        </ul>   
-                    </div>
-                </div>
-                <div class="pure-u-md-1-1" style="border-bottom: solid 1px #fff;">
-                    <table width="100%">
-                        <tr>
-                            <td style="border-right: solid 1px #fff; width: 50%;">
-                                <ul class="menu-temas">
-                                    <li>
-                                        <a>{{themeDefault}}</a>
-                                        <ul>
-                                            <li data-ng-repeat="key in notSorted(temas)" ng-init="tema = temas[key]" style="cursor:pointer;">
-                                                <a data-ng-checked='{{themeDefault === tema.tema}}'  data-ng-model="themes"  data-ng-click="cambioSelect('{{tema.tema}}')" name="themes">
-                                                    {{tema.tema}}
-                                                </a>
-                                            </li>
-                                            <li ng-show="addTheme" style="background-color:#fff;">
-                                                <form data-ng-submit="agregarTema()">
-                                                    <div class="pure-u-md-1-1" style="background-color: #dfe3ec; padding: 0px;border-top:solid 1px #fff;">
-                                                        <input type="textbox" name ="tema_nuevo" id="txtTema" data-ng-model="tema_nuevo" style="color:#465769;font-weight:700; height:40px; width:96%; margin-left: 2%; display:block;float:left;background-color:#dfe3ec; text-align: center;" placeholder="Nuevo Tema">
-                                                    </div>
-                                                    <div class="pure-u-md-1-1" style="padding: 10px 0px;">
-                                                        <div class="pure-u-md-1-1" data-ng-show="mensajeEdicionTema" align="center" >
-                                                            <p  ng-class="{mensaje: themesNow._id === comodin}" class="txt-error">
-                                                                {{mensajeEdicionTema}}
-                                                            </p>
-                                                        </div>
-                                                        <table width="100%" class="tabla-botones-acciones-basicas" style="margin: 0px; padding: 0px;">
-                                                            <tr>
-                                                                <td>
-                                                                    <a class="btn btn-cancelar cancelar der" data-ng-click="cerrarCrearTema()" style="width:100px !important;">
-                                                                        {{ 'Cancel' | translate }}
-                                                                    </a>
-                                                                </td>
-                                                                <td>
-                                                                    <button type="submit" class="botonCrear btn btn-guardar aceptar izq" style="width:100px !important">
-                                                                        {{ 'Create' | translate }}
-                                                                    </button>
-                                                                </td>
-                                                            </tr>
-                                                        </table>   
-                                                    </div>
-                                                </form>
-                                            </li>
-                                            <li>
-                                                <a data-ng-click="addThemeClick()" class="mas" style="padding:20px 0px;" ng-show="muestra_mas_subtemas">
-                                                    <img src="/modules/core/img/mas_blanco.png" />
-                                                </a>
-                                            </li>
-                                        </ul>
-                                    </li>
-                                </ul>  
-                            </td>
-                            <td>   
-                                <ul class="menu-temas">
-                                    <li>
-                                        <a>{{subthemeDefault}}</a>
-                                        <ul>
-                                            <li ng-repeat="subtema in subtemas" style="cursor:pointer;">
-                                                <a data-ng-model="subtheme" data-ng-checked='{{subthemeDefault === subtema.nombre}}' id ="subtheme" name ="subtheme" data-ng-click="cambioRadioSubtema(subtema.nombre)">
-                                                    {{subtema.nombre}}
-                                                </a>
-                                            </li>
-                                            <li ng-show="addSubTheme" style="background-color:#fff;">
-                                                <!------formulario para crear un subtema--->
-                                                <form ng-show="nuevo_subtema_activo" data-ng-submit="agregarSubtema()">
-                                                    <div class="pure-u-md-1-1" style="background-color: #dfe3ec; padding: 0px;border-top:solid 1px #fff;">
-                                                        <input type="textbox" id="txtSubTema" name ="subtema_nuevo"  data-ng-model="subtema_nuevo" style="color:#465769;font-weight:700; height:40px; width:96%; margin-left: 2%; display:block;float:left;background-color:#dfe3ec; text-align: center;" placeholder="Nuevo Subtema">  
-                                                    </div>
-                                                    <div class="pure-u-md-1-1" style="padding: 10px 0px;">
-                                                        <div class="pure-u-md-1-1" data-ng-show="mensaje_server_subtema" align="center" style="padding-bottom: 10px;" >
-                                                            <p class="txt-error" data-ng-show="mensaje_server_subtema">{{mensaje_server_subtema}}</p>
-                                                            <p class="txt-error" data-ng-show="response">{{response}}</p>
-                                                        </div>
-                                                        <table width="100%" class="tabla-botones-acciones-basicas" style="margin: 0px; padding: 0px;">
-                                                            <tr>
-                                                                <td>
-                                                                    <a class="btn btn-cancelar cancelar der" data-ng-click="cerrarCrearSubtema()" style="width:100px !important;">
-                                                                        {{ 'Cancel' | translate }}
-                                                                    </a>
-                                                                </td>
-                                                                <td>
-                                                                    <button type="submit" class="botonCrear btn btn-guardar aceptar izq" style="width:100px !important">{{ 'Create' | translate }}</button>
-                                                                </td>
-                                                            </tr>
-                                                        </table>
-                                                    </div>
-                                                </form>
-                                            </li>
-                                            <li>
-                                                <a data-ng-click="addSubThemeClick()" class="mas" style="padding:20px 0px;" ng-show="muestra_mas_subtemas"><img src="/modules/core/img/mas_blanco.png" /></a>
-                                            </li>
-                                        </ul>
-                                    </li>
-                                </ul>                  
-                            </td>
-                        </tr>
-                    </table>
-                </div>  
-                <div class="pure-u-md-1-1">
-                    <ul class="lista-respuestas-sugeridas" ng-show="muestraRespuestasTemas">
-                        <li style="padding:19px 50px;" data-ng-repeat="response in responseThemes" data-ng-click="informacionRespuesta(response.respuesta)">
-                            {{response.respuesta}}
-                        </li>
-                    </ul>
-                    <ul class="lista-respuestas-sugeridas" ng-show="muestraRespuestasSubtemas">
-                        <li style="padding:19px 50px;" data-ng-repeat="responseSubtemas in responseSubThemes" data-ng-click="informacionRespuesta(responseSubtemas.respuesta)">
-                            {{responseSubtemas.respuesta}}
-                        </li>
-                    </ul>
-                </div>
-                <div class="pure-u-md-1-1 izq" align="center" data-ng-if="respuesta_server">
-                    <span class="txt-error">
-                        {{respuesta_server}}
-                    </span>
-                </div>
-                <!--caja de facebook-->    
-                <div data-ng-show="items[0].obj== 'facebook'">
-                    <div data-ng-show="!statusLoginFacebook" class="pure-u-md-1-1 izq" style="padding: 0px 0px;">
-                        <div class="pure-u-md-1-1">
-                            <a href="{{constant.host}}/auth/facebook" ng-click="faceConnect(items[0]._id)" id="btn-facebook-connect" translate>
-                                Facebook Connect
-                            </a>
-                        </div>
-                    </div>
-                    <div class="pure-u-md-1-1" data-ng-show="statusLoginFacebook">
-                        <textarea style="width:80%; padding:2%; margin-top:30px; margin-left:10%; float:left; height: 100px;border:solid 1px #465769;border-radius:3px;" data-ng-model="respuesta" name="respuesta" placeholder="Respuesta Nueva" id="respuesta-comentario">
-                            {{respuesta}}}
-                        </textarea>
-                        <label style="width:250px;color:#465769;  margin:5px 0px; margin-left:10%; float:left; font-size:12px;position:relative;">
-                            <input type="checkbox" ng-click="agregarRespuesta()" style="position:absolute; left:0px; top:-2px;cursor:pointer;" />
-                            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-                            {{ 'Add to your Predefined Answers' | translate }}
-                        </label>
-                    </div>
-                </div>
-                <!--caja para twitter-->
-                <div class="pure-u-md-1-1" data-ng-show="items[0].obj !=='facebook' && items[0].tipo !== 'tracker'">
-                    <textarea data-ng-class="{ 'txt-rojo': faltanteMensaje <= 0 }"  style="width:80%; padding:2%; margin-top:30px; margin-left:10%; float:left; height: 100px;border:solid 1px #465769;border-radius:3px;" data-ng-change="textChange()" data-ng-model="respuesta" name="respuesta" placeholder="Respuesta Nueva" id="respuesta-comentario" ng-focus="focus_area()">
-                        {{respuesta}}}
-                    </textarea>
-                    <span data-ng-if="advertenciaLimiteMensaje" style="  clear: both; display: block; text-align: center; color:red;font-size:12px; padding: 10px 0px;">
-                        El mensaje excede el tamaño permitido
-                    </span>
-                    <label style="width:250px;color:#465769;  margin:5px 0px; margin-left:10%; float:left; font-size:12px;position:relative;">
-                        <input type="checkbox" ng-click="agregarRespuesta()" style="position:absolute; left:0px; top:-2px;cursor:pointer;" />
-                        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-                        {{ 'Add to your Predefined Answers' | translate }}
-                    </label>
-                    <span style="float:right;margin-right: 10%;margin-top: 2px;font-size: 12px;color: #465769;" data-ng-class="{ 'txt-rojo': faltanteMensaje <= 0 }">
-                        {{faltanteMensaje}}
-                    </span>
-                </div>
-                <div style="height:40px; width:100%; float:left; clear:both;" data-ng-if="error_post">
-                    <center>
-                        <label class="txt-error" ng-show="error_post">
-                            {{error_post}}
-                        </label>
-                    </center>
-                </div>
-                <div style="padding: 20px 10px;" class="pure-u-md-1-1 izq">
-                    <table width="100%" class="tabla-botones-acciones-basicas">
-                        <tr>
-                            <td>
-                                <a ng-click="cancel(items[0])" class="btn btn-cancelar der" style="width:150px; margin-right: 20px;" translate>
-                                    Cancel
-                                </a>   
-                            </td>
-                            <!--<td>
-                                <div>
-                                    <button ng-click="respondeMensaje(items[0].obj,items[0].tipo,'1')" class="btn btn-guardar izq" style="width:250px; margin-right: 30px;">
-                                        {{cambio}}
-                                    </button>
-                                </div>
-                            </td>-->
-                            <td>
-                                <div>
-                                    <button ng-click="respondeMensaje(items[0].obj,items[0].tipo)" class="btn btn-guardar izq" style="width:250px; margin-right: 30px;">
-                                        Atender
-                                    </button>
-                                </div>
-                            </td>
-                        </tr>
-                    </table>     
-                </div>   
-            </div> 
-        </div>
-    </script>
-
-
-
-<!--
-.___  ___.   ______    _______       ___       __          _______.
-|   \/   |  /  __  \  |       \     /   \     |  |        /       |
-|  \  /  | |  |  |  | |  .--.  |   /  ^  \    |  |       |   (----`
-|  |\/|  | |  |  |  | |  |  |  |  /  /_\  \   |  |        \   \    
-|  |  |  | |  `--'  | |  '--'  | /  _____  \  |  `----.----)   |   
-|__|  |__|  \______/  |_______/ /__/     \__\ |_______|_______/    
-                                                                    
--->
-
-
-<!--
-
-.___  ___.     _______   _______     _______.  ______     ___      .______     .___________.    ___      .______      
-|   \/   |    |       \ |   ____|   /       | /      |   /   \     |   _  \    |           |   /   \     |   _  \     
-|  \  /  |    |  .--.  ||  |__     |   (----`|  ,----'  /  ^  \    |  |_)  |   `---|  |----`  /  ^  \    |  |_)  |    
-|  |\/|  |    |  |  |  ||   __|     \   \    |  |      /  /_\  \   |      /        |  |      /  /_\  \   |      /     
-|  |  |  |    |  '--'  ||  |____.----)   |   |  `----./  _____  \  |  |\  \----.   |  |     /  _____  \  |  |\  \----.
-|__|  |__|    |_______/ |_______|_______/     \______/__/     \__\ | _| `._____|   |__|    /__/     \__\ | _| `._____|
-                                                                                                                        
-    
--->
-
-<!--Modal para descartados-->
-<script type="text/ng-template" id="descartados.html">
-<div id="descartar_mensaje" style="">    
-    <form ng-submit="guardaDescarte(items[0].obj, items[0].tipo)"> 
-        <div class="pure-u-md-1-1">
-            <h3 class="txt-centro" translate>Reject</h3>
-            <p class="txt-centro ligera" translate>Selecting reasons gives you a better understanding<br/>of your conversations:</p>
-        </div>
-
-        <div class="pure-u-md-1-1">
-            <div class="pure-u-md-1-1"> 
-                <div align="center" style="color: red; font-size:14px; padding-top:2%; margin:0 auto;">{{mensajeDescartado}}</div>
-                <div class="pure-u-md-1-1">
-                    <table cellpadding="15" style="width: 70%; margin: 0px auto; float:none;">
-                        <tr>
-                            <td>
-                                <input type="radio" id="c7" name="cc" class="oculto" name="descarte" ng-model="descarte" value="campaign" ng-click="cambiaMotivo('campaign')">
-                                <label for="c7" class="checkbox checkbox-naranja"><span></span> {{'Campaña'}}</label>
-                            </td>
-                            <td>
-                                <input type="radio" id="c2" name="cc" class="oculto" name="descarte" ng-model="descarte" value="insult" ng-click="cambiaMotivo('insult')">
-                                <label for="c2" class="checkbox checkbox-azul"><span></span> {{ 'Insult' | translate }}</label>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>
-                                <input type="radio" id="c8" name="cc" class="oculto" name="descarte" ng-model="descarte" value="other_comments" ng-click="cambiaMotivo('other_comments')">
-                                <label for="c8" class="checkbox checkbox-verde"><span></span> {{'Mediático'}}</label>
-                            </td>
-                            <td>
-                                <input type="radio" id="c3" name="cc" class="oculto"name="descarte" ng-model="descarte" value="not-related" ng-click="cambiaMotivo('not-related')">
-                                <label for="c3" class="checkbox checkbox-amarillo"><span></span> {{ 'Not Related' | translate }}</label>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>
-                                <input type="radio" id="c1" name="cc" class="oculto" name="descarte" ng-model="descarte" value="answered" ng-click="cambiaMotivo('answered')">
-                                <label for="c1" class="checkbox checkbox-naranja"><span></span> {{ 'Answered' | translate }}</label>
-                            </td>
-                            <td>
-                                <input type="radio" id="c6" name="cc" class="oculto" name="descarte" ng-model="descarte" value="spam" ng-click="cambiaMotivo('spam')">
-                                <label for="c6" class="checkbox checkbox-verde"><span></span> {{ 'Spam' | translate }}</label>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>
-                                <input type="radio" id="c5" name="cc" class="oculto" name="descarte" ng-model="descarte" value="troll" ng-click="cambiaMotivo('troll')">
-                                <label for="c5" class="checkbox checkbox-azul2"><span></span> {{ 'Troll' | translate }}</label>
-                            </td>
-                            <td>
-                                <input type="radio" id="c4" name="cc" class="oculto" name="descarte" ng-model="descarte" value="otro" ng-click="cambiaMotivo('otro')">
-                                <label for="c4" class="checkbox checkbox-rosa"><span></span> {{ 'Other' | translate }}</label>
-                            </td>
-                        </tr>
-                    </table>         
-                    <div style="text-align:center;">
-                        <label ng-show="(items[0].obj==='facebook' && items[0].tipo !== 'facebook_inbox')">¿Deseas eliminar el post?   
-                        <input type="checkbox" name="elimina_post" ng-model="elimina_post" ng-click="deletePost()" ng-show="(items[0].obj==='facebook' && items[0].tipo !== 'facebook_inbox')"><br>
-                        <textarea name="texto_eliminado" ng-model="texto_eliminado" placeholder="Razón (Opcional)" style="border: 1px solid black; width:390px; height: 100px;" ng-show="elimina_post"></textarea>
-                        <label>
-                    </div>
-                    <div style="display:none;">
-                        <p>Answered</p>
-                        <p>Spam</p>
-                        <p>Insult</p>
-                        <p>Troll</p>
-                        <p>Not Related</p>
-                        <p>Other</p>
-                    </div>
-                </div>  
-            </div>
-        </div>
-        <div class="pure-u-md-1-1" style="padding-top: 30px;">
-            <table width="100%" class="tabla-botones-acciones-basicas">
-                <tr>
-                    <td>
-                        <a ng-click="cancelaDescarte(items[0])" class="btn btn-cancelar der" translate>Cancel</a>
-                    </td>
-                    <td>
-                        <button class="btn btn-guardar izq" type="submit" translate>Accept</button>
-                    </td>
-                </tr>
-            </table>       
-        </div>
-    </form>
-</div>
-</script>
-
-<!--
-
-.___  ___.     _______   _______     _______.  ______     ___      .______     .___________.    ___      .______      
-|   \/   |    |       \ |   ____|   /       | /      |   /   \     |   _  \    |           |   /   \     |   _  \     
-|  \  /  |    |  .--.  ||  |__     |   (----`|  ,----'  /  ^  \    |  |_)  |   `---|  |----`  /  ^  \    |  |_)  |    
-|  |\/|  |    |  |  |  ||   __|     \   \    |  |      /  /_\  \   |      /        |  |      /  /_\  \   |      /     
-|  |  |  |    |  '--'  ||  |____.----)   |   |  `----./  _____  \  |  |\  \----.   |  |     /  _____  \  |  |\  \----.
-|__|  |__|    |_______/ |_______|_______/     \______/__/     \__\ | _| `._____|   |__|    /__/     \__\ | _| `._____|
-                                                                                                                        
-    
--->
-
-<!--
-     ___           ______   ______   .___  ___. .______    __       _______ .___________.    ___      .______      
-    /   \         /      | /  __  \  |   \/   | |   _  \  |  |     |   ____||           |   /   \     |   _  \     
-   /  ^  \       |  ,----'|  |  |  | |  \  /  | |  |_)  | |  |     |  |__   `---|  |----`  /  ^  \    |  |_)  |    
-  /  /_\  \      |  |     |  |  |  | |  |\/|  | |   ___/  |  |     |   __|      |  |      /  /_\  \   |      /     
- /  _____  \     |  `----.|  `--'  | |  |  |  | |  |      |  `----.|  |____     |  |     /  _____  \  |  |\  \----.
-/__/     \__\     \______| \______/  |__|  |__| | _|      |_______||_______|    |__|    /__/     \__\ | _| `._____|
-                                                                                                                    
--->
-
-<script type="text/ng-template" id="alertass.html">
-<div align="center">
-        <div class="pure-u-md-1-1" align="center">
-             <p class="txt-centro">Antes de completar, por favor clasifica esta conversación.</p>
-        </div>
-        <div class="pure-u-md-1-1">
-            <div style="width: 100%; margin:0px auto;">
-                <center>
-                
-                    <button class="btn btn-guardar"  ng-click="close()" translate>Accept</button>       
-                </center>
-            </div>
-        </div>
-    </div
-</script>
-
-
-<!--
-     ___           ______   ______   .___  ___. .______    __       _______ .___________.    ___      .______      
-    /   \         /      | /  __  \  |   \/   | |   _  \  |  |     |   ____||           |   /   \     |   _  \     
-   /  ^  \       |  ,----'|  |  |  | |  \  /  | |  |_)  | |  |     |  |__   `---|  |----`  /  ^  \    |  |_)  |    
-  /  /_\  \      |  |     |  |  |  | |  |\/|  | |   ___/  |  |     |   __|      |  |      /  /_\  \   |      /     
- /  _____  \     |  `----.|  `--'  | |  |  |  | |  |      |  `----.|  |____     |  |     /  _____  \  |  |\  \----.
-/__/     \__\     \______| \______/  |__|  |__| | _|      |_______||_______|    |__|    /__/     \__\ | _| `._____|
-                                                                                                                    
--->
-
-
-
-<!--nueva-->
-
-
-
-
-
-<!--
-
- __  .__   __.  _______  __       __    __   _______ .__   __.   ______  _______ .______      
-|  | |  \ |  | |   ____||  |     |  |  |  | |   ____||  \ |  |  /      ||   ____||   _  \     
-|  | |   \|  | |  |__   |  |     |  |  |  | |  |__   |   \|  | |  ,----'|  |__   |  |_)  |    
-|  | |  . `  | |   __|  |  |     |  |  |  | |   __|  |  . `  | |  |     |   __|  |      /     
-|  | |  |\   | |  |     |  `----.|  `--'  | |  |____ |  |\   | |  `----.|  |____ |  |\  \----.
-|__| |__| \__| |__|     |_______| \______/  |_______||__| \__|  \______||_______|| _| `._____|
-                                                                                                    
-                                                                                                   
--->
-
-    <script type="text/ng-template" id="nuevoInfluencers.html">
-
-                    <div class="pure-g">
-                        <div ng-show="muestraBarra" style="width:100%; background-color:white;position:absolute;height:100%; opacity:0.9;">
-                            <div style="margin-top:25%;">
-                                <center>
-                                    <div id="muestraLoading" align="center">
-                                        <link rel="stylesheet" href="https://css-spinners.com/css/spinners.css" type="text/css">
-                                        <div class="loader" align="center">
-                                            <div class="signal"></div>
-
-                                        </div>
-                                    </div>
-                                </center>
-                            </div>
-                        </div>
-                        <div style="padding-bottom:30px;padding-top: 20px; padding-left: 20px; padding-right: 20px;">
-
-                            <div align="center" class="pure-u-md-1-1">
-                                <h3 style=" line-height:0px;"><strong translate>Add Influencer</strong></h3>
-                            </div>
-
-                            <div class="pure-u-md-1-1" data-ng-if="mensajeErrores" align="center">
-                                <p class="txt-error txt-centro">
-                                    {{mensajeErrores}}
-                                </p>
-                            </div>
-
-                            <form class="form-4 izq" name="form1" id="form1" ng-submit="guardaInfluencer(items[0])" style="padding-top: 30px;">
-
-                                <div class="pure-u-md-1-2 izq" >
-
-                                    <div class="pure-u-md-1-1 izq">
-                                        <label style="margin: 0px; margin-left: 16px;" translate>First Name</label>
-                                        <input type="text" name="nombre" id="nombre" data-ng-model="nombre" placeholder="Nombre" ng-class="{'error': errorNombre}" ng-init="nombre = items[0].user.name"/>
-
-                                        <!--<span data-ng-if="errorNombre" class="txt-error">{{errorNombre}}</span>-->
-                                    </div>
-
-                                    <div class="pure-u-md-1-1 izq">
-
-                                        <label style="margin: 0px; margin-left: 16px;" translate>Industry</label>
-                                        <select id="categoria" name="categoria" ng-init="categoria='Otro'" data-ng-model="categoria"  style="background-color: #fff;"  ng-class="{'error': errorCategoria}">
-                                            <option data-ng-repeat="i in listaIndustry" value="{{i}}">{{i | translate}}</option>
-                                        </select>
-                                        <!--<span data-ng-if="errorCategoria" class="txt-error">{{errorCategoria}}</span>-->
-                                    </div>
-
-                                </div>
-
-                                <div class="pure-u-md-1-2 izq">
-
-                                    <div class="pure-u-md-1-1 izq">
-                                        <label style="margin: 0px; margin-left: 16px;" translate>Last Name</label>
-                                        <input type="text" name="apellido" id="apellido" data-ng-model="apellido" placeholder="Apellidos" ng-class="{'error': errorApellido}"/>
-
-                                        <!--<span data-ng-if="errorApellido" class="txt-error">{{errorApellido}}</span>-->
-                                    </div>
-
-                                    <div class="pure-u-md-1-1 izq">
-                                        <label style="margin: 0px;margin-left: 16px;" translate>Username</label>
-                                        <input type="text"  name="username" data-ng-model='username' id="username" placeholder="Solo Twitter" ng-class="{'error': errorUsername}" ng-init="username=items[0].user.screen_name" value="{{items[0].user.screen_name}}"/>
-
-                                        <!--<span data-ng-if="errorNombreUsuario" class="txt-error">{{errorNombreUsuario}}</span>-->
-                                    </div>
-
-                                </div>
-
-                                <div class="pure-u-md-1-1 izq">
-                                    <label style="margin: 0px;margin-left: 16px;" translate>Description</label>
-                                    <textarea data-ng-model="descripcion" data-ng-model="descripcion" name="descripcion" id="descripcion" placeholder="Opcional" style="height: 100px;width: 95%;"/>
-                                    </textarea>
-                                </div>
-
-                                <div class="pure-u-md-1-1" style="margin-top:30px;">
-                                    <div style="width: 420px; margin: 0px auto;">
-                                        <button type="submit" class="escuchar_influencers_enviar_ btn btn-guardar der" id="enviar" style="width:250px;" translate>
-                                            Accept
-                                        </button>
-                                        <button type="button" ng-controller="ModalDemoCtrl" class="btn btn-cancelar izq" ng-click="cancel(items[0])" style="width:150px;" translate>
-                                            Cancel
-                                        </button>
-                                    </div>
-                                </div>
-                            </form>
-                            <div class="clear limpiar"></div>
-                        </div>
-
-                    </div>
-
-                    </script>
-
-                    <!--nueva-->
-    
-    
-<!--
-
- __  .__   __.  _______  __       __    __   _______ .__   __.   ______  _______ .______      
-|  | |  \ |  | |   ____||  |     |  |  |  | |   ____||  \ |  |  /      ||   ____||   _  \     
-|  | |   \|  | |  |__   |  |     |  |  |  | |  |__   |   \|  | |  ,----'|  |__   |  |_)  |    
-|  | |  . `  | |   __|  |  |     |  |  |  | |   __|  |  . `  | |  |     |   __|  |      /     
-|  | |  |\   | |  |     |  `----.|  `--'  | |  |____ |  |\   | |  `----.|  |____ |  |\  \----.
-|__| |__| \__| |__|     |_______| \______/  |_______||__| \__|  \______||_______|| _| `._____|
-                                                                                                    
-                                                                                                   
--->    
-
-<!--Modal para asignacion-->
-<script type="text/ng-template" id="modalAsignar.html">
- <div class="pure-g izq">
-    <div class="pure-u-md-1-1 izq" style="width: 94% !important;">
-        <ul class="lista-cuentas-facebook">
-            <li ng-class="{'activo seleccionado':evaluaActivo(usuario._id)}" data-ng-repeat="usuario in usuarios_cuenta.data" ng-click="asignaMensaje(usuario)">
-                <table style="width: 100%; display:block;float:left;">
-                <tr>
-                <td style="width: 50px; text-align: center; "><img src="{{usuario.imagen_src}}" class="circular-ligero" style="width: 40px; height: 40px; max-width: 1000px;"/></td>
-                <td style=""><p>{{usuario.displayName}}</p></td>
-                </tr>
-                </table>
-            </li>
-        </ul>
-    </div>
-    <div class="pure-u-md-1-1 izq" style="margin-top:30px;">
-        <div style="width: 420px; margin: 0px auto;">
-            <button class="escuchar_influencers_enviar_ btn btn-guardar der" ng-click="asignaMensajeService()" id="enviar" style="width:250px;" translate>Accept</button>
-            <button class="btn btn-cancelar izq" ng-click="cancelAsignacion(mensaje)" style="width:150px;" translate>Cancel</button>
-        </div>
-    </div> 
-</div>
-</script>
-<!--Modal para asignacion--> 
-    
-
-</div>
-<!--</section>-->
-
-
-<style type="text/css">
-    .modal-content {
-display: block;
-clear: both;
-float: left;
-margin-left: 14%;
-}
-</style>

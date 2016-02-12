@@ -8,9 +8,9 @@ module.exports= {
 },
 "cuentas" : 
 [{
-	"nombre":"epura",
-	"track":["epura"],
-	"follow":[1180321741]
+	"nombre":"facespa",
+	"track":["include_math"],
+	"follow":[231684217]
 },
 {
 	"nombre":"compuycomal",
@@ -18,148 +18,8 @@ module.exports= {
 	"follow":[2600464741]
 },
 {
-	"nombre":"facespa",
-	"track":["include_math"],
-	"follow":[231684217]
-},
-{
-	"nombre":"pastilladelay",
-	"track":["laPastilladelaY"],
-	"follow":[50553976]
-},
-{
-	"nombre":"airizar",
-	"track":["AaronIrizar"],
-	"follow":[177688121]
-},
-{
-	"nombre":"hgalindo",
-	"track":["HMGalindoQ"],
-	"follow":[217175861]
-},
-{
-	"nombre":"melesio",
-	"track":["melesiocuen"],
-	"follow":[193306300]
-},
-{
-	"nombre":"cfe",
-	"track":["CFEmx","-1"],
-	"follow":[310535100]
-},
-{
-	"nombre":"storres",
-	"track":["sergiotorrescln"],
-	"follow":[87966815]
-},
-{
-	"nombre":"clouthier",
-	"track":["ClouthierManuel","-1"],
-	"follow":[249875929]
-},
-{
-	"nombre":"sbenavides",
-	"track":["FarmaBenavides","-1"],
-	"follow":[141365376]
-},
-{
-	"nombre":"sdelahorro",
-	"track":["FAhorro","-1"],
-	"follow":[96856461]
-},
-{
-	"nombre":"sguadalajara",
-	"track":["farmaciasgdl","-1"],
-	"follow":[429218679]
-},
-{
-	"nombre":"ssimi",
-	"track":["fsimilares","-1"],
-	"follow":[179098354]
-},
-{
-	"nombre":"peugeot",
-	"track":["PeugeotMex"],
-	"follow":[275580902]
-},
-{
-	"nombre":"redlobster",
-	"track":["redlobstermx"],
-	"follow":[1249489802]
-},
-{
-	"nombre":"olivegarden",
-	"track":["OliveGardenMx"],
-	"follow":[633252708]
-},
-{
-	"nombre":"cmrcorporativo",
-	"track":["CMRCORPORATIVO"],
-	"follow":[2727045199]
-},
-{
-	"nombre":"vacantescmr",
-	"track":["VacantesCMR"],
-	"follow":[2437194336]
-},
-{
-	"nombre":"ellago",
-	"track":["el_lago_rest"],
-	"follow":[2994819940]
-},
-{
-	"nombre":"FUNDACIONCMR",
-	"track":["FUNDACIONCMR"],
-	"follow":[39549522]
-},
-{
-	"nombre":"BistroChapultepec",
-	"track":["bistroch"],
-	"follow":[3266533915]
-},
-{
-	"nombre":"infonavit",
-	"track":["AyudaInfonavit","infonavit"],
-	"follow":[1510661467,85345126]
-},
-{
-	"nombre":"imss",
-	"track":["Tu_IMSS"],
-	"follow":[69034805]
-},
-{
-	"nombre":"gerardovl",
-	"track":["GVargasLanderos"],
-	"follow":[212452897]
-},
-{
-	"nombre":"malova",
-	"track":["malovamx"],
-	"follow":[89394779]
-},
-{
-	"nombre":"dish",
-	"track":["DishMX","ayudaDish"],
-	"follow":[2358588181,2364789535]
-},
-{
-	"nombre":"ladestileria",
-	"track":["LaDestileriaMX"],
-	"follow":[36491542]
-},
-{
-	"nombre":"fondamexicana",
-	"track":["Fonda_Mexicana"],
-	"follow":[52473646]
-},
-{
-	"nombre":"wings",
-	"track":["WINGS_MX"],
-	"follow":[51198536]
-},
-{
-	"nombre":"capitalgrille",
-	"track":["CapitalGrilleMx"],
-	"follow":[944468412]
+	"nombre":"EPN",
+	"track":["EPN"],
+	"follow":[2897441]
 }]
 };
