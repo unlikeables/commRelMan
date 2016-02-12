@@ -422,138 +422,11 @@ $scope.clickSentiment = function (key,value){
 				}
 				});
 			}
-			if(objTemas.length > 0){
-				$scope.mostrarTemas = true;
-			}else{
-				$scope.mostrarTemas = false;
- 			}
 			
 			for(var t in objTemas){
 				objTemas[t].color = $scope.esquemaColores[t];
 			}
 			
-			$scope.tipoGraficaTemas = 'pie';
-			
-			/*chartTemas*/
-			$scope.chartTemas = {
-				loading:true,
-				chart: {
-					plotBackgroundColor: null,
-					plotBorderWidth: null,
-					plotShadow: false									
-				},
-				title: {
-					text:' '
-				},
-				credits:{
-					enabled:false
-				},
-				tooltip: {
-					pointFormat: '{series.name}: <b>{point.percentage:.1f}%</b>'
-				},
-				options:{
-					chart:{
-						events:{
-						redraw:function(){
-							$scope.chartTemas.loading = false;
-						}								
-						}					
-					},
-					legend:{
-						enabled:true,
-						align: 'right',
-						verticalAlign: 'middle',
-						layout: 'vertical',
-						itemMarginBottom: 20,
-						x : -22,
-						labelFormatter: function () {
-							return this.name + ' ('+this.y+')';	
-            			}
-					},
-					plotOptions: {
-						pie: {
-							allowPointSelect: true,
-							cursor: 'pointer',
-							dataLabels: {
-								enabled: true,
-								formatter: function(){
-									return Math.round(this.percentage.toFixed(2))+'%';
-									//if(this.percentage!=0)  return Math.round(this.percentage)  + '%';
-								},
-								// distance: -50,
-								style: {
-									fontWeight: 'bold',
-									color: 'black',
-								}
-							},
-							showInLegend: true
-						},
-						column : {
-							 dataLabels: {
-							 	enabled: true,
-							 	formatter: function(){
-							 		//return Math.round(this.y)+'%';
-							 		return this.y;
-							 	}
-							 }							
-						}
-					}
-					,exporting: { 
-						width:1500,
-						//scale : 1800,
-						buttons: { 
-							contextButton: {
-								//text: 'Exportar', 
-								menuItems:[{
-									textKey : 'downloadPNG',
-									text: 'Exportar a PNG',
-									onclick : function() {			
-										var nombreCorto = 'top_temas';
-										var nombreCompleto = 'Top Temas';
-										var nombreMeses = ["Ene", "Feb", "Mar", "Abr", "May", "Jun","Jul", "Ago", "Sep", "Oct", "Nov", "Dic"];
-										var fecha1 = new Date($scope.dt); 
-										var fecha2 = new Date($scope.dt2);
-										var fechaFinal = fecha1.getDate()+"_"+(nombreMeses[fecha1.getMonth()+1])+"_"+fecha1.getFullYear()+'__'+fecha2.getDate()+"_"+(nombreMeses[fecha2.getMonth()+1])+"_"+fecha2.getFullYear();
-										this.exportChart({
-											filename : $scope.account+'_'+nombreCorto+'_'+fechaFinal
-										}, {
-											title:{
-												//text:nombreCompleto		
-											}
-										});
-									}
-								},
-								{
-									//textKey : 'downloadPNG',
-									text: 'Exportar CSV Temas',
-									onclick : function() {	
-										$scope.descargaTemas($scope.nombre_cuenta,$scope.temasDecarga,$scope.totalTemas);
-									}
-								},
-								{
-									text:'&nbsp;'
-								}					
-								]
-							}
-						}
-					}     
-        		},
-        		xAxis: {
-            		categories: {},
-					 lineColor: 'transparent',
-        		},   
-        	yAxis: {
-				title: {
-                    text: ' '
-                	}
-        		},
-				series: [{
-					type: $scope.tipoGraficaTemas,
-					name: 'Total',
-					data: objTemas
-				}]
-			};
-			/*chartTemas*/
 			
 			$scope.cambiarGraf = function(){
 				console.log('$scope.cambiarGraf');
@@ -599,17 +472,7 @@ $scope.clickSentiment = function (key,value){
 			//Proceso para el Top 10 de los temas
 		    var cuentaSubTemas = objSubTemasC.length - 1;
 		    var topSubTemas = [];
-		    /*Aqui esta el proceso para evoitar el top ten
-		    if(cuentaSubTemas <= 50){
-		    	for(var i = 0; i <= cuentaSubTemas; i++){
-		    		topSubTemas.push(objSubTemasC[i]);
-		    	}
-		    }else{
 
-		    	for(var i = 0; i<50 ; i++){
-		    		topSubTemas.push(objSubTemasC[i]);
-		    	}
-		    }*/
 		    if(cuentaSubTemas < 10){
 		    	for(var i = 0; i <= cuentaSubTemas; i++){
  		    		topSubTemas.push(objSubTemasC[i]);
@@ -623,9 +486,198 @@ $scope.clickSentiment = function (key,value){
 			for(var t in topSubTemas){
 				topSubTemas[t].color = $scope.esquemaColores[t];
 			}
+		
 
-			$scope.tipoGraficaSubTemas = 'pie'; 		    
+			$scope.cambiarGraficaSubTemas = function(){
+				$scope.chartSubTemas.series[0].type = $scope.tipoGraficaSubTemas;
+			}		
 
+		var csvContent = '';
+		if(data !== 0){
+			csv.forEach(function(infoArray, index){
+				var dataString = infoArray.join(',');
+				csvContent += index < csv.length ? dataString+ '\n' : dataString;
+			}); 
+			var encodedUri = encodeURI(csvContent);
+			$scope.archivo = encodedUri;
+			//window.open(encodedUri);
+		}else{
+			//alert('No hubo resultados para ese rango de fechas');
+		   	console.log('No hubo resultados para ese rango de fechas');
+		}	
+	});
+
+/*
+
+*/
+$http.post('/chartSentiment',{nombreSistema:nombreSistema,fecha_inicial:$scope.dt,fecha_final:$scope.dt2, tipo: opcion}).success(function(objetoSentimiento){
+  	$scope.numeroSentiment = objetoSentimiento;
+  	var total = objetoSentimiento.positivo + objetoSentimiento.neutro + objetoSentimiento.negativo;
+  	$scope.sentiment_perce = obtenPorcentajes(objetoSentimiento,total);	
+	if((isNaN($scope.sentiment_perce.negativo) === true && isNaN($scope.sentiment_perce.neutro) === true && isNaN($scope.sentiment_perce.positivo) === true) || ($scope.sentiment_perce.negativo === 0 && $scope.sentiment_perce.neutro === 0 && $scope.sentiment_perce.positivo === 0)){
+		$scope.mostrarSentiment = false;
+	}else{
+		$scope.mostrarSentiment = true;
+	}
+});
+
+
+$http.post('/chartTopTemas',{nombreSistema:nombreSistema,fecha_inicial:$scope.dt,fecha_final:$scope.dt2, tipo: opcion}).success(function(objetoTopTemas){
+	if(objetoTopTemas){
+		for(var i in objetoTopTemas){
+			objetoTopTemas[i].events = {
+				click : function(e,i){
+					window.open('/#!/filtroAccount?first='+fecha_inicial+'&second='+fecha_final+'&tema='+e.point.drilldown+'&cuenta='+nombreSistema+'&opcion='+opcion);	
+				}
+			}
+		}
+		
+		if(objetoTopTemas.length > 0){
+			$scope.mostrarTemas = true;
+		}else{
+			$scope.mostrarTemas = false;
+ 		}
+		
+		$scope.tipoGraficaTemas = 'pie';
+			
+		$scope.chartTemas = {
+			loading:true,
+			chart: {
+				plotBackgroundColor: null,
+				plotBorderWidth: null,
+				plotShadow: false									
+			},
+			title: {
+				text:' '
+			},
+			credits:{
+				enabled:false
+			},
+			tooltip: {
+				pointFormat: '{series.name}: <b>{point.percentage:.1f}%</b>'
+			},
+			options:{
+				chart:{
+					events:{
+						redraw:function(){
+							$scope.chartTemas.loading = false;
+						}								
+					}					
+				},
+				legend:{
+					enabled:true,
+					align: 'right',
+					verticalAlign: 'middle',
+					layout: 'vertical',
+					itemMarginBottom: 20,
+					x : -22,
+					labelFormatter: function () {
+						return this.name + ' ('+this.y+')';	
+            		}
+				},
+				plotOptions: {
+					pie: {
+						allowPointSelect: true,
+						cursor: 'pointer',
+						dataLabels: {
+							enabled: true,
+							formatter: function(){
+								return Math.round(this.percentage.toFixed(2))+'%';
+								//if(this.percentage!=0)  return Math.round(this.percentage)  + '%';
+							},
+							// distance: -50,
+							style: {
+								fontWeight: 'bold',
+								color: 'black',
+							}
+						},
+						showInLegend: true
+					},
+					column : {
+						 dataLabels: {
+						 	enabled: true,
+						 	formatter: function(){
+						 		//return Math.round(this.y)+'%';
+						 		return this.y;
+						 	}
+						}							
+					}
+				},
+				exporting: { 
+					width:1500,
+					//scale : 1800,
+					buttons: { 
+						contextButton: {
+							//text: 'Exportar', 
+							menuItems:[{
+								textKey : 'downloadPNG',
+								text: 'Exportar a PNG',
+								onclick : function() {			
+									var nombreCorto = 'top_temas';
+									var nombreCompleto = 'Top Temas';
+									var nombreMeses = ["Ene", "Feb", "Mar", "Abr", "May", "Jun","Jul", "Ago", "Sep", "Oct", "Nov", "Dic"];
+									var fecha1 = new Date($scope.dt); 
+									var fecha2 = new Date($scope.dt2);
+									var fechaFinal = fecha1.getDate()+"_"+(nombreMeses[fecha1.getMonth()+1])+"_"+fecha1.getFullYear()+'__'+fecha2.getDate()+"_"+(nombreMeses[fecha2.getMonth()+1])+"_"+fecha2.getFullYear();
+									this.exportChart({
+										filename : $scope.account+'_'+nombreCorto+'_'+fechaFinal
+									}, {
+										title:{
+											//text:nombreCompleto		
+										}
+									});
+								}
+							},
+							{
+								//textKey : 'downloadPNG',
+								text: 'Exportar CSV Temas',
+								onclick : function() {	
+									$scope.descargaTemas($scope.nombre_cuenta,$scope.temasDecarga,$scope.totalTemas);
+								}
+							},
+							{
+								text:'&nbsp;'
+							}]
+						}
+					}
+				}     
+        	},
+        	xAxis: {
+            	categories: {},
+				 lineColor: 'transparent',
+        	},   
+        	yAxis: {
+				title: {
+                    text: ' '
+                }
+        	},
+			series: [{
+				type: $scope.tipoGraficaTemas,
+				name: 'Total',
+				data: objetoTopTemas
+			}]
+		};
+	}
+});
+
+$http.post('/chartTopSubtemas',{nombreSistema:nombreSistema,fecha_inicial:$scope.dt,fecha_final:$scope.dt2, tipo: opcion}).success(function(objetoTopSubtemas){
+	if(objetoTopSubtemas){
+	
+		for(var i in objetoTopSubtemas){
+			objetoTopSubtemas[i].events = {
+				click : function(e,i){
+					window.open('/#!/filtroAccount?first='+fecha_inicial+'&second='+fecha_final+'&subtema='+e.point.drilldown+'&cuenta='+nombreSistema+'&opcion='+opcion);	
+				}
+			}
+		}
+
+		if(objetoTopSubtemas.length > 0){
+			$scope.mostrarSubtemas = true;
+		}else{
+			$scope.mostrarSubtemas = false;
+		}
+
+		$scope.tipoGraficaSubTemas = 'pie'; 		    
 		$scope.chartSubTemas = {
 			loading:true,
 		    chart: {
@@ -725,58 +777,15 @@ $scope.clickSentiment = function (key,value){
 		    series: [{
 		        type: $scope.tipoGraficaSubTemas,
 		        name: 'Total',
-		        data: topSubTemas
+		        data: objetoTopSubtemas
 		    }]
 		};
-		
-
-			$scope.cambiarGraficaSubTemas = function(){
-				$scope.chartSubTemas.series[0].type = $scope.tipoGraficaSubTemas;
-			}		
-		
-	/*	if(objSubTemasC.length > 0){
-			$scope.mostrarSubtemas = true;
-		}else{
-			$scope.mostrarSubtemas = false;
-		}*/
-		if(objSubTemasC.length > 0){
-			$scope.mostrarSubtemas = true;
-		}else{
-			$scope.mostrarSubtemas = false;
-		}
-		
-		
-		
-		var csvContent = '';
-		if(data !== 0){
-			csv.forEach(function(infoArray, index){
-				var dataString = infoArray.join(',');
-				csvContent += index < csv.length ? dataString+ '\n' : dataString;
-			}); 
-			var encodedUri = encodeURI(csvContent);
-			$scope.archivo = encodedUri;
-			//window.open(encodedUri);
-		}else{
-			//alert('No hubo resultados para ese rango de fechas');
-		   	console.log('No hubo resultados para ese rango de fechas');
-		}	
-	});
-
-/*
-
-*/
-$http.post('/chartSentiment',{nombreSistema:nombreSistema,fecha_inicial:$scope.dt,fecha_final:$scope.dt2, tipo: opcion}).success(function(objetoSentimiento){
-  	$scope.numeroSentiment = objetoSentimiento;
-  	var total = objetoSentimiento.positivo + objetoSentimiento.neutro + objetoSentimiento.negativo;
-  	$scope.sentiment_perce = obtenPorcentajes(objetoSentimiento,total);	
-	if((isNaN($scope.sentiment_perce.negativo) === true && isNaN($scope.sentiment_perce.neutro) === true && isNaN($scope.sentiment_perce.positivo) === true) || ($scope.sentiment_perce.negativo === 0 && $scope.sentiment_perce.neutro === 0 && $scope.sentiment_perce.positivo === 0)){
-		$scope.mostrarSentiment = false;
-	}else{
-		$scope.mostrarSentiment = true;
 	}
 });
 
+$http.post('/chartFacebookEngagement',{nombreSistema:nombreSistema,fecha_inicial:$scope.dt,fecha_final:$scope.dt2, tipo: opcion}).success(function(objetoFBEngagement){
 
+});
 
 /*
   

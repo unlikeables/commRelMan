@@ -45,4 +45,13 @@ module.exports = function(app) {
 
 	app.route('/chartRating')
 		.post(charts.chartRating);
+
+	app.route('/chartTopTemas')
+		.post(charts.chartTopTemas);
+
+	app.route('/chartTopSubtemas')
+		.post(charts.chartTopSubtemas);
+
+	app.route('/chartFacebookEngagement')
+		.post(charts.chartFacebookEngagement);
 };

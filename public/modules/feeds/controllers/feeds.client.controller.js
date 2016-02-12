@@ -938,12 +938,12 @@ angular.module('feeds')
 				obj.subtema = $location.$$search.subtema;
 			}
 			obj.skip = 0;
-			console.log('El objeto es ');
-			console.log(obj);
+			//console.log('El objeto es ');
+			//console.log(obj);
 			$scope.obj_filtro_account = obj;
 			$http.post('/obtienePorClick',obj).success(function(data){
-				console.log('Datos para mostrar click!');
-				console.log(data);
+				//console.log('Datos para mostrar click!');
+				//console.log(data);
 				$scope.numeroResultadosBusqueda = data.length;
 				$scope.posts = data;
 				$scope.muestraLoadingPrimario = false;
@@ -954,8 +954,8 @@ angular.module('feeds')
 			var obj = $scope.obj_filtro_account;
 			obj.skip += 15;
 			$http.post('/obtienePorClick',obj).success(function(data){
-				console.log('Datos para mostrar click!');
-				console.log(data);
+				//console.log('Datos para mostrar click!');
+				//console.log(data);
 				for(var i in data){
 					$scope.posts.push(data[i]);
 				}

@@ -4844,7 +4844,7 @@ exports.nuevosPostsFiltered = function(req, res){
 
 exports.obtienePorClick = function(req, res){
 
-	function consultaTipoBuzon(criteriopage, criterioobj, tipoBuzon, idUsuario, fechaInicial, fechaFinal){
+	function consultaTipoBuzon(criteriopage, criterioobj, criterioTema, criterioSubtema, tipoBuzon, idUsuario, fechaInicial, fechaFinal){
 		var elcriterio = '';
 		switch(tipoBuzon){
 			case 'nuevos':
@@ -4940,6 +4940,8 @@ exports.obtienePorClick = function(req, res){
 						{'eliminado':{$exists: false}}, 
 						criteriopage, 
 						criterioobj, 
+            criterioTema,
+            criterioSubtema,
 						fechaInicial,
 						fechaFinal
 					]
@@ -5049,16 +5051,19 @@ exports.obtienePorClick = function(req, res){
 	var tipoBuzon = req.body.tipo;
 	var opcion = req.body.opcion;
 	var cuenta = req.body.cuenta;
+  var tema = req.body.tema;
+  var subtema = req.body.subtema;
 	var skip = req.body.skip;
 	var fechaInicial = {created_time: {$gte: new Date(req.body.first)}};
 	var fechaFinal = {created_time : {$lte: new Date(req.body.second)}}; 
 	var criteriopage = { id : { $exists : true }};
+  var criterioTema = { id : { $exists : true }};
+  var criterioSubtema = { id : { $exists : true }};
 	var criteriotipo = { _id : {$exists : true }};
 	var criterioobj = { obj : {$exists : true }};
 	var page_id = req.body.iCuenta;
 	var idUsuario = req.body.usuario;
 	var lositems = [];
-
 	if (page_id) {
 		criteriopage  = {from_user_id : {$ne : page_id}};
 	}
@@ -5067,10 +5072,28 @@ exports.obtienePorClick = function(req, res){
 		criterioobj = { obj : opcion };
 	}
 
+  if(tema){
+    criterioTema = {
+      'clasificacion' : {$exists : true},
+      'clasificacion.tema' : tema,
+      'descartado' : {$exists : false}
+    };
+  }
+
+  if(subtema){
+    criterioSubtema = {
+      'clasificacion' : {$exists : true},
+      'clasificacion.subtema' : subtema,
+      'descartado' : {$exists : false}
+    };
+  }
+
+
+
 	var elcriterio = '';
 
 	//Criterio
-	elcriterio = consultaTipoBuzon(criteriopage, criterioobj, tipoBuzon, idUsuario, fechaInicial, fechaFinal);
+	elcriterio = consultaTipoBuzon(criteriopage, criterioobj, criterioTema, criterioSubtema, tipoBuzon, idUsuario, fechaInicial, fechaFinal);
 
 	var arregloMensajes = [];
 	classdb.buscarToStreamLimitSkip(cuenta, elcriterio, {created_time:1}, 15, skip,'feeds/getUserData', function(items){

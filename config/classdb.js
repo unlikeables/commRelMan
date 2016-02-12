@@ -71,10 +71,10 @@ module.exports = {
     });
   },
 
-  dups_aggregate :  function(coleccion, group, match, sort, limit, metodo, callback) {
+  dups_aggregate :  function(coleccion, match, group, sort, limit, metodo, callback) {
     promesa_conexion.done(function() {
       var colect = dbase.collection(coleccion);
-      colect.aggregate([{$group: group}, {$match: match}, {$sort: sort}, {$limit: limit}], {allowDiskUse: true}, function(error, data) {
+      colect.aggregate([{$match: match}, {$group: group}, {$sort: sort}, {$limit: limit}], {allowDiskUse: true}, function(error, data) {
 	if (error) {
 	  console.log(metodo+' - classdb/dups_aggregate - error en aggregate: '+error);
 	  return callback('error');

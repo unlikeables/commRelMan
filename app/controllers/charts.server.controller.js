@@ -2434,3 +2434,302 @@ exports.chartRating = function(req,res){
 	});
 
 };
+
+
+exports.chartTopTemas = function(req, res) {
+
+    function obtieneCuenta(nombreSistema, callback){
+		var coleccion = 'accounts';
+		var sort = {};
+		classdb.buscarToArray(coleccion, {'nombreSistema':nombreSistema}, sort, 'charts/chartDesempenio/obtieneCuenta', function(cuenta){
+	    	return callback(cuenta);
+		});		
+    }
+
+    function obtieneTemas(tipo, nombreSistema, fecha_inicial, fecha_final, idCuenta, callback){
+    	var coleccion = nombreSistema+'_consolidada';
+		var sort = {};
+		var group = {};
+		var match = {};
+		var limit = {};
+		match ={
+			$and:[
+				{'clasificacion' : {$exists:true}},
+				{'created_time' : {$gte : fecha_inicial }},
+			    {'created_time' : {$lte : fecha_final }},
+	 	 		{'from_user_id' : {$ne: idCuenta}},
+				{'retweeted_status': {$exists : false}},
+				{'eliminado' : {$exists : false}}
+			]
+		};
+
+		group = {
+			_id : '$clasificacion.tema',
+			total: {$sum:1}
+		};
+		
+		sort = {
+			total:-1
+		};
+		
+		classdb.dups_aggregate(coleccion, match, group, sort, 10000, 'charts/chartDesempenio/obtieneCuenta', function(temas){
+	    	return callback(temas);
+		});		
+    }
+
+	function topTemas(temas, callback){
+		var totalTemas = 0;
+		temas.sort(function (a, b){
+			return (b.total - a.total);
+		});
+		var objTemas = {};
+		var objActualizado = {};
+		var contador = 0;
+		var arregloTema = [];
+		if(temas){
+			var cuentaTemas = temas.length;
+			for(var x = 0; x < cuentaTemas; x++){
+				totalTemas = totalTemas + temas[x].total;
+			}
+
+			if(cuentaTemas >10){
+				for(var i = 10; i < temas.length; i++){
+					contador = contador + temas[i].total;
+				}
+				objTemas.name = 'Otros ('+((contador / totalTemas) * 100).toFixed(2) +'%)';
+				objTemas.y = contador;
+				objTemas.drilldown = 'Otros';
+				for(var j = 0; j < 10; j++){
+					objActualizado = {};
+					objActualizado.name = temas[j]._id+' ('+((temas[j].total / totalTemas) * 100).toFixed(2) +'%)';
+					objActualizado.y = temas[j].total;
+					objActualizado.drilldown = temas[j]._id;
+					arregloTema.push(objActualizado);
+				}
+
+				arregloTema.push(objTemas);
+				return callback(arregloTema);
+			}else{
+				for(var j = 0; j < temas.length; j++){
+					objActualizado = {};
+					objActualizado.name = temas[j]._id+' ('+((temas[j].total / totalTemas) * 100).toFixed(2) +'%)';
+					objActualizado.y = temas[j].total;
+					objActualizado.drilldown = temas[j]._id;
+					arregloTema.push(objActualizado);
+				}
+				return callback(arregloTema);
+			}		
+		}
+	}
+
+    var nombreSistema =  req.body.nombreSistema;
+    var fecha_inicial = new Date(req.body.fecha_inicial);
+    var fecha_final = new Date(req.body.fecha_final);
+    var tipo = req.body.tipo;
+    var arregloTemas = [];
+    obtieneCuenta(nombreSistema, function(account){
+    	if(account){
+    		var idCuenta = '';
+			if(typeof account[0] !== 'undefined' && typeof account[0].datosPage !== 'undefined' && account[0].datosPage !== ''){
+	    		idCuenta = account[0].datosPage.id;
+			}else if(typeof account[0] !== 'undefined' && typeof account[0].datosMonitoreo !== 'undefined'){
+	    		idCuenta = account[0].datosMonitoreo.id;
+			}
+			obtieneTemas(tipo, nombreSistema, fecha_inicial, fecha_final, idCuenta, function(temas){
+				topTemas(temas, function(topTemasArray){
+					if(topTemasArray){
+						res.jsonp(topTemasArray);
+					}else{
+						console.log('ERROR EN LA GRAFICA DE TOP TEMAS');
+					}
+				});
+			});
+    	}
+    });
+};
+
+exports.chartTopSubtemas = function(req, res) {
+
+    function obtieneCuenta(nombreSistema, callback){
+		var coleccion = 'accounts';
+		var sort = {};
+		classdb.buscarToArray(coleccion, {'nombreSistema':nombreSistema}, sort, 'charts/chartDesempenio/obtieneCuenta', function(cuenta){
+	    	return callback(cuenta);
+		});		
+    }
+
+    function obtieneSubtemas(tipo, nombreSistema, fecha_inicial, fecha_final, idCuenta, callback){
+    	var coleccion = nombreSistema+'_consolidada';
+		var sort = {};
+		var group = {};
+		var match = {};
+		var limit = {};
+		match ={
+			$and:[
+				{'clasificacion' : {$exists:true}},
+				{'created_time' : {$gte : fecha_inicial }},
+			    {'created_time' : {$lte : fecha_final }},
+	 	 		{'from_user_id' : {$ne: idCuenta}},
+				{'retweeted_status': {$exists : false}},
+				{'eliminado' : {$exists : false}},
+				{'clasificacion.subtema': {$ne : ''}}
+			]
+		};
+
+		group = {
+			_id : '$clasificacion.subtema',
+			total: {$sum:1}
+		};
+		
+		sort = {
+			total:-1
+		};
+		
+		classdb.dups_aggregate(coleccion, match, group, sort, 10000, 'charts/chartDesempenio/obtieneCuenta', function(subtemas){
+	    	return callback(subtemas);
+		});		
+    }
+
+	function topSubtemas(subtemas, callback){
+		var totalSubtemas = 0;
+		subtemas.sort(function (a, b){
+			return (b.total - a.total);
+		});
+		var objSubtemas = {};
+		var objActualizado = {};
+		var contador = 0;
+		var arregloSubtema = [];
+		if(subtemas){
+			var cuentaSubtemas = subtemas.length;
+			for(var x = 0; x < cuentaSubtemas; x++){
+				totalSubtemas = totalSubtemas + subtemas[x].total;
+			}
+
+			if(cuentaSubtemas >10){
+				for(var i = 10; i < subtemas.length; i++){
+					contador = contador + subtemas[i].total;
+				}
+				objSubtemas.name = 'Otros ('+((contador / totalSubtemas) * 100).toFixed(2) +'%)';
+				objSubtemas.y = contador;
+				objSubtemas.drilldown = 'Otros';
+				for(var j = 0; j < 10; j++){
+					objActualizado = {};
+					objActualizado.name = subtemas[j]._id+' ('+((subtemas[j].total / totalSubtemas) * 100).toFixed(2) +'%)';
+					objActualizado.y = subtemas[j].total;
+					objActualizado.drilldown = subtemas[j]._id;
+					arregloSubtema.push(objActualizado);
+				}
+
+				arregloSubtema.push(objSubtemas);
+				return callback(arregloSubtema);
+			}else{
+				for(var j = 0; j < subtemas.length; j++){
+					objActualizado = {};
+					objActualizado.name = subtemas[j]._id+' ('+((subtemas[j].total / totalSubtemas) * 100).toFixed(2) +'%)';
+					objActualizado.y = subtemas[j].total;
+					objActualizado.drilldown = subtemas[j]._id;
+					arregloSubtema.push(objActualizado);
+				}
+				return callback(arregloSubtema);
+			}		
+		}
+	}
+
+    var nombreSistema =  req.body.nombreSistema;
+    var fecha_inicial = new Date(req.body.fecha_inicial);
+    var fecha_final = new Date(req.body.fecha_final);
+    var tipo = req.body.tipo;
+    var arregloTemas = [];
+    obtieneCuenta(nombreSistema, function(account){
+    	if(account){
+    		var idCuenta = '';
+			if(typeof account[0] !== 'undefined' && typeof account[0].datosPage !== 'undefined' && account[0].datosPage !== ''){
+	    		idCuenta = account[0].datosPage.id;
+			}else if(typeof account[0] !== 'undefined' && typeof account[0].datosMonitoreo !== 'undefined'){
+	    		idCuenta = account[0].datosMonitoreo.id;
+			}
+			obtieneSubtemas(tipo, nombreSistema, fecha_inicial, fecha_final, idCuenta, function(subtemas){
+				topSubtemas(subtemas, function(topSubtemasArray){
+					if(topSubtemasArray){
+						res.jsonp(topSubtemasArray);
+					}else{
+						console.log('ERROR EN LA GRAFICA DE TOP SUBTEMAS');
+					}
+				});
+			});
+    	}
+    });
+
+};
+exports.chartFacebookEngagement = function(req, res) {
+	
+	function obtieneCuenta(nombreSistema, callback){
+		var coleccion = 'accounts';
+		var sort = {};
+		classdb.buscarToArray(coleccion, {'nombreSistema' : nombreSistema}, sort, 'charts/chartDesempenio/obtieneCuenta', function(cuenta){
+	    	return callback(cuenta);
+		});		
+    }
+
+    function obtieneMensajes(tipo, nombreSistema, fecha_inicial, fecha_final, idCuenta, callback){
+    	var coleccion = nombreSistema+'_consolidada';
+		var sort = {};
+		var group = {};
+		var match = {};
+		var limit = {};
+		match ={
+			$and:[
+				{'created_time' : {$gte : fecha_inicial }},
+			    {'created_time' : {$lte : fecha_final }},
+	 	 		{'from_user_id' : idCuenta},
+				{'retweeted_status': {$exists : false}},
+				{'eliminado' : {$exists : false}}
+			]
+		};
+
+		group = {
+			_id : '$id',
+			total: {$sum:1}
+		};
+		
+		sort = {
+			total:-1
+		};
+		
+		classdb.dups_aggregate(coleccion, match, group, sort, 10000, 'charts/chartDesempenio/obtieneCuenta', function(mensajes){
+	    	//console.log('LOS MENSAJES');
+	    	//console.log(mensajes);
+	    	//return callback(temas);
+		});		
+    }
+
+    var nombreSistema =  req.body.nombreSistema;
+    var fecha_inicial = new Date(req.body.fecha_inicial);
+    var fecha_final = new Date(req.body.fecha_final);
+    var tipo = req.body.tipo;
+    var arregloTemas = [];
+    obtieneCuenta(nombreSistema, function(account){
+    	if(account){
+    		var idCuenta = '';
+			if(typeof account[0] !== 'undefined' && typeof account[0].datosPage !== 'undefined' && account[0].datosPage !== ''){
+	    		idCuenta = account[0].datosPage.id;
+			}else if(typeof account[0] !== 'undefined' && typeof account[0].datosMonitoreo !== 'undefined'){
+	    		idCuenta = account[0].datosMonitoreo.id;
+			}
+			//console.log('EL IDCUENTA');
+			//console.log(idCuenta);
+			obtieneMensajes(tipo, nombreSistema, fecha_inicial, fecha_final, idCuenta, function(mensajes){
+				/*topSubtemas(subtemas, function(topSubtemasArray){
+					if(topSubtemasArray){
+						console.log(topSubtemasArray);
+						res.jsonp(topSubtemasArray);
+					}else{
+						console.log('ERROR EN LA GRAFICA DE TOP SUBTEMAS');
+					}
+				});*/
+			});
+    	}
+    });
+	//console.log('ENTRO A chartFacebookEngagement');
+	//console.log(req.body);
+};
